@@ -8,7 +8,7 @@
 // @grant        GM_xmlhttpRequest
 // @connect      suggestqueries-clients6.youtube.com
 // @connect      *
-// @run-at       document-idle
+// @run-at       document-start
 // ==/UserScript==
 
 (function () {
@@ -28,6 +28,18 @@
     };
 
     let state = { panelOpen: null };
+
+    // ── Anti-backoff: prevent YouTube fake buffering ──
+    // Hooks Object.assign to inject isInlinePlaybackNoAd into player requests
+    // This works on SPA navigation (warm loads) where uBlock filters can't reach
+    const realAssign = Object.assign;
+    Object.assign = function() {
+        const ret = realAssign.apply(this, arguments);
+        if (arguments.length === 3 && ret && ret.body && typeof ret.body === "string" && ret.body.includes('"contentPlaybackContext":{')) {
+            ret.body = ret.body.replace('"contentPlaybackContext":{', '"contentPlaybackContext":{"isInlinePlaybackNoAd":true,');
+        }
+        return ret;
+    };
 
     const isWatch = () => location.pathname === "/watch";
     const isLive  = () => !!document.querySelector("ytd-live-chat-frame#chat, .ytp-live-badge[disabled], .ytp-live");
@@ -515,16 +527,7 @@
 
         let lastUrl = location.href;
         new MutationObserver(() => {
-            if (location.href !== lastUrl) {
-                const oldUrl = lastUrl;
-                lastUrl = location.href;
-                // Force full reload on watch page navigation to avoid player stuck in backoff loop
-                if (location.pathname === "/watch" && oldUrl.includes("/watch")) {
-                    location.reload();
-                    return;
-                }
-                onNav();
-            }
+            if (location.href !== lastUrl) { lastUrl = location.href; onNav(); }
         }).observe(document.body, { childList:true, subtree:true });
 
         setTimeout(forceTheater, 1000);
