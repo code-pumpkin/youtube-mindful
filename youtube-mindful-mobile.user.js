@@ -141,9 +141,9 @@ ytm-media-item .media-item-menu { display: none !important; }
 ytm-single-column-watch-next-results-renderer { background: var(--bg) !important; }
 ytm-companion-slot { display: none !important; }
 
-/* ── Hide watch sections by default — opened via overlay ── */
-ytm-slim-video-action-bar-renderer,
-ytm-item-section-renderer.scwnr-content,
+/* ── Hide watch sections by default ── */
+ytm-slim-video-action-bar-renderer { display: none !important; }
+ytm-item-section-renderer.scwnr-content { display: none !important; }
 ytm-related-chip-cloud-renderer { display: none !important; }
 
 /* ── Title + channel stay visible ── */
@@ -193,7 +193,7 @@ ytm-slim-owner-renderer {
     border-right: 1px solid var(--border);
 }
 #mindful-watch-btns button:last-child { border-right: none; }
-#mindful-watch-btns button:active { background: var(--bg-hover); }
+#mindful-watch-btns button.active { color: var(--accent); background: var(--bg-sel); }
 
 /* ── Description area below buttons ── */
 #mindful-watch-desc {
@@ -206,58 +206,68 @@ ytm-slim-owner-renderer {
     cursor: pointer; -webkit-tap-highlight-color: transparent;
 }
 
-/* ── Full-screen overlay ── */
-#mindful-overlay {
-    position: fixed; inset: 0; z-index: 100002;
-    background: var(--bg); display: none;
-    flex-direction: column; overflow: hidden;
-}
-#mindful-overlay.open { display: flex !important; }
-#mindful-overlay-hdr {
-    display: flex; align-items: center; height: 44px;
-    padding: 0 14px; background: var(--bg-dark);
-    border-bottom: 1px solid var(--border); flex-shrink: 0;
-}
-#mindful-overlay-hdr .title {
-    flex: 1; font-family: monospace; font-size: 13px;
-    color: var(--fg); font-weight: 500;
-}
-#mindful-overlay-hdr button {
-    background: none; border: none; color: var(--fg-dim);
-    font-size: 20px; padding: 8px; cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-}
-#mindful-overlay-body {
-    flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+/* ── PANELS — full-screen via body classes (like desktop) ── */
+/* Shared: all panels go full-screen fixed */
+body.mindful-m-details ytm-slim-video-metadata-section-renderer,
+body.mindful-m-comments ytm-item-section-renderer.scwnr-content,
+body.mindful-m-related ytm-item-section-renderer[section-identifier=related-items] {
+    position: fixed !important; top: 0 !important; left: 0 !important;
+    right: 0 !important; bottom: 0 !important;
+    width: 100% !important; height: 100% !important;
+    overflow-y: auto !important; -webkit-overflow-scrolling: touch !important;
+    background: var(--bg) !important;
+    z-index: 100002 !important;
+    display: block !important; visibility: visible !important;
+    padding: 48px 0 56px !important;
 }
 
-/* ── Styles for content inside overlay ── */
-#mindful-overlay-body ytm-video-with-context-renderer {
+/* Show action bar inside details panel */
+body.mindful-m-details ytm-slim-video-action-bar-renderer {
+    display: flex !important;
+}
+body.mindful-m-details ytm-slim-video-action-bar-renderer .slim-video-action-bar-actions {
+    display: flex !important; gap: 6px !important; padding: 10px 14px !important;
+}
+body.mindful-m-details .slim_video_action_bar_renderer_button button,
+body.mindful-m-details .ytSegmentedLikeDislikeButtonViewModelSegmentedButtonsWrapper button {
+    color: var(--fg-dim) !important; background: var(--bg-hover) !important;
+}
+body.mindful-m-details .ytSegmentedLikeDislikeButtonViewModelSegmentedButtonsWrapper {
+    background: var(--bg-hover) !important;
+}
+
+/* Show comments section */
+body.mindful-m-comments ytm-item-section-renderer.scwnr-content {
+    display: block !important;
+}
+
+/* Show related videos */
+body.mindful-m-related ytm-item-section-renderer[section-identifier=related-items] {
+    display: block !important;
+}
+body.mindful-m-related ytm-video-with-context-renderer {
     background: var(--bg) !important; display: block !important;
     border-bottom: 1px solid var(--border) !important;
     padding: 0 !important; margin: 0 !important;
 }
-#mindful-overlay-body ytm-video-with-context-renderer .details { padding: 6px 10px !important; }
-#mindful-overlay-body ytm-video-with-context-renderer .media-item-headline {
+body.mindful-m-related ytm-video-with-context-renderer .details { padding: 6px 10px !important; }
+body.mindful-m-related ytm-video-with-context-renderer .media-item-headline {
     font-size: 12px !important; line-height: 1.3 !important;
 }
-#mindful-overlay-body ytm-item-section-renderer { display: block !important; }
-#mindful-overlay-body ytm-slim-video-action-bar-renderer { display: flex !important; }
-#mindful-overlay-body .slim-video-action-bar-actions {
-    display: flex !important; gap: 6px !important; padding: 10px 14px !important;
-}
-#mindful-overlay-body .slim_video_action_bar_renderer_button button {
-    color: var(--fg-dim) !important; background: var(--bg-hover) !important;
-    font-family: var(--mono) !important; font-size: 12px !important;
-}
-#mindful-overlay-body .ytSegmentedLikeDislikeButtonViewModelSegmentedButtonsWrapper {
-    background: var(--bg-hover) !important;
-}
-#mindful-overlay-body .ytSegmentedLikeDislikeButtonViewModelSegmentedButtonsWrapper button {
-    color: var(--fg-dim) !important; background: transparent !important;
-}
 
-/* ── Engagement panels (comments full view) ── */
+/* ── Close button for panels ── */
+#mindful-panel-close {
+    position: fixed; top: 8px; right: 12px; z-index: 100003;
+    display: none; background: var(--bg-dark); border: 1px solid var(--border);
+    color: var(--fg); font-size: 18px; width: 36px; height: 36px;
+    cursor: pointer; font-family: monospace;
+    -webkit-tap-highlight-color: transparent;
+}
+body.mindful-m-details #mindful-panel-close,
+body.mindful-m-comments #mindful-panel-close,
+body.mindful-m-related #mindful-panel-close { display: block !important; }
+
+/* ── Engagement panels (YouTube native) ── */
 bottom-sheet-container { background: var(--bg-float) !important; }
 .yt-spec-bottom-sheet-layout-content { background: var(--bg-float) !important; color: var(--fg) !important; }
 ytm-comment-thread-renderer { border-bottom: 1px solid var(--border) !important; }
@@ -474,58 +484,27 @@ html[darker-dark-theme] c3-toast { background: var(--bg-float) !important; color
         buildSearch();
         updateBar();
 
-        // ── Full-screen overlay ──
-        const overlay = document.createElement("div");
-        overlay.id = "mindful-overlay";
-        const overlayHdr = document.createElement("div");
-        overlayHdr.id = "mindful-overlay-hdr";
-        const overlayTitle = document.createElement("span");
-        overlayTitle.className = "title";
-        const closeBtn = document.createElement("button");
-        closeBtn.textContent = "✕";
-        closeBtn.addEventListener("click", closeOverlay);
-        overlayHdr.append(overlayTitle, closeBtn);
-        const overlayBody = document.createElement("div");
-        overlayBody.id = "mindful-overlay-body";
-        overlay.append(overlayHdr, overlayBody);
-        document.body.appendChild(overlay);
+        // ── Panel close button ──
+        const panelClose = document.createElement("button");
+        panelClose.id = "mindful-panel-close";
+        panelClose.textContent = "✕";
+        panelClose.addEventListener("click", closePanel);
+        document.body.appendChild(panelClose);
 
-        function openOverlay(title, contentFn) {
-            overlayTitle.textContent = title;
-            while (overlayBody.firstChild) overlayBody.removeChild(overlayBody.firstChild);
-            contentFn(overlayBody);
-            overlay.classList.add("open");
+        const PANELS = ["mindful-m-details", "mindful-m-comments", "mindful-m-related"];
+        function closePanel() { PANELS.forEach(c => document.body.classList.remove(c)); updateWatchBtns(); }
+        function togglePanel(cls) {
+            const wasOpen = document.body.classList.contains(cls);
+            closePanel();
+            if (!wasOpen) document.body.classList.add(cls);
+            updateWatchBtns();
         }
-        function closeOverlay() { overlay.classList.remove("open"); }
 
-        function fillDetails(body) {
-            const actionBar = document.querySelector("ytm-slim-video-action-bar-renderer");
-            if (actionBar) body.appendChild(actionBar.cloneNode(true));
-            const desc = document.querySelector("ytm-crawler-description");
-            if (desc) body.appendChild(desc.cloneNode(true));
-        }
-        function fillComments(body) {
-            // Trigger YouTube's native comments panel
-            const entry = document.querySelector("yt-video-metadata-carousel-view-model, comments-entry-point-teaser-view-model");
-            if (entry) { entry.click(); closeOverlay(); return; }
-            const p = document.createElement("p");
-            p.textContent = "No comments available";
-            Object.assign(p.style, { padding:"20px", color:C.fgDim, fontFamily:"monospace" });
-            body.appendChild(p);
-        }
-        function fillRelated(body) {
-            const sections = document.querySelectorAll('ytm-item-section-renderer[section-identifier=related-items]');
-            sections.forEach(s => {
-                s.querySelectorAll("ytm-video-with-context-renderer").forEach(v => {
-                    body.appendChild(v.cloneNode(true));
-                });
+        let watchBtns = {};
+        function updateWatchBtns() {
+            Object.entries(watchBtns).forEach(([id, btn]) => {
+                btn.classList.toggle("active", document.body.classList.contains(id));
             });
-            if (!body.firstChild) {
-                const p = document.createElement("p");
-                p.textContent = "No related videos";
-                Object.assign(p.style, { padding:"20px", color:C.fgDim, fontFamily:"monospace" });
-                body.appendChild(p);
-            }
         }
 
         // ── Watch page button row + description ──
@@ -536,15 +515,17 @@ html[darker-dark-theme] c3-toast { background: var(--bg-float) !important; color
 
             const row = document.createElement("div");
             row.id = "mindful-watch-btns";
+            watchBtns = {};
             [
-                { label:"⊕ Details", fn: () => openOverlay("Details", fillDetails) },
-                { label:"💬 Comments", fn: () => openOverlay("Comments", fillComments) },
-                { label:"▶ Related", fn: () => openOverlay("Related", fillRelated) },
+                { id:"mindful-m-details",  label:"⊕ Details" },
+                { id:"mindful-m-comments", label:"💬 Comments" },
+                { id:"mindful-m-related",  label:"▶ Related" },
             ].forEach(item => {
                 const b = document.createElement("button");
                 b.textContent = item.label;
-                b.addEventListener("click", item.fn);
+                b.addEventListener("click", () => togglePanel(item.id));
                 row.appendChild(b);
+                watchBtns[item.id] = b;
             });
             meta.after(row);
 
@@ -554,20 +535,18 @@ html[darker-dark-theme] c3-toast { background: var(--bg-float) !important; color
                 const box = document.createElement("div");
                 box.id = "mindful-watch-desc";
                 const text = desc.textContent || "";
-                // Parse chapters (lines like "0:00 Intro")
-                const lines = text.split("\n");
-                lines.forEach(line => {
-                    const trimmed = line.trim();
-                    if (!trimmed) return;
-                    const chapterMatch = trimmed.match(/^(\d+:\d+(?::\d+)?)\s+(.+)/);
-                    if (chapterMatch) {
+                text.split("\n").forEach(line => {
+                    const t = line.trim();
+                    if (!t) return;
+                    const ch = t.match(/^(\d+:\d+(?::\d+)?)\s+(.+)/);
+                    if (ch) {
                         const span = document.createElement("span");
                         span.className = "chapter";
-                        span.textContent = chapterMatch[1] + "  " + chapterMatch[2];
+                        span.textContent = ch[1] + "  " + ch[2];
                         box.appendChild(span);
                     } else {
                         const p = document.createElement("div");
-                        p.textContent = trimmed;
+                        p.textContent = t;
                         p.style.marginBottom = "4px";
                         box.appendChild(p);
                     }
@@ -582,7 +561,7 @@ html[darker-dark-theme] c3-toast { background: var(--bg-float) !important; color
             if (location.href !== lastUrl) {
                 lastUrl = location.href;
                 if (searchEl.classList.contains("open")) closeSearch();
-                closeOverlay();
+                closePanel();
                 updateBar();
             }
             setupWatchUI();
