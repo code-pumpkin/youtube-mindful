@@ -1,0 +1,1 @@
+This is a userscript/userstyle project that modifies YouTube's interface to promote more mindful viewing habits, with separate implementations for desktop and mobile versions. The dist/ folder contains built versions ready for distribution, while the root contains source files and troubleshooting documentation.

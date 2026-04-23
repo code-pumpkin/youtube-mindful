@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Mindful Mobile
 // @namespace    youtube-mindful-mobile
-// @version      2.0.0
+// @version      3.0.0
 // @description  Mindful YouTube — mobile experience
 // @author       codePumpkin
 // @match        https://m.youtube.com/*
@@ -61,13 +61,15 @@ html[darker-dark-theme] {
 }
 *, *::after, *::before { border-radius: 0 !important; }
 
-/* ── Hide YT header — we replace it ── */
+/* ── Hide YT header — safe collapse ── */
 ytm-mobile-topbar-renderer, ytm-header, #header,
 #header-bar { height: 0 !important; min-height: 0 !important; overflow: hidden !important; opacity: 0 !important; pointer-events: none !important; }
 
 /* ── Hide YT bottom nav — we replace it ── */
 ytm-pivot-bar-renderer { height: 0 !important; min-height: 0 !important; overflow: hidden !important; opacity: 0 !important; pointer-events: none !important; }
-[has-pivot-bar=true] ytm-app { padding-bottom: 48px !important; }
+
+/* ── Bottom padding for our bar ── */
+[has-pivot-bar=true] ytm-app { padding-bottom: 56px !important; }
 
 /* ── Hide chips ── */
 ytm-feed-filter-chip-bar-renderer, .chip-bar,
@@ -77,8 +79,6 @@ ytm-feed-filter-chip-bar-renderer, .chip-bar,
 ytm-reel-shelf-renderer, ytm-reel-item-renderer,
 ytm-shorts-lockup-view-model,
 grid-shelf-view-model,
-ytm-rich-section-renderer,
-a[href*="/shorts/"],
 ad-slot-renderer,
 ytm-promoted-video-renderer,
 ytm-promoted-sparkles-web-renderer,
@@ -87,7 +87,11 @@ ytm-statement-banner-renderer,
 ytm-backstage-post-thread-renderer,
 ytm-backstage-post-renderer,
 .reel-shelf-header,
-.pivot-shorts { display: none !important; }
+.pivot-shorts,
+a[href*="/shorts/"] { display: none !important; }
+
+/* ── Rich sections: hide ones containing shorts/ads, keep others ── */
+ytm-rich-section-renderer { display: none !important; }
 
 /* ── Home feed — clean single column ── */
 .rich-grid-renderer-contents { padding: 0 !important; margin: 0 !important; }
@@ -163,43 +167,27 @@ ytm-compact-link-renderer { color: var(--fg) !important; }
 .yt-spec-button-shape-next--mono.yt-spec-button-shape-next--filled { background-color: var(--accent) !important; color: var(--bg) !important; }
 html[darker-dark-theme] c3-toast { background: var(--bg-float) !important; color: var(--fg) !important; }
 
-/* ── Our sidebar ── */
-#mindful-m-sidebar {
-    position: fixed; left: 0; top: 0; bottom: 0;
-    width: 48px; background: var(--bg-dark);
-    border-right: 1px solid var(--border);
-    display: flex; flex-direction: column; align-items: center;
-    padding: 6px 0; gap: 2px; z-index: 100000;
-    overflow-y: auto; overflow-x: hidden;
+/* ── Our bottom bar ── */
+#mindful-m-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    height: 52px; background: var(--bg-dark);
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-around;
+    z-index: 100000; padding: 0 4px;
 }
-#mindful-m-sidebar button {
-    width: 38px; height: 38px; border: none; background: transparent;
+#mindful-m-bar button {
+    flex: 1; max-width: 72px; height: 44px; border: none; background: transparent;
     color: var(--fg-dim); cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; font-size: 9px; font-family: monospace;
+    -webkit-tap-highlight-color: transparent;
 }
-#mindful-m-sidebar button.active { color: var(--accent) !important; background: var(--bg-sel) !important; }
-#mindful-m-sidebar .sep { width: 28px; height: 1px; background: var(--border); margin: 3px 0; }
-
-/* Page offset for sidebar */
-ytm-app, body { margin-left: 48px !important; }
-
-/* ── Panel bottom sheets ── */
-#mindful-m-panel {
-    position: fixed; right: 0; top: 0; bottom: 0;
-    width: 300px; background: var(--bg-float);
-    border-left: 2px solid var(--border);
-    overflow-y: auto; z-index: 99999;
-    display: none; padding: 12px;
-    color: var(--fg); font-family: var(--mono); font-size: 12px;
-}
-#mindful-m-panel.open { display: block !important; }
-#mindful-m-panel.panel-recs { border-left-color: var(--cyan); }
-#mindful-m-panel.panel-comments { border-left-color: var(--magenta); }
-#mindful-m-panel.panel-info { border-left-color: var(--accent); }
+#mindful-m-bar button.active { color: var(--accent) !important; }
+#mindful-m-bar button svg { pointer-events: none; }
 
 /* ── Search overlay ── */
 #mindful-m-search {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.88);
+    position: fixed; inset: 0; background: rgba(0,0,0,0.92);
     z-index: 100001; display: none; align-items: flex-start;
     justify-content: center; padding-top: 12vh;
 }
@@ -216,90 +204,35 @@ ytm-app, body { margin-left: 48px !important; }
     if (document.head) injectCSS();
     else document.addEventListener("DOMContentLoaded", injectCSS, { once: true });
 
-    // ── Wait for body ──
     const ready = fn => document.body ? fn() : document.addEventListener("DOMContentLoaded", fn, { once: true });
 
     ready(() => {
         const isWatch = () => location.pathname === "/watch";
 
-        // ── SVG helper ──
-        function ico(d) {
+        function ico(d, size) {
+            size = size || 20;
             const svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
-            svg.setAttribute("viewBox","0 0 24 24"); svg.setAttribute("width","20"); svg.setAttribute("height","20");
-            svg.style.pointerEvents = "none";
+            svg.setAttribute("viewBox","0 0 24 24"); svg.setAttribute("width", String(size)); svg.setAttribute("height", String(size));
             const p = document.createElementNS("http://www.w3.org/2000/svg","path");
             p.setAttribute("d", d); p.setAttribute("fill","currentColor");
             svg.appendChild(p); return svg;
         }
 
-        // ── Kill shorts, ads, posts — MutationObserver ──
+        // ── Kill junk ──
         function killJunk() {
             document.querySelectorAll([
-                // Shorts shelves (grid-shelf with shorts lockups)
-                'ytm-reel-shelf-renderer',
-                'ytm-reel-item-renderer',
-                'ytm-shorts-lockup-view-model',
-                'grid-shelf-view-model',
-                // Rich sections containing shorts
+                'ytm-reel-shelf-renderer', 'ytm-reel-item-renderer',
+                'ytm-shorts-lockup-view-model', 'grid-shelf-view-model',
                 'ytm-rich-section-renderer',
-                // Ads
-                'ad-slot-renderer',
-                'ytm-promoted-video-renderer',
-                'ytm-promoted-sparkles-web-renderer',
-                'ytm-companion-ad-renderer',
+                'ad-slot-renderer', 'ytm-promoted-video-renderer',
+                'ytm-promoted-sparkles-web-renderer', 'ytm-companion-ad-renderer',
                 'ytm-statement-banner-renderer',
-                // Community posts
-                'ytm-backstage-post-thread-renderer',
-                'ytm-backstage-post-renderer',
-                // Shorts links
-                'a[href*="/shorts/"]',
-                // Shorts tab in bottom nav
-                '.pivot-shorts',
-            ].join(',')).forEach(el => {
-                el.style.display = "none";
-            });
+                'ytm-backstage-post-thread-renderer', 'ytm-backstage-post-renderer',
+                'a[href*="/shorts/"]', '.pivot-shorts',
+            ].join(',')).forEach(el => { el.style.display = "none"; });
         }
         new MutationObserver(killJunk).observe(document.body, { childList:true, subtree:true });
         killJunk();
-
-        // ── Panel system ──
-        const panel = document.createElement("div");
-        panel.id = "mindful-m-panel";
-        document.body.appendChild(panel);
-
-        let openPanelId = null;
-
-        function openPanel(id) {
-            if (openPanelId === id) { closePanel(); return; }
-            closePanel();
-            panel.className = `open panel-${id}`;
-            while (panel.firstChild) panel.removeChild(panel.firstChild);
-
-            if (id === "recs") {
-                const src = document.querySelector("[section-identifier=related-items]");
-                if (src) panel.appendChild(src.cloneNode(true));
-                else panel.textContent = "No recommendations";
-            } else if (id === "comments") {
-                const entry = document.querySelector("ytm-comments-entry-point-header-renderer");
-                if (entry) { entry.click(); panel.className = ""; return; }
-                panel.textContent = "No comments";
-            } else if (id === "info") {
-                const info = document.querySelector("ytm-slim-video-information-renderer");
-                const owner = document.querySelector("ytm-slim-owner-renderer");
-                if (info) panel.appendChild(info.cloneNode(true));
-                if (owner) panel.appendChild(owner.cloneNode(true));
-                if (!info && !owner) panel.textContent = "No info";
-            }
-            openPanelId = id;
-            updateSidebar();
-        }
-
-        function closePanel() {
-            panel.className = "";
-            panel.style.display = "none";
-            openPanelId = null;
-            updateSidebar();
-        }
 
         // ── Search ──
         let searchEl, searchInput, suggestEl, suggestTimer;
@@ -307,7 +240,7 @@ ytm-app, body { margin-left: 48px !important; }
             searchEl = document.createElement("div");
             searchEl.id = "mindful-m-search";
             const wrap = document.createElement("div");
-            Object.assign(wrap.style, { display:"flex", flexDirection:"column", width:"85%" });
+            Object.assign(wrap.style, { display:"flex", flexDirection:"column", width:"88%", maxWidth:"500px" });
 
             const row = document.createElement("div");
             Object.assign(row.style, { display:"flex", alignItems:"center" });
@@ -356,21 +289,18 @@ ytm-app, body { margin-left: 48px !important; }
                     method:"GET",
                     url:"https://suggestqueries-clients6.youtube.com/complete/search?client=firefox&ds=yt&q="+encodeURIComponent(q),
                     onload: function(res) {
-                        try {
-                            const d = JSON.parse(res.responseText);
-                            if (d && d[1]) renderSuggest(d[1], q);
-                        } catch(e) {}
+                        try { const d = JSON.parse(res.responseText); if (d && d[1]) renderSuggest(d[1]); } catch(e) {}
                     }
                 });
             }
         }
 
-        function renderSuggest(items, q) {
+        function renderSuggest(items) {
             while(suggestEl.firstChild) suggestEl.removeChild(suggestEl.firstChild);
             if (!items.length) { suggestEl.style.display = "none"; return; }
             items.forEach(item => {
                 const text = Array.isArray(item) ? item[0] : String(item);
-                const div = document.createElement("div"); div.dataset.q = text;
+                const div = document.createElement("div");
                 Object.assign(div.style, {
                     padding:"10px 12px", cursor:"pointer", fontFamily:"monospace",
                     fontSize:"14px", color:C.fg, borderBottom:`1px solid ${C.border}`,
@@ -385,70 +315,61 @@ ytm-app, body { margin-left: 48px !important; }
             suggestEl.style.display = "block";
         }
 
-        function openSearch() { closePanel(); searchEl.classList.add("open"); searchInput.value = ""; searchInput.focus(); }
+        function openSearch() { searchEl.classList.add("open"); searchInput.value = ""; searchInput.focus(); }
         function closeSearch() { searchEl.classList.remove("open"); while(suggestEl.firstChild) suggestEl.removeChild(suggestEl.firstChild); suggestEl.style.display = "none"; }
 
-        // ── Sidebar — same as desktop ──
+        // ── Bottom bar ──
         const ICONS = {
             home:    "M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z",
             search:  "M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z",
-            back:    "M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z",
-            info:    "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z",
-            recs:    "M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z",
-            comments:"M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z",
             subs:    "M18 1H6a2 2 0 00-2 2h16a2 2 0 00-2-2zm3 4H3a2 2 0 00-2 2v13a2 2 0 002 2h18a2 2 0 002-2V7a2 2 0 00-2-2zM3 20V7h18v13H3zm13-6.5L10 10v7l6-3.5z",
             history: "M13 3a9 9 0 00-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7a6.98 6.98 0 01-4.95-2.05l-1.41 1.41A8.96 8.96 0 0013 21a9 9 0 000-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z",
+            back:    "M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z",
         };
 
-        const sidebar = document.createElement("div");
-        sidebar.id = "mindful-m-sidebar";
-        const sidebarBtns = {};
+        const bar = document.createElement("div");
+        bar.id = "mindful-m-bar";
 
-        const items = [
-            { id:"home",     icon:"home",     label:"Home",    action:()=>location.href="/" },
-            { id:"search",   icon:"search",   label:"Search",  action:openSearch },
-            { id:"back",     icon:"back",     label:"Back",    action:()=>history.back() },
-            "sep",
-            { id:"info",     icon:"info",     label:"Info",    action:()=>isWatch() && openPanel("info") },
-            { id:"recs",     icon:"recs",     label:"Related", action:()=>isWatch() && openPanel("recs") },
-            { id:"comments", icon:"comments", label:"Comments",action:()=>isWatch() && openPanel("comments") },
-            "sep",
-            { id:"subs",     icon:"subs",     label:"Subs",    action:()=>location.href="/feed/subscriptions" },
-            { id:"history",  icon:"history",  label:"History", action:()=>location.href="/feed/history" },
+        const btns = [
+            { id:"home",    icon:"home",    label:"Home",    action:()=>location.href="/" },
+            { id:"search",  icon:"search",  label:"Search",  action:openSearch },
+            { id:"back",    icon:"back",    label:"Back",    action:()=>history.back() },
+            { id:"subs",    icon:"subs",    label:"Subs",    action:()=>location.href="/feed/subscriptions" },
+            { id:"history", icon:"history", label:"History", action:()=>location.href="/feed/history" },
         ];
 
-        items.forEach(item => {
-            if (item === "sep") { const s = document.createElement("div"); s.className = "sep"; sidebar.appendChild(s); return; }
+        const barBtns = {};
+        btns.forEach(item => {
             const b = document.createElement("button");
-            b.appendChild(ico(ICONS[item.icon]));
+            b.appendChild(ico(ICONS[item.icon], 22));
+            const lbl = document.createElement("span");
+            lbl.textContent = item.label;
+            b.appendChild(lbl);
             b.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); item.action(); });
-            sidebar.appendChild(b);
-            sidebarBtns[item.id] = b;
+            bar.appendChild(b);
+            barBtns[item.id] = b;
         });
-        document.body.appendChild(sidebar);
+        document.body.appendChild(bar);
 
-        function updateSidebar() {
-            const w = isWatch();
-            ["info","recs","comments"].forEach(id => {
-                sidebarBtns[id].style.opacity = w ? "1" : "0.2";
-                sidebarBtns[id].style.pointerEvents = w ? "auto" : "none";
-                sidebarBtns[id].classList.toggle("active", openPanelId === id);
-            });
+        function updateBar() {
+            const path = location.pathname;
+            Object.values(barBtns).forEach(b => b.classList.remove("active"));
+            if (path === "/") barBtns.home.classList.add("active");
+            else if (path === "/feed/subscriptions") barBtns.subs.classList.add("active");
+            else if (path === "/feed/history") barBtns.history.classList.add("active");
         }
 
         buildSearch();
+        updateBar();
 
         // ── SPA nav ──
         let lastUrl = location.href;
         new MutationObserver(() => {
             if (location.href !== lastUrl) {
                 lastUrl = location.href;
-                closePanel();
                 if (searchEl.classList.contains("open")) closeSearch();
-                updateSidebar();
+                updateBar();
             }
         }).observe(document.body, { childList:true, subtree:true });
-
-        updateSidebar();
     });
 })();
