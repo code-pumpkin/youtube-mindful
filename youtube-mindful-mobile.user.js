@@ -145,8 +145,8 @@ ytm-media-item .media-item-menu { display: none !important; }
 ytm-single-column-watch-next-results-renderer { background: var(--bg) !important; }
 ytm-companion-slot { display: none !important; }
 
-/* ── Hide autoplay overlay + continuation spinner ── */
-ytm-continuation-item-renderer { display: none !important; }
+/* ── Hide continuation spinner visually but keep functional for infinite scroll ── */
+ytm-continuation-item-renderer { height: 1px !important; overflow: hidden !important; opacity: 0 !important; }
 
 /* ── Watch: hide action bar + related chips, keep everything else ── */
 ytm-slim-video-action-bar-renderer { display: none !important; }
