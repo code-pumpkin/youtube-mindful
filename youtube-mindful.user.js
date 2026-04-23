@@ -515,7 +515,16 @@
 
         let lastUrl = location.href;
         new MutationObserver(() => {
-            if (location.href !== lastUrl) { lastUrl = location.href; onNav(); }
+            if (location.href !== lastUrl) {
+                const oldUrl = lastUrl;
+                lastUrl = location.href;
+                // Force full reload on watch page navigation to avoid player stuck in backoff loop
+                if (location.pathname === "/watch" && oldUrl.includes("/watch")) {
+                    location.reload();
+                    return;
+                }
+                onNav();
+            }
         }).observe(document.body, { childList:true, subtree:true });
 
         setTimeout(forceTheater, 1000);
