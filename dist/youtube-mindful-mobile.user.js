@@ -65,6 +65,10 @@ html[darker-dark-theme] {
 ytm-mobile-topbar-renderer, ytm-header, #header,
 #header-bar { height: 0 !important; min-height: 0 !important; overflow: hidden !important; opacity: 0 !important; pointer-events: none !important; }
 
+/* ── Kill the 48px top gap left by hidden header ── */
+ytm-app { padding-top: 0 !important; }
+.player-container { top: 0 !important; }
+
 /* ── Hide YT bottom nav — we replace it ── */
 ytm-pivot-bar-renderer { height: 0 !important; min-height: 0 !important; overflow: hidden !important; opacity: 0 !important; pointer-events: none !important; }
 
@@ -131,6 +135,22 @@ ytm-media-item .media-item-menu { display: none !important; }
 .watch-main-col { background: var(--bg) !important; padding: 0 !important; }
 ytm-single-column-watch-next-results-renderer { background: var(--bg) !important; }
 ytm-companion-slot { display: none !important; }
+
+/* ── Collapsible section headers ── */
+.mindful-section-hdr {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px; background: var(--bg-dark);
+    border-bottom: 1px solid var(--border);
+    cursor: pointer; -webkit-tap-highlight-color: transparent;
+    font-family: monospace; font-size: 12px; color: var(--fg-dim);
+    user-select: none;
+}
+.mindful-section-hdr .label { font-weight: 500; color: var(--fg); }
+.mindful-section-hdr .count { color: var(--fg-dark); margin-left: 6px; }
+.mindful-section-hdr .arrow { transition: transform 0.15s; font-size: 10px; }
+.mindful-section-hdr.open .arrow { transform: rotate(90deg); }
+.mindful-section-body { display: none; }
+.mindful-section-body.open { display: block; }
 
 /* ── Video title ── */
 ytm-slim-video-information-renderer {
@@ -463,6 +483,35 @@ html[darker-dark-theme] c3-toast { background: var(--bg-float) !important; color
         buildSearch();
         updateBar();
 
+        // ── Collapsible watch page sections ──
+        function wrapSection(el, label, startOpen) {
+            if (!el || el.dataset.mindfulWrapped) return;
+            el.dataset.mindfulWrapped = "1";
+            const hdr = document.createElement("div");
+            hdr.className = "mindful-section-hdr" + (startOpen ? " open" : "");
+            hdr.innerHTML = '<span class="label">' + label + '</span><span class="arrow">▶</span>';
+            el.style.display = startOpen ? "" : "none";
+            el.parentNode.insertBefore(hdr, el);
+            hdr.addEventListener("click", () => {
+                const open = el.style.display !== "none";
+                el.style.display = open ? "none" : "";
+                hdr.classList.toggle("open", !open);
+            });
+        }
+
+        function setupWatchSections() {
+            const meta = document.querySelector("ytm-slim-video-metadata-section-renderer");
+            wrapSection(meta, "ℹ Info", true);
+            const sections = document.querySelectorAll("ytm-item-section-renderer.scwnr-content");
+            sections.forEach(s => {
+                if (s.querySelector("yt-video-metadata-carousel-view-model, comments-entry-point-teaser-view-model")) {
+                    wrapSection(s, "💬 Comments", false);
+                } else if (s.getAttribute("section-identifier") === "related-items" && s.querySelector("ytm-video-with-context-renderer")) {
+                    wrapSection(s, "▶ Related", false);
+                }
+            });
+        }
+
         // ── SPA nav ──
         let lastUrl = location.href;
         new MutationObserver(() => {
@@ -471,6 +520,8 @@ html[darker-dark-theme] c3-toast { background: var(--bg-float) !important; color
                 if (searchEl.classList.contains("open")) closeSearch();
                 updateBar();
             }
+            if (location.pathname === "/watch") setupWatchSections();
         }).observe(document.body, { childList:true, subtree:true });
+        if (location.pathname === "/watch") setupWatchSections();
     });
 })();
