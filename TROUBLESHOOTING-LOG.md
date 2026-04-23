@@ -84,3 +84,23 @@ www.youtube.com##^script#bc-def
 4. **Incognito/logged out** — may not be in the A/B test group
 5. **ReVanced on Android** — patches the app directly, bypasses all of this
 6. **NewPipe on Android** — no Google account, no ads, no buffering
+
+## Mobile Flash Loop (SOLVED — 2026-04-23)
+
+### Symptom
+On `m.youtube.com`, the page flashes black repeatedly in an infinite loop.
+
+### Root Causes (two issues stacked)
+
+1. **Redirect loop in JS**: The script had `location.replace()` redirecting `m.youtube.com` → `www.youtube.com`. YouTube detected mobile user-agent and redirected back → infinite loop. **Fix**: Removed the redirect entirely.
+
+2. **`display: none` on YouTube's header/nav**: The embedded mobile CSS in the JS file was hiding `ytm-mobile-topbar-renderer` and `ytm-pivot-bar-renderer` with `display: none`. YouTube's layout engine fights this aggressively on mobile, causing constant re-renders. **Fix**: Restyle with `background-color` instead of hiding.
+
+### Key Lesson
+On `m.youtube.com`, **never use `display: none` on core layout elements** (header, bottom nav). YouTube mobile re-creates them and the CSS/DOM fight causes a flash loop. Restyle them instead.
+
+### Additional Notes
+- The `NS_ERROR_ILLEGAL_VALUE` / `addSheet` errors in logcat are from Firefox's **built-in extensions** (ads@mozac.org etc.), NOT from our stylesheet
+- `:has()` selector also breaks Firefox's `addSheet` API — avoid in `.user.css` files
+- The `.user.css` file needs the `==UserStyle==` header and `.user.css` extension for Stylus to detect it
+- The JS embeds its own copy of the mobile CSS — both must be kept in sync
