@@ -1,7 +1,7 @@
 /* ==UserStyle==
 @name         YouTube Mindful Mobile
 @namespace    github.com/code-pumpkin/youtube-mindful
-@version      3.4.0
+@version      3.5.0
 @description  Mindful YouTube — mobile (m.youtube.com)
 @author       codePumpkin
 @license      MIT
@@ -295,11 +295,10 @@ bottom-sheet-container { background: var(--bg-float) !important; }
     visibility: visible !important; opacity: 1 !important;
     height: auto !important; display: block !important;
 }
-/* Make the engagement panel close button clearly visible */
+/* Make the engagement panel close button hidden — we use our own */
 ytm-engagement-panel-header-renderer button,
 .engagement-panel-title-header-renderer button {
-    color: var(--fg) !important; opacity: 1 !important;
-    min-width: 36px !important; min-height: 36px !important;
+    display: none !important;
 }
 ytm-comment-thread-renderer { border-bottom: 1px solid var(--border) !important; }
 .comment-text { color: var(--fg) !important; font-family: var(--mono) !important; font-size: 13px !important; }

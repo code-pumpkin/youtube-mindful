@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Mindful Mobile
 // @namespace    youtube-mindful-mobile
-// @version      3.4.0
+// @version      3.5.0
 // @description  Mindful YouTube — mobile experience
 // @author       codePumpkin
 // @match        https://m.youtube.com/*
@@ -324,11 +324,10 @@ bottom-sheet-container { background: var(--bg-float) !important; }
     visibility: visible !important; opacity: 1 !important;
     height: auto !important; display: block !important;
 }
-/* Make the engagement panel close button clearly visible */
+/* Make the engagement panel close button hidden — we use our own */
 ytm-engagement-panel-header-renderer button,
 .engagement-panel-title-header-renderer button {
-    color: var(--fg) !important; opacity: 1 !important;
-    min-width: 36px !important; min-height: 36px !important;
+    display: none !important;
 }
 ytm-comment-thread-renderer { border-bottom: 1px solid var(--border) !important; }
 .comment-text { color: var(--fg) !important; font-family: var(--mono) !important; font-size: 13px !important; }
@@ -563,6 +562,7 @@ html[darker-dark-theme] c3-toast { background: var(--bg-float) !important; color
             if (!wasOpen) document.body.classList.add(cls);
             updateWatchBtns();
         }
+        let commentResumeInterval;
         function openComments() {
             const vid = document.querySelector("video");
             const wasPlaying = vid && !vid.paused;
@@ -570,12 +570,19 @@ html[darker-dark-theme] c3-toast { background: var(--bg-float) !important; color
             if (entry) entry.click();
             document.body.classList.add("mindful-m-comments-open");
             if (wasPlaying && vid) {
-                const resume = () => { if (vid.paused) vid.play(); vid.muted = false; };
-                for (let t of [300, 600, 1000, 2000, 3000]) setTimeout(resume, t);
+                clearInterval(commentResumeInterval);
+                commentResumeInterval = setInterval(() => {
+                    if (!document.body.classList.contains("mindful-m-comments-open")) {
+                        clearInterval(commentResumeInterval);
+                        return;
+                    }
+                    if (vid.paused) vid.play();
+                    if (vid.muted) vid.muted = false;
+                }, 500);
             }
         }
         function closeComments() {
-            // Click YouTube's native close button in the engagement panel
+            clearInterval(commentResumeInterval);
             const closeBtn = document.querySelector('[panel-identifier="engagement-panel-comments-section"] button[aria-label*="Close"], ytm-engagement-panel-header-renderer button');
             if (closeBtn) closeBtn.click();
             document.body.classList.remove("mindful-m-comments-open");
