@@ -40,19 +40,9 @@
     }
 
 
-    function forceTheater() {
-        if (!isWatch()) return;
-        const f = document.querySelector("ytd-watch-flexy");
-        if (!f || f.hasAttribute("theater") || f.hasAttribute("fullscreen")) return;
-        const b = document.querySelector(".ytp-size-button");
-        if (b) b.click();
-    }
-
-    // Single delayed attempt — no retry loop
-    function ensureTheater() {
-        if (!isWatch()) return;
-        setTimeout(forceTheater, 1500);
-    }
+    // Theater mode — pure CSS, no button clicks, no player interaction
+    // The CSS already styles ytd-watch-flexy[theater] but we also handle non-theater
+    // by just letting CSS make the player full-width regardless
 
     // ── Stats injection (for details panel) ──
     function injectStats() {
@@ -489,7 +479,6 @@
         if (searchEl?.classList.contains("open")) closeSearch();
         updateSidebar();
         buildChannelBar();
-        setTimeout(ensureTheater, 800);
     }
 
     // ── Init ──
@@ -524,7 +513,6 @@
             if (location.href !== lastUrl) { lastUrl = location.href; onNav(); }
         }).observe(document.body, { childList:true, subtree:true });
 
-        setTimeout(ensureTheater, 1000);
         setTimeout(updateSidebar, 500);
         setTimeout(updateSidebar, 2000);
         setTimeout(buildChannelBar, 500);
