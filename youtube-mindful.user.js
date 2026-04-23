@@ -455,11 +455,47 @@
         }
     }
 
+    // ── Channel tab bar ──
+    const isChannel = () => /^\/((@|channel\/|c\/|user\/).+)/.test(location.pathname);
+    let channelBar;
+
+    function clickTab(title) {
+        for (const t of document.querySelectorAll("yt-tab-shape")) {
+            const name = (t.getAttribute("tab-title") || t.textContent || "").trim();
+            if (name.toLowerCase() === title.toLowerCase()) {
+                const btn = t.querySelector(".yt-tab-shape__tab, [role='tab']") || t;
+                btn.click(); return;
+            }
+        }
+    }
+
+    function buildChannelBar() {
+        if (channelBar) { channelBar.remove(); channelBar = null; }
+        if (!isChannel()) return;
+
+        channelBar = document.createElement("div");
+        channelBar.id = "mindful-channel-bar";
+        channelBar.style.cssText = "position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:99998;display:flex;gap:2px;background:"+C.bgDark+";border:1px solid "+C.border+";padding:4px 6px;font-family:\"JetBrains Mono\",monospace;font-size:11px;";
+
+        ["Videos","Playlists","Live","Home"].forEach(name => {
+            const b = document.createElement("button");
+            b.textContent = name;
+            b.style.cssText = "background:none;border:1px solid transparent;color:"+C.fgDim+";font-family:inherit;font-size:11px;padding:5px 12px;cursor:pointer;";
+            b.addEventListener("mouseenter", () => { b.style.color = C.fg; b.style.borderColor = C.border; });
+            b.addEventListener("mouseleave", () => { b.style.color = C.fgDim; b.style.borderColor = "transparent"; });
+            b.addEventListener("click", e => { e.preventDefault(); clickTab(name); });
+            channelBar.appendChild(b);
+        });
+
+        document.body.appendChild(channelBar);
+    }
+
     // ── SPA nav ──
     function onNav() {
         if (state.panelOpen) closePanel();
         if (searchEl?.classList.contains("open")) closeSearch();
         updateSidebar();
+        buildChannelBar();
         setTimeout(ensureTheater, 800);
     }
 
@@ -498,6 +534,7 @@
         setTimeout(ensureTheater, 1000);
         setTimeout(updateSidebar, 500);
         setTimeout(updateSidebar, 2000);
+        setTimeout(buildChannelBar, 500);
     }
 
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
