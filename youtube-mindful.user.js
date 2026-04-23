@@ -428,9 +428,9 @@
         }
         if (e.ctrlKey || e.altKey || e.metaKey) return;
         if (isWatch()) {
-            if (e.key === "c") { e.preventDefault(); e.stopImmediatePropagation(); togglePanel("comments"); return; }
-            if (e.key === "r") { e.preventDefault(); e.stopImmediatePropagation(); togglePanel("recs"); return; }
-            if (e.key === "d") { e.preventDefault(); e.stopImmediatePropagation(); togglePanel("details"); return; }
+            if (e.key === "c") { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); togglePanel("comments"); return; }
+            if (e.key === "r") { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); togglePanel("recs"); return; }
+            if (e.key === "d") { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); togglePanel("details"); return; }
         }
     }
 
@@ -462,6 +462,7 @@
         }
 
         window.addEventListener("keydown", onKey, true);
+        document.addEventListener("keydown", onKey, true);
         window.addEventListener("yt-navigate-finish", onNav);
         document.addEventListener("fullscreenchange", () => {
             if (sidebar) sidebar.style.display = document.fullscreenElement ? "none" : "";
