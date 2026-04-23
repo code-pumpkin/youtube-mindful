@@ -14,20 +14,18 @@ YouTube is A/B testing anti-adblock measures that cause fake buffering when you 
 5. Go back to **Filter lists** tab → click **"Update now"**
 6. Reload YouTube
 
-### Step 2: If still broken, add manual filter
+### Step 2: Add these filters manually (easiest fix)
 1. In uBlock dashboard → **My filters** tab
-2. Add this line:
+2. Paste ALL of these lines:
 ```
-www.youtube.com##+js(trusted-replace-outbound-text, JSON.stringify, 'contentPlaybackContext":{', 'contentPlaybackContext":{"isInlinePlaybackNoAd":true,', condition, 'contentPlaybackContext')
+www.youtube.com##+js(set, ytInitialPlayerResponse.playerAds, undefined)
+www.youtube.com##+js(set, ytInitialPlayerResponse.adPlacements, undefined)
+www.youtube.com##+js(set, ytInitialPlayerResponse.adSlots, undefined)
+www.youtube.com##+js(set, playerResponse.adPlacements, undefined)
+www.youtube.com##^script#bc-def
 ```
 3. Click **Apply changes**
 4. Reload YouTube
-
-### Step 3: If STILL broken (Firefox-specific locker bypass)
-Add this additional filter to strip YouTube's anti-tamper script:
-```
-www.youtube.com##^script#bc-def
-```
 
 ---
 
