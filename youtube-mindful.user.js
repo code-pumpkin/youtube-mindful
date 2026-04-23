@@ -717,6 +717,7 @@ ytm-compact-link-renderer { color: var(--fg) !important; }
     if (isMobile) {
         const waitBody = fn => document.body ? fn() : document.addEventListener("DOMContentLoaded", fn, { once: true });
         waitBody(() => {
+            console.log("[YouTube Mindful] Mobile mode active on", location.hostname);
             // Search overlay
             let mSearchEl, mSearchInput, mSuggestEl, mSuggestTimer;
             function mBuildSearch() {
