@@ -694,12 +694,6 @@ ytm-compact-link-renderer { color: var(--fg) !important; }
     const isWatch = () => location.pathname === "/watch";
     const isLive  = () => !!document.querySelector("ytd-live-chat-frame#chat, .ytp-live-badge[disabled], .ytp-live");
 
-    // ── Redirect m.youtube.com → www.youtube.com (mobile uses different DOM) ──
-    if (location.hostname === "m.youtube.com") {
-        location.replace(location.href.replace("m.youtube.com", "www.youtube.com"));
-        return;
-    }
-
     // ── Inject CSS (so it works without separate .user.css install) ──
     const isMobile = location.hostname === "m.youtube.com";
     function injectCSS() {
