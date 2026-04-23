@@ -175,11 +175,17 @@ ytm-continuation-item-renderer { display: none !important; }
 
 /* ── Hide watch sections by default ── */
 ytm-slim-video-action-bar-renderer { display: none !important; }
-/* Hide visually but keep in DOM so YouTube's JS can still use them */
-ytm-item-section-renderer.scwnr-content {
+/* Hide related sections but keep comments section functional for YouTube's JS */
+ytm-item-section-renderer.scwnr-content[section-identifier] {
     height: 0 !important; overflow: hidden !important;
     opacity: 0 !important; pointer-events: none !important;
     padding: 0 !important; margin: 0 !important; border: none !important;
+}
+/* Comments teaser: keep functional but compact (1px so YouTube JS works) */
+ytm-item-section-renderer.scwnr-content:not([section-identifier]) {
+    height: 1px !important; overflow: hidden !important;
+    opacity: 0 !important; pointer-events: none !important;
+    padding: 0 !important; margin: 0 !important;
 }
 ytm-related-chip-cloud-renderer { display: none !important; }
 
@@ -224,10 +230,11 @@ ytm-slim-owner-renderer {
     background: var(--bg-dark);
 }
 #mindful-watch-btns button {
-    flex: 1; padding: 12px 0; border: none; background: transparent;
-    color: var(--fg-dim); font-family: monospace; font-size: 12px;
+    flex: 1; padding: 10px 0; border: none; background: transparent;
+    color: var(--fg-dim); font-family: monospace; font-size: 10px;
     cursor: pointer; -webkit-tap-highlight-color: transparent;
     border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
 }
 #mindful-watch-btns button:last-child { border-right: none; }
 #mindful-watch-btns button.active { color: var(--accent); background: var(--bg-sel); }
@@ -564,13 +571,21 @@ html[darker-dark-theme] c3-toast { background: var(--bg-float) !important; color
             const row = document.createElement("div");
             row.id = "mindful-watch-btns";
             watchBtns = {};
+            const WATCH_ICONS = {
+                details: "M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z",
+                comments: "M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z",
+                related: "M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8 12.5v-9l6 4.5-6 4.5z",
+            };
             [
-                { id:"mindful-m-details",  label:"⊕ Details", action: () => togglePanel("mindful-m-details") },
-                { id:"mindful-m-comments", label:"💬 Comments", action: openComments },
-                { id:"mindful-m-related",  label:"▶ Related", action: () => togglePanel("mindful-m-related") },
+                { id:"mindful-m-details",  label:"Details",  icon:"details",  action: () => togglePanel("mindful-m-details") },
+                { id:"mindful-m-comments", label:"Comments", icon:"comments", action: openComments },
+                { id:"mindful-m-related",  label:"Related",  icon:"related",  action: () => togglePanel("mindful-m-related") },
             ].forEach(item => {
                 const b = document.createElement("button");
-                b.textContent = item.label;
+                b.appendChild(ico(WATCH_ICONS[item.icon], 18));
+                const lbl = document.createElement("span");
+                lbl.textContent = item.label;
+                b.appendChild(lbl);
                 b.addEventListener("click", item.action);
                 row.appendChild(b);
                 watchBtns[item.id] = b;
