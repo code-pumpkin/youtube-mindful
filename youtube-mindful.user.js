@@ -419,18 +419,34 @@
     }
 
     // ── Keyboard — just Escape ──
+    // Leader key: ; then c/r/d within 800ms
+    let leaderActive = false, leaderTimer = null;
+
     function onKey(e) {
         if (isTyping()) return;
         if (e.key === "Escape") {
+            leaderActive = false;
             if (settingsEl.style.display === "flex") { closeSettings(); return; }
             if (searchEl.classList.contains("open")) { closeSearch(); return; }
             if (state.panelOpen) { closePanel(); return; }
         }
         if (e.ctrlKey || e.altKey || e.metaKey) return;
-        if (isWatch()) {
-            if (e.key === "c") { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); togglePanel("comments"); return; }
-            if (e.key === "r") { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); togglePanel("recs"); return; }
-            if (e.key === "d") { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); togglePanel("details"); return; }
+
+        if (leaderActive) {
+            leaderActive = false; clearTimeout(leaderTimer);
+            if (isWatch()) {
+                if (e.key === "c") { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); togglePanel("comments"); return; }
+                if (e.key === "r") { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); togglePanel("recs"); return; }
+                if (e.key === "d") { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); togglePanel("details"); return; }
+            }
+            return;
+        }
+
+        if (e.key === "," && isWatch()) {
+            e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+            leaderActive = true;
+            leaderTimer = setTimeout(() => { leaderActive = false; }, 800);
+            return;
         }
     }
 
