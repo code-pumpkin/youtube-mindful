@@ -141,6 +141,9 @@ ytm-media-item .media-item-menu { display: none !important; }
 ytm-single-column-watch-next-results-renderer { background: var(--bg) !important; }
 ytm-companion-slot { display: none !important; }
 
+/* ── Hide autoplay overlay + continuation spinner ── */
+ytm-continuation-item-renderer { display: none !important; }
+
 /* ── Hide watch sections by default ── */
 ytm-slim-video-action-bar-renderer { display: none !important; }
 ytm-item-section-renderer.scwnr-content { display: none !important; }
@@ -194,6 +197,8 @@ ytm-slim-owner-renderer {
 }
 #mindful-watch-btns button:last-child { border-right: none; }
 #mindful-watch-btns button.active { color: var(--accent); background: var(--bg-sel); }
+/* Details button default highlight — info is always visible */
+#mindful-watch-btns button:first-child { color: var(--accent); }
 
 /* ── Description area below buttons ── */
 #mindful-watch-desc {
@@ -208,9 +213,29 @@ ytm-slim-owner-renderer {
 
 /* ── PANELS — full-screen via body classes (like desktop) ── */
 /* Shared: all panels go full-screen fixed */
-body.mindful-m-details ytm-slim-video-metadata-section-renderer,
-body.mindful-m-comments ytm-item-section-renderer.scwnr-content,
-body.mindful-m-related ytm-item-section-renderer[section-identifier=related-items] {
+body.mindful-m-details ytm-slim-video-metadata-section-renderer {
+    position: fixed !important; top: 0 !important; left: 0 !important;
+    right: 0 !important; bottom: 0 !important;
+    width: 100% !important; height: 100% !important;
+    overflow-y: auto !important; -webkit-overflow-scrolling: touch !important;
+    background: var(--bg) !important;
+    z-index: 100002 !important;
+    display: block !important; visibility: visible !important;
+    padding: 48px 0 56px !important;
+}
+/* Comments: first scwnr-content WITHOUT section-identifier */
+body.mindful-m-comments ytm-item-section-renderer.scwnr-content:not([section-identifier]) {
+    position: fixed !important; top: 0 !important; left: 0 !important;
+    right: 0 !important; bottom: 0 !important;
+    width: 100% !important; height: 100% !important;
+    overflow-y: auto !important; -webkit-overflow-scrolling: touch !important;
+    background: var(--bg) !important;
+    z-index: 100002 !important;
+    display: block !important; visibility: visible !important;
+    padding: 48px 0 56px !important;
+}
+/* Related: last section-identifier=related-items (has the actual videos) */
+body.mindful-m-related ytm-item-section-renderer.scwnr-content[section-identifier=related-items] {
     position: fixed !important; top: 0 !important; left: 0 !important;
     right: 0 !important; bottom: 0 !important;
     width: 100% !important; height: 100% !important;
@@ -237,12 +262,12 @@ body.mindful-m-details .ytSegmentedLikeDislikeButtonViewModelSegmentedButtonsWra
 }
 
 /* Show comments section */
-body.mindful-m-comments ytm-item-section-renderer.scwnr-content {
+body.mindful-m-comments ytm-item-section-renderer.scwnr-content:not([section-identifier]) {
     display: block !important;
 }
 
 /* Show related videos */
-body.mindful-m-related ytm-item-section-renderer[section-identifier=related-items] {
+body.mindful-m-related ytm-item-section-renderer.scwnr-content[section-identifier=related-items] {
     display: block !important;
 }
 body.mindful-m-related ytm-video-with-context-renderer {
