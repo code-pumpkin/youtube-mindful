@@ -30,6 +30,11 @@
         return realFetch.apply(this, arguments);
     };
 
+    // ── Background playback — spoof Page Visibility API ──
+    Object.defineProperty(document, "hidden", { get: () => false });
+    Object.defineProperty(document, "visibilityState", { get: () => "visible" });
+    document.addEventListener("visibilitychange", e => e.stopImmediatePropagation(), true);
+
     // ── CSS ──
     const CSS = `
 :root {
