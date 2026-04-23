@@ -30,8 +30,16 @@
     let state = { panelOpen: null };
 
     // ── Anti-backoff: prevent YouTube fake buffering ──
-    // Hooks Object.assign to inject isInlinePlaybackNoAd into player requests
-    // This works on SPA navigation (warm loads) where uBlock filters can't reach
+    // Intercept fetch to inject isInlinePlaybackNoAd into player requests
+    // This prevents SABR backoff delays on both cold and SPA navigation
+    const realFetch = window.fetch;
+    window.fetch = function(input, init) {
+        if (init && init.body && typeof init.body === "string" && init.body.includes('"contentPlaybackContext":{')) {
+            init.body = init.body.replace('"contentPlaybackContext":{', '"contentPlaybackContext":{"isInlinePlaybackNoAd":true,');
+        }
+        return realFetch.apply(this, arguments);
+    };
+    // Also hook Object.assign as backup
     const realAssign = Object.assign;
     Object.assign = function() {
         const ret = realAssign.apply(this, arguments);
