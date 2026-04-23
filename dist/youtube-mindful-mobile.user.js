@@ -73,19 +73,25 @@ ytm-pivot-bar-renderer { height: 0 !important; min-height: 0 !important; overflo
 ytm-feed-filter-chip-bar-renderer, .chip-bar,
 .rich-grid-sticky-header { height: 0 !important; overflow: hidden !important; opacity: 0 !important; }
 
-/* ── Nuke shorts everywhere ── */
+/* ── Nuke shorts, ads, posts ── */
 ytm-reel-shelf-renderer, ytm-reel-item-renderer,
-ytm-rich-shelf-renderer,
+ytm-shorts-lockup-view-model,
+grid-shelf-view-model,
+ytm-rich-section-renderer,
 a[href*="/shorts/"],
+ad-slot-renderer,
+ytm-promoted-video-renderer,
 ytm-promoted-sparkles-web-renderer,
 ytm-companion-ad-renderer,
 ytm-statement-banner-renderer,
-.reel-shelf-header { display: none !important; }
+ytm-backstage-post-thread-renderer,
+ytm-backstage-post-renderer,
+.reel-shelf-header,
+.pivot-shorts { display: none !important; }
 
 /* ── Home feed — clean single column ── */
 .rich-grid-renderer-contents { padding: 0 !important; margin: 0 !important; }
 ytm-rich-item-renderer { width: 100% !important; margin: 0 !important; }
-ytm-rich-section-renderer, ytm-rich-grid-renderer { margin: 0 !important; }
 ytm-media-item[use-vertical-layout] {
     padding: 0 !important; margin: 0 !important;
     border-bottom: 1px solid var(--border) !important;
@@ -226,14 +232,35 @@ ytm-app, body { margin-left: 48px !important; }
             svg.appendChild(p); return svg;
         }
 
-        // ── Shorts killer — MutationObserver ──
-        function killShorts() {
-            document.querySelectorAll('ytm-reel-shelf-renderer, ytm-rich-shelf-renderer, a[href*="/shorts/"], ytm-reel-item-renderer').forEach(el => {
+        // ── Kill shorts, ads, posts — MutationObserver ──
+        function killJunk() {
+            document.querySelectorAll([
+                // Shorts shelves (grid-shelf with shorts lockups)
+                'ytm-reel-shelf-renderer',
+                'ytm-reel-item-renderer',
+                'ytm-shorts-lockup-view-model',
+                'grid-shelf-view-model',
+                // Rich sections containing shorts
+                'ytm-rich-section-renderer',
+                // Ads
+                'ad-slot-renderer',
+                'ytm-promoted-video-renderer',
+                'ytm-promoted-sparkles-web-renderer',
+                'ytm-companion-ad-renderer',
+                'ytm-statement-banner-renderer',
+                // Community posts
+                'ytm-backstage-post-thread-renderer',
+                'ytm-backstage-post-renderer',
+                // Shorts links
+                'a[href*="/shorts/"]',
+                // Shorts tab in bottom nav
+                '.pivot-shorts',
+            ].join(',')).forEach(el => {
                 el.style.display = "none";
             });
         }
-        new MutationObserver(killShorts).observe(document.body, { childList:true, subtree:true });
-        killShorts();
+        new MutationObserver(killJunk).observe(document.body, { childList:true, subtree:true });
+        killJunk();
 
         // ── Panel system ──
         const panel = document.createElement("div");
