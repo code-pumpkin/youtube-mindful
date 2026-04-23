@@ -298,8 +298,10 @@
     const ico = (d, size=20) => {
         const s = document.createElementNS("http://www.w3.org/2000/svg","svg");
         s.setAttribute("viewBox","0 0 24 24"); s.setAttribute("width",size); s.setAttribute("height",size);
-        s.style.cssText = "fill:currentColor;pointer-events:none;";
-        s.innerHTML = `<path d="${d}"/>`;
+        s.style.cssText = "pointer-events:none;display:block;";
+        const p = document.createElementNS("http://www.w3.org/2000/svg","path");
+        p.setAttribute("d", d); p.setAttribute("fill", "currentColor");
+        s.appendChild(p);
         return s;
     };
     const ICONS = {
