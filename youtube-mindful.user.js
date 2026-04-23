@@ -44,21 +44,19 @@
         if (!isWatch()) return;
         const f = document.querySelector("ytd-watch-flexy");
         if (!f || f.hasAttribute("theater") || f.hasAttribute("fullscreen")) return;
-        const b = document.querySelector(".ytp-size-button");
-        if (b) b.click(); else f.setAttribute("theater", "");
+        f.setAttribute("theater", "");
+        f.setAttribute("theater-requested_", "");
     }
 
-    // Retry theater mode aggressively on watch pages
     function ensureTheater() {
         if (!isWatch()) return;
-        forceTheater();
         let tries = 0;
         const iv = setInterval(() => {
-            if (++tries > 10 || !isWatch()) { clearInterval(iv); return; }
+            if (++tries > 6 || !isWatch()) { clearInterval(iv); return; }
             const f = document.querySelector("ytd-watch-flexy");
             if (f && f.hasAttribute("theater")) { clearInterval(iv); return; }
             forceTheater();
-        }, 500);
+        }, 1000);
     }
 
     // ── Stats injection (for details panel) ──
