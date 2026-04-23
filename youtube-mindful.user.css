@@ -10,12 +10,12 @@
 @-moz-document domain("www.youtube.com") {
 
 :root {
-    --bg:       #0a0c10;  --bg-dark:  #080a0e;  --bg-float: #0f1318;
-    --bg-hover: #1a2030;  --bg-sel:   #1a2030;
-    --fg:       #e8e3da;  --fg-dim:   #7a8394;  --fg-dark:  #3d4452;
-    --border:   #2a3040;
-    --accent:   #e6b450;  --green:    #7fd962;  --red:      #d95757;
-    --yellow:   #ffb454;  --cyan:     #73b8ff;  --magenta:  #d2a6ff;
+    --bg:       #101010;  --bg-dark:  #0a0a0a;  --bg-float: #181818;
+    --bg-hover: #252525;  --bg-sel:   #2a2a2a;
+    --fg:       #e8e2d6;  --fg-dim:   #8a8a8a;  --fg-dark:  #4a4a4a;
+    --border:   #2a2a2a;
+    --accent:   #c8c0b0;  --green:    #8fbe7a;  --red:      #c75050;
+    --yellow:   #d4c090;  --cyan:     #90b0c8;  --magenta:  #b8a0d0;
     --sidebar-w: 48px;
     --mindful-panel-w: 380px;
     --mono:     "JetBrains Mono","Fira Code","Cascadia Code",monospace;
@@ -226,7 +226,7 @@ body.mindful-panel-details ytd-watch-flexy #above-the-fold {
     border-left: 3px solid var(--accent) !important;
 }
 body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
-    border-left: 3px solid var(--magenta) !important; padding: 0 !important;
+    border-left: 3px solid var(--fg-dim) !important; padding: 0 !important;
 }
 
 /* Recs inner fix */
@@ -318,7 +318,7 @@ body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat iframe {
     border-right: 1px solid var(--border);
     display: flex; flex-direction: column; align-items: center;
     padding: 8px 0; gap: 2px; z-index: 99999;
-    font-family: var(--mono); overflow: hidden;
+    font-family: var(--mono); overflow-y: auto; overflow-x: hidden;
 }
 #mindful-sidebar button {
     width: 40px; height: 40px; border: none; background: transparent;
@@ -326,6 +326,7 @@ body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat iframe {
     display: flex; align-items: center; justify-content: center;
     transition: background 0.12s, color 0.12s; position: relative;
 }
+#mindful-sidebar button svg { pointer-events: none; }
 #mindful-sidebar button:hover { background: var(--bg-hover) !important; color: var(--fg) !important; }
 #mindful-sidebar button.active { color: var(--accent) !important; background: var(--bg-sel) !important; }
 #mindful-sidebar button[disabled] { opacity: 0.15 !important; pointer-events: none !important; }

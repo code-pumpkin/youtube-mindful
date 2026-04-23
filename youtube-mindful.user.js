@@ -13,9 +13,10 @@
     "use strict";
 
     const C = {
-        bgDark:"#080a0e", bgFloat:"#0f1318", border:"#2a3040", bgHover:"#1a2030",
-        fg:"#e8e3da", fgDim:"#7a8394", fgDark:"#3d4452",
-        accent:"#e6b450", green:"#7fd962", cyan:"#73b8ff", magenta:"#d2a6ff",
+        bgDark:"#0a0a0a", bgFloat:"#181818", border:"#2a2a2a", bgHover:"#252525",
+        fg:"#e8e2d6", fgDim:"#8a8a8a", fgDark:"#4a4a4a",
+        accent:"#c8c0b0", green:"#8fbe7a", cyan:"#90b0c8", magenta:"#b8a0d0",
+        yellow:"#d4c090",
     };
 
     const PANELS = ["details","recs","comments","chat"];
@@ -293,25 +294,53 @@
     let sidebar;
     const sidebarBtns = {};
 
+    // SVG icon helper
+    const ico = (d, size=20) => {
+        const s = document.createElementNS("http://www.w3.org/2000/svg","svg");
+        s.setAttribute("viewBox","0 0 24 24"); s.setAttribute("width",size); s.setAttribute("height",size);
+        s.style.cssText = "fill:currentColor;pointer-events:none;";
+        s.innerHTML = `<path d="${d}"/>`;
+        return s;
+    };
+    const ICONS = {
+        home:    "M12 3l9 7.5V21h-6v-6H9v6H3V10.5L12 3z",
+        search:  "M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z",
+        back:    "M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z",
+        subs:    "M18 1H6a2 2 0 00-2 2h16a2 2 0 00-2-2zm3 4H3a2 2 0 00-2 2v13a2 2 0 002 2h18a2 2 0 002-2V7a2 2 0 00-2-2zM3 20V7h18v13H3zm13-6.5L10 10v7l6-3.5z",
+        details: "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z",
+        recs:    "M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z",
+        comments:"M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z",
+        chat:    "M12 2C6.48 2 2 6.48 2 12c0 1.54.36 2.98.97 4.29L2 22l5.71-.97A9.96 9.96 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2z",
+        settings:"M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.6 3.6 0 0112 15.6z",
+        history: "M13 3a9 9 0 00-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7a6.98 6.98 0 01-4.95-2.05l-1.41 1.41A8.96 8.96 0 0013 21a9 9 0 000-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z",
+        watchlater:"M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z",
+        playlist:"M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zm11.5-4.33v5.66l5-2.83-5-2.83z",
+    };
+
     function buildSidebar() {
         sidebar = document.createElement("div"); sidebar.id = "mindful-sidebar";
         const items = [
-            { id:"home",   icon:"⌂", label:"Home",    action: () => { if (location.pathname !== "/") { const l = document.querySelector("a#logo,a[href='/']"); l ? l.click() : (location.href="/"); } }},
-            { id:"search", icon:"⌕", label:"Search",  action: openSearch },
-            { id:"back",   icon:"←", label:"Back",    action: () => history.back() },
+            { id:"home",   icon:"home",   label:"Home",    action: () => { if (location.pathname !== "/") { const l = document.querySelector("a#logo,a[href='/']"); l ? l.click() : (location.href="/"); } }},
+            { id:"search", icon:"search", label:"Search",  action: openSearch },
+            { id:"back",   icon:"back",   label:"Back",    action: () => history.back() },
             "sep",
-            { id:"details",  icon:"ℹ",  label:"Details",         action: () => isWatch() && togglePanel("details") },
-            { id:"recs",     icon:"▤",  label:"Recommendations", action: () => isWatch() && togglePanel("recs") },
-            { id:"comments", icon:"💬", label:"Comments",        action: () => isWatch() && togglePanel("comments") },
-            { id:"chat",     icon:"◉",  label:"Live Chat",      action: () => isWatch() && isLive() && togglePanel("chat") },
+            { id:"subs",      icon:"subs",      label:"Subscriptions", action: () => location.href="/feed/subscriptions" },
+            { id:"history",   icon:"history",    label:"History",       action: () => location.href="/feed/history" },
+            { id:"watchlater",icon:"watchlater", label:"Watch Later",   action: () => location.href="/playlist?list=WL" },
+            { id:"playlist",  icon:"playlist",   label:"Playlists",     action: () => location.href="/feed/playlists" },
             "sep",
-            { id:"settings", icon:"⚙",  label:"Settings",        action: openSettings },
+            { id:"details",  icon:"details",  label:"Details",         action: () => isWatch() && togglePanel("details") },
+            { id:"recs",     icon:"recs",     label:"Recommendations", action: () => isWatch() && togglePanel("recs") },
+            { id:"comments", icon:"comments", label:"Comments",        action: () => isWatch() && togglePanel("comments") },
+            { id:"chat",     icon:"chat",     label:"Live Chat",       action: () => isWatch() && isLive() && togglePanel("chat") },
+            "sep",
+            { id:"settings", icon:"settings", label:"Settings",        action: openSettings },
         ];
         items.forEach(item => {
             if (item === "sep") { const s = document.createElement("div"); s.className = "sep"; sidebar.appendChild(s); return; }
             const b = document.createElement("button");
             b.setAttribute("aria-label", item.label);
-            b.textContent = item.icon;
+            b.appendChild(ico(ICONS[item.icon]));
             b.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); item.action(); });
             sidebar.appendChild(b);
             sidebarBtns[item.id] = b;
