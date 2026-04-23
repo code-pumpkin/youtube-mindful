@@ -1,7 +1,7 @@
 /* ==UserStyle==
 @name         YouTube Mindful Mobile
 @namespace    github.com/code-pumpkin/youtube-mindful
-@version      3.3.0
+@version      3.4.0
 @description  Mindful YouTube — mobile (m.youtube.com)
 @author       codePumpkin
 @license      MIT
@@ -278,6 +278,8 @@ body.mindful-m-related ytm-video-with-context-renderer .media-item-headline {
 }
 body.mindful-m-details #mindful-panel-close,
 body.mindful-m-related #mindful-panel-close { display: block !important; }
+/* Also show close button when comments engagement panel is open */
+body.mindful-m-comments-open #mindful-panel-close { display: block !important; }
 
 /* ── Engagement panels (YouTube native) ── */
 bottom-sheet-container { background: var(--bg-float) !important; }
@@ -292,6 +294,12 @@ bottom-sheet-container { background: var(--bg-float) !important; }
 [panel-identifier="engagement-panel-comments-section"] ytm-continuation-item-renderer {
     visibility: visible !important; opacity: 1 !important;
     height: auto !important; display: block !important;
+}
+/* Make the engagement panel close button clearly visible */
+ytm-engagement-panel-header-renderer button,
+.engagement-panel-title-header-renderer button {
+    color: var(--fg) !important; opacity: 1 !important;
+    min-width: 36px !important; min-height: 36px !important;
 }
 ytm-comment-thread-renderer { border-bottom: 1px solid var(--border) !important; }
 .comment-text { color: var(--fg) !important; font-family: var(--mono) !important; font-size: 13px !important; }

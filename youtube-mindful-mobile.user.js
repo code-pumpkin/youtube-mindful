@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Mindful Mobile
 // @namespace    youtube-mindful-mobile
-// @version      3.3.0
+// @version      3.4.0
 // @description  Mindful YouTube — mobile experience
 // @author       codePumpkin
 // @match        https://m.youtube.com/*
@@ -307,6 +307,8 @@ body.mindful-m-related ytm-video-with-context-renderer .media-item-headline {
 }
 body.mindful-m-details #mindful-panel-close,
 body.mindful-m-related #mindful-panel-close { display: block !important; }
+/* Also show close button when comments engagement panel is open */
+body.mindful-m-comments-open #mindful-panel-close { display: block !important; }
 
 /* ── Engagement panels (YouTube native) ── */
 bottom-sheet-container { background: var(--bg-float) !important; }
@@ -321,6 +323,12 @@ bottom-sheet-container { background: var(--bg-float) !important; }
 [panel-identifier="engagement-panel-comments-section"] ytm-continuation-item-renderer {
     visibility: visible !important; opacity: 1 !important;
     height: auto !important; display: block !important;
+}
+/* Make the engagement panel close button clearly visible */
+ytm-engagement-panel-header-renderer button,
+.engagement-panel-title-header-renderer button {
+    color: var(--fg) !important; opacity: 1 !important;
+    min-width: 36px !important; min-height: 36px !important;
 }
 ytm-comment-thread-renderer { border-bottom: 1px solid var(--border) !important; }
 .comment-text { color: var(--fg) !important; font-family: var(--mono) !important; font-size: 13px !important; }
@@ -544,7 +552,11 @@ html[darker-dark-theme] c3-toast { background: var(--bg-float) !important; color
         document.body.appendChild(panelClose);
 
         const PANELS = ["mindful-m-details", "mindful-m-related"];
-        function closePanel() { PANELS.forEach(c => document.body.classList.remove(c)); updateWatchBtns(); }
+        function closePanel() {
+            PANELS.forEach(c => document.body.classList.remove(c));
+            if (document.body.classList.contains("mindful-m-comments-open")) closeComments();
+            updateWatchBtns();
+        }
         function togglePanel(cls) {
             const wasOpen = document.body.classList.contains(cls);
             closePanel();
@@ -556,11 +568,17 @@ html[darker-dark-theme] c3-toast { background: var(--bg-float) !important; color
             const wasPlaying = vid && !vid.paused;
             const entry = document.querySelector("yt-video-metadata-carousel-view-model, comments-entry-point-teaser-view-model, ytm-comments-entry-point-header-renderer");
             if (entry) entry.click();
+            document.body.classList.add("mindful-m-comments-open");
             if (wasPlaying && vid) {
-                const resume = () => { if (vid.paused) vid.play(); };
-                setTimeout(resume, 500);
-                setTimeout(resume, 1500);
+                const resume = () => { if (vid.paused) vid.play(); vid.muted = false; };
+                for (let t of [300, 600, 1000, 2000, 3000]) setTimeout(resume, t);
             }
+        }
+        function closeComments() {
+            // Click YouTube's native close button in the engagement panel
+            const closeBtn = document.querySelector('[panel-identifier="engagement-panel-comments-section"] button[aria-label*="Close"], ytm-engagement-panel-header-renderer button');
+            if (closeBtn) closeBtn.click();
+            document.body.classList.remove("mindful-m-comments-open");
         }
 
         let watchBtns = {};
