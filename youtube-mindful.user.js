@@ -286,7 +286,7 @@
         settingsEl._modeEl.value = prefs.panelMode;
         settingsEl._widthEl.value = prefs.panelWidth;
         settingsEl._widthVal.textContent = prefs.panelWidth + "px";
-        settingsEl.style.display = "flex";
+        settingsEl.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:100002;display:flex;align-items:center;justify-content:center;";
     }
     function closeSettings() { settingsEl.style.display = "none"; }
 
@@ -317,6 +317,8 @@
         history: "M13 3a9 9 0 00-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7a6.98 6.98 0 01-4.95-2.05l-1.41 1.41A8.96 8.96 0 0013 21a9 9 0 000-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z",
         watchlater:"M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z",
         playlist:"M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zm11.5-4.33v5.66l5-2.83-5-2.83z",
+        bell:    "M12 22c1.1 0 2-.9 2-2h-4a2 2 0 002 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z",
+        person:  "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2a7.2 7.2 0 01-6-3.22c.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08a7.2 7.2 0 01-6 3.22z",
     };
 
     function buildSidebar() {
@@ -350,41 +352,52 @@
         document.body.appendChild(sidebar);
         updateSidebar();
 
-        // Steal notification bell + profile avatar from masthead into sidebar
-        setTimeout(adoptMastheadItems, 1500);
-        setTimeout(adoptMastheadItems, 4000);
+        // Add notification + profile proxy buttons after a delay
+        setTimeout(addProxyButtons, 2000);
     }
 
-    function adoptMastheadItems() {
-        if (!sidebar) return;
-        // Notification bell
-        if (!sidebar.querySelector("ytd-notification-topbar-button-renderer")) {
-            const bell = document.querySelector("ytd-notification-topbar-button-renderer");
-            if (bell) {
-                bell.style.cssText = "display:flex!important;align-items:center;justify-content:center;width:40px;height:40px;overflow:hidden;";
-                const btn = bell.querySelector("#button, button");
-                if (btn) btn.style.cssText = "padding:0!important;width:40px!important;height:40px!important;display:flex!important;align-items:center!important;justify-content:center!important;";
-                bell.querySelectorAll("tp-yt-paper-tooltip").forEach(t => t.remove());
-                const icon = bell.querySelector("yt-icon-badge-shape, yt-icon");
-                if (icon) icon.style.cssText = "width:20px!important;height:20px!important;color:var(--fg-dim)!important;";
-                // Insert before the last sep
-                const seps = sidebar.querySelectorAll(".sep");
-                const lastSep = seps[seps.length - 1];
-                if (lastSep) sidebar.insertBefore(bell, lastSep);
-                else sidebar.appendChild(bell);
-            }
+    function addProxyButtons() {
+        if (!sidebar || sidebar.querySelector("[data-proxy]")) return;
+
+        // Notification bell — our own SVG button that clicks the hidden YT one
+        const bellBtn = document.createElement("button");
+        bellBtn.setAttribute("aria-label", "Notifications");
+        bellBtn.dataset.proxy = "bell";
+        bellBtn.appendChild(ico(ICONS.bell || "M12 22c1.1 0 2-.9 2-2h-4a2 2 0 002 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"));
+        bellBtn.addEventListener("click", e => {
+            e.preventDefault(); e.stopPropagation();
+            const real = document.querySelector("ytd-notification-topbar-button-renderer button");
+            if (real) real.click();
+        });
+
+        // Profile avatar — our own button that clicks the hidden YT one
+        const avatarBtn = document.createElement("button");
+        avatarBtn.setAttribute("aria-label", "Account");
+        avatarBtn.dataset.proxy = "avatar";
+        // Try to grab the actual avatar image src
+        const avatarImg = document.querySelector("ytd-topbar-menu-button-renderer #avatar-btn img");
+        if (avatarImg && avatarImg.src) {
+            const img = document.createElement("img");
+            img.src = avatarImg.src;
+            img.style.cssText = "width:24px;height:24px;border-radius:50%!important;pointer-events:none;";
+            avatarBtn.appendChild(img);
+        } else {
+            avatarBtn.appendChild(ico("M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2a7.2 7.2 0 01-6-3.22c.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08a7.2 7.2 0 01-6 3.22z"));
         }
-        // Profile avatar
-        if (!sidebar.querySelector("ytd-topbar-menu-button-renderer")) {
-            const avatar = document.querySelector("ytd-topbar-menu-button-renderer:has(#avatar-btn)");
-            if (avatar) {
-                avatar.style.cssText = "display:flex!important;align-items:center;justify-content:center;width:40px;height:40px;overflow:hidden;";
-                const btn = avatar.querySelector("#avatar-btn");
-                if (btn) btn.style.cssText = "padding:0!important;width:32px!important;height:32px!important;display:flex!important;align-items:center!important;justify-content:center!important;cursor:pointer!important;background:none!important;border:none!important;";
-                const img = avatar.querySelector("yt-img-shadow, img");
-                if (img) img.style.cssText = "width:28px!important;height:28px!important;border-radius:50%!important;";
-                sidebar.appendChild(avatar);
-            }
+        avatarBtn.addEventListener("click", e => {
+            e.preventDefault(); e.stopPropagation();
+            const real = document.querySelector("ytd-topbar-menu-button-renderer #avatar-btn");
+            if (real) real.click();
+        });
+
+        // Insert before last sep (before settings)
+        const seps = sidebar.querySelectorAll(".sep");
+        const lastSep = seps[seps.length - 1];
+        if (lastSep) {
+            sidebar.insertBefore(bellBtn, lastSep);
+            sidebar.insertBefore(avatarBtn, lastSep);
+        } else {
+            sidebar.append(bellBtn, avatarBtn);
         }
     }
 

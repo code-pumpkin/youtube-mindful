@@ -300,18 +300,6 @@ body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat iframe {
 }
 
 /* ── SIDEBAR ── */
-#mindful-sidebar ytd-notification-topbar-button-renderer,
-#mindful-sidebar ytd-topbar-menu-button-renderer {
-    display: flex !important; visibility: visible !important; pointer-events: auto !important;
-}
-#mindful-sidebar ytd-notification-topbar-button-renderer yt-icon-button,
-#mindful-sidebar ytd-notification-topbar-button-renderer button {
-    background: transparent !important; border: none !important;
-    color: var(--fg-dim) !important; cursor: pointer !important;
-}
-#mindful-sidebar ytd-notification-topbar-button-renderer:hover yt-icon-button,
-#mindful-sidebar ytd-notification-topbar-button-renderer:hover button { color: var(--fg) !important; }
-#mindful-sidebar ytd-topbar-menu-button-renderer img { border-radius: 50% !important; }
 #mindful-sidebar {
     position: fixed; top: 0; left: 0; bottom: 0;
     width: var(--sidebar-w); background: var(--bg-dark);
