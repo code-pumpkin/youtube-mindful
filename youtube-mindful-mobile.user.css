@@ -1,7 +1,7 @@
 /* ==UserStyle==
 @name         YouTube Mindful Mobile
 @namespace    github.com/code-pumpkin/youtube-mindful
-@version      3.0.0
+@version      3.1.0
 @description  Mindful YouTube — mobile (m.youtube.com)
 @author       codePumpkin
 @license      MIT
@@ -115,21 +115,15 @@ ytm-companion-slot { display: none !important; }
 /* ── Hide autoplay overlay + continuation spinner ── */
 ytm-continuation-item-renderer { display: none !important; }
 
-/* ── Hide watch sections by default ── */
+/* ── Watch: hide action bar + related chips, keep everything else ── */
 ytm-slim-video-action-bar-renderer { display: none !important; }
-/* Hide related sections but keep comments section functional for YouTube's JS */
+ytm-related-chip-cloud-renderer { display: none !important; }
+/* Related sections: collapse (not comments) */
 ytm-item-section-renderer.scwnr-content[section-identifier] {
     height: 0 !important; overflow: hidden !important;
     opacity: 0 !important; pointer-events: none !important;
     padding: 0 !important; margin: 0 !important; border: none !important;
 }
-/* Comments teaser: keep functional but compact (1px so YouTube JS works) */
-ytm-item-section-renderer.scwnr-content:not([section-identifier]) {
-    height: 1px !important; overflow: hidden !important;
-    opacity: 0 !important; pointer-events: none !important;
-    padding: 0 !important; margin: 0 !important;
-}
-ytm-related-chip-cloud-renderer { display: none !important; }
 
 /* ── Title + channel stay visible ── */
 ytm-slim-video-information-renderer {
@@ -207,6 +201,27 @@ body.mindful-m-details ytm-slim-video-metadata-section-renderer {
     padding: 48px 0 56px !important;
 }
 /* Comments: trigger native YouTube bottom sheet via JS click — no CSS panel */
+/* Style the visible comments teaser */
+ytm-item-section-renderer.scwnr-content:not([section-identifier]) {
+    background: var(--bg) !important; padding: 0 8px !important;
+    border-bottom: 1px solid var(--border) !important;
+}
+yt-video-metadata-carousel-view-model { background: var(--bg) !important; }
+.ytCarouselTitleViewModelTitle {
+    color: var(--fg) !important; font-family: monospace !important;
+    font-size: 13px !important; font-weight: 500 !important;
+}
+.ytCarouselTitleViewModelSubtitle {
+    color: var(--fg-dim) !important; font-family: monospace !important;
+    font-size: 11px !important;
+}
+.ytCommentsEntryPointTeaserViewModelTeaser {
+    color: var(--fg-dim) !important; font-family: monospace !important;
+    font-size: 12px !important;
+}
+.ytCarouselDotsShapeDot { background: var(--fg-dark) !important; }
+.ytCarouselDotsShapeDotActive { background: var(--accent) !important; }
+
 /* Related: last section-identifier=related-items (has the actual videos) */
 body.mindful-m-related ytm-item-section-renderer.scwnr-content[section-identifier=related-items] {
     position: fixed !important; top: 0 !important; left: 0 !important;
