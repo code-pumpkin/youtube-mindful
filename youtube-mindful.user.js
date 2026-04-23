@@ -40,7 +40,6 @@
     }
 
 
-    // Theater mode — single click, no retry, no attribute hacking
     function forceTheater() {
         if (!isWatch()) return;
         const f = document.querySelector("ytd-watch-flexy");
@@ -484,7 +483,7 @@
         if (searchEl?.classList.contains("open")) closeSearch();
         updateSidebar();
         buildChannelBar();
-        setTimeout(forceTheater, 2000);
+        setTimeout(forceTheater, 800);
     }
 
     // ── Init ──
@@ -519,6 +518,7 @@
             if (location.href !== lastUrl) { lastUrl = location.href; onNav(); }
         }).observe(document.body, { childList:true, subtree:true });
 
+        setTimeout(forceTheater, 1000);
         setTimeout(updateSidebar, 500);
         setTimeout(updateSidebar, 2000);
         setTimeout(buildChannelBar, 500);

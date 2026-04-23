@@ -156,7 +156,6 @@ ytd-watch-flexy #primary.ytd-watch-flexy,
 ytd-watch-flexy #primary-inner.ytd-watch-flexy {
     max-width: 100% !important; width: 100% !important; padding: 0 !important;
 }
-/* Player — only size theater containers, don't touch default player */
 ytd-watch-flexy[theater] #player-wide-container.ytd-watch-flexy,
 ytd-watch-flexy[theater] #player-theater-container.ytd-watch-flexy {
     height: 100vh !important; max-height: 100vh !important;
