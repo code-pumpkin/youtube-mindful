@@ -39,7 +39,6 @@
         return t === "input" || t === "textarea" || a.isContentEditable;
     }
 
-    function esc(s) { const d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
 
     function forceTheater() {
         if (!isWatch()) return;
@@ -175,8 +174,7 @@
     }
 
     function fetchSuggest(q) {
-        if (!q) { suggestEl.style.display = "none"; return; }
-        // Try GM_xmlhttpRequest first (bypasses CORS), fallback to google.ac.h hook
+        if (!q) { while(suggestEl.firstChild) suggestEl.removeChild(suggestEl.firstChild); suggestEl.style.display = "none"; return; }
         if (typeof GM_xmlhttpRequest !== "undefined") {
             GM_xmlhttpRequest({
                 method: "GET",
@@ -185,17 +183,6 @@
                     try { const d = JSON.parse(res.responseText); if (d && d[1]) renderSuggest(d[1], q); } catch(e) {}
                 }
             });
-        } else {
-            // Fallback: hook into YouTube's own google.ac.h callback
-            const origH = window.google && window.google.ac && window.google.ac.h;
-            if (!window.google) window.google = {};
-            if (!window.google.ac) window.google.ac = {};
-            window.google.ac.h = function(data) { if (data && data[1]) renderSuggest(data[1], q); if (origH) window.google.ac.h = origH; };
-            const s = document.createElement("script");
-            s.src = "https://suggestqueries-clients6.youtube.com/complete/search?client=youtube&ds=yt&q=" + encodeURIComponent(q);
-            s.onerror = function() { s.remove(); if (origH) window.google.ac.h = origH; };
-            document.head.appendChild(s);
-            setTimeout(function() { s.remove(); }, 3000);
         }
     }
 
@@ -422,7 +409,7 @@
         const avatarImg = document.querySelector("ytd-topbar-menu-button-renderer #avatar-btn img");
         if (avatarImg && avatarImg.src) {
             const img = document.createElement("img");
-            img.src = avatarImg.src;
+            img.setAttribute("src", avatarImg.getAttribute("src"));
             img.style.cssText = "width:24px;height:24px;border-radius:50%!important;pointer-events:none;";
             avatarBtn.appendChild(img);
         } else {
