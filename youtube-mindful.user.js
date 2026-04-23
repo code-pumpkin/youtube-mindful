@@ -79,15 +79,19 @@
         if (!container) return;
         if (title) {
             const el = document.createElement("div"); el.id = "mindful-title-inject";
-            el.innerHTML = `<div style="font-size:14px;font-weight:bold;color:${C.fg};margin-bottom:4px">${esc(title)}</div>${channel ? `<div style="font-size:11px;color:${C.cyan}">${esc(channel)}</div>` : ""}`;
+            const t = document.createElement("div");
+            Object.assign(t.style, { fontSize:"14px", fontWeight:"bold", color:C.fg, marginBottom:"4px" });
+            t.textContent = title;
+            el.appendChild(t);
+            if (channel) { const ch = document.createElement("div"); Object.assign(ch.style, { fontSize:"11px", color:C.cyan }); ch.textContent = channel; el.appendChild(ch); }
             container.insertBefore(el, container.firstChild);
         }
         const bar = document.createElement("div"); bar.id = "mindful-stats";
-        const p = [];
-        if (info) p.push(`<span style="color:${C.cyan}">${esc(info)}</span>`);
-        if (likes) p.push(`<span style="color:${C.green}">${esc(likes)} likes</span>`);
-        if (!p.length) p.push(`<span style="color:${C.fgDim}">stats unavailable</span>`);
-        bar.innerHTML = p.join(`<span style="color:${C.fgDark}"> · </span>`);
+        const addStat = (text, color) => { const s = document.createElement("span"); s.style.color = color; s.textContent = text; bar.appendChild(s); };
+        const addDot = () => { const s = document.createElement("span"); s.style.color = C.fgDark; s.textContent = " · "; bar.appendChild(s); };
+        if (info) { addStat(info, C.cyan); }
+        if (likes) { if (info) addDot(); addStat(likes + " likes", C.green); }
+        if (!info && !likes) addStat("stats unavailable", C.fgDim);
         const ref = document.getElementById("mindful-title-inject");
         if (ref) ref.after(bar); else container.insertBefore(bar, container.firstChild);
     }
@@ -196,7 +200,7 @@
     }
 
     function renderSuggest(items, q) {
-        suggestEl.innerHTML = "";
+        while(suggestEl.firstChild) suggestEl.removeChild(suggestEl.firstChild);
         if (!items.length) { suggestEl.style.display = "none"; return; }
         items.forEach(item => {
             const text = Array.isArray(item) ? item[0] : String(item);
@@ -207,7 +211,14 @@
                 color:C.fg, borderBottom:`1px solid ${C.border}`,
             });
             const lo = text.toLowerCase(), lq = q.toLowerCase(), mi = lo.indexOf(lq);
-            div.innerHTML = mi >= 0 ? `${esc(text.slice(0,mi))}<span style="color:${C.accent};font-weight:bold">${esc(text.slice(mi,mi+q.length))}</span>${esc(text.slice(mi+q.length))}` : esc(text);
+            if (mi >= 0) {
+                div.appendChild(document.createTextNode(text.slice(0, mi)));
+                const b = document.createElement("span");
+                Object.assign(b.style, { color:C.accent, fontWeight:"bold" });
+                b.textContent = text.slice(mi, mi + q.length);
+                div.appendChild(b);
+                div.appendChild(document.createTextNode(text.slice(mi + q.length)));
+            } else { div.textContent = text; }
             div.addEventListener("mouseenter", () => { clearSel(); div.classList.add("sel"); div.style.background=C.bgHover; div.style.color=C.accent; });
             div.addEventListener("mouseleave", () => { div.classList.remove("sel"); div.style.background="transparent"; div.style.color=C.fg; });
             div.addEventListener("click", () => { location.href = `/results?search_query=${encodeURIComponent(text)}`; closeSearch(); });
@@ -233,7 +244,7 @@
     }
 
     function openSearch() { if (state.panelOpen) closePanel(); searchEl.classList.add("open"); searchInput.value = ""; searchInput.focus(); }
-    function closeSearch() { searchEl.classList.remove("open"); searchInput.blur(); suggestEl.innerHTML = ""; suggestEl.style.display = "none"; }
+    function closeSearch() { searchEl.classList.remove("open"); searchInput.blur(); while(suggestEl.firstChild) suggestEl.removeChild(suggestEl.firstChild); suggestEl.style.display = "none"; }
 
     // ── Settings ──
     const DEFAULTS = { panelMode: "side", panelWidth: 380, keyComments: "x", keyRecs: "z", keyDetails: "q" };
@@ -253,35 +264,53 @@
     function buildSettings() {
         settingsEl = document.createElement("div");
         settingsEl.id = "mindful-settings";
+        settingsEl.style.cssText = "position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.88);z-index:100002;display:none;justify-content:center;align-items:center";
 
-        const S = `position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.88);z-index:100002;display:none;justify-content:center;align-items:center`;
-        const B = `background:${C.bgFloat};border:1px solid ${C.border};padding:20px 24px;width:340px;max-width:90vw;font-family:"JetBrains Mono",monospace;font-size:12px;color:${C.fg}`;
-        const R = `display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;color:${C.fgDim};font-size:11px`;
-        const I = `width:80px;background:${C.bgDark};color:${C.fg};border:1px solid ${C.border};font-family:"JetBrains Mono",monospace;font-size:11px;padding:4px 6px;text-align:center;cursor:pointer`;
+        const R = "display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;color:"+C.fgDim+";font-size:11px";
+        const I = "width:80px;background:"+C.bgDark+";color:"+C.fg+";border:1px solid "+C.border+";font-family:\"JetBrains Mono\",monospace;font-size:11px;padding:4px 6px;text-align:center;cursor:pointer";
 
-        settingsEl.style.cssText = S;
-        settingsEl.innerHTML = `<div style="${B}">
-<div style="font-size:13px;color:${C.accent};border-bottom:1px solid ${C.border};padding-bottom:8px;margin-bottom:16px;font-weight:bold">⚙ Mindful Settings</div>
-<div style="${R}"><span>Panel mode</span><select data-s="panelMode" style="background:${C.bgDark};color:${C.fg};border:1px solid ${C.border};font-family:inherit;font-size:11px;padding:4px 6px"><option value="side">Side panel</option><option value="overlay">Overlay</option></select></div>
-<div style="${R}"><span>Panel width</span><span style="display:flex;align-items:center;gap:8px"><input type="range" data-s="panelWidth" min="280" max="600" step="10" style="width:100px;accent-color:${C.accent}"><span data-s="panelWidthVal" style="color:${C.accent};min-width:45px;text-align:right;font-size:11px"></span></span></div>
-<div style="margin-top:14px;padding-top:12px;border-top:1px solid ${C.border}">
-<div style="font-size:11px;color:${C.accent};margin-bottom:10px">Keybindings — click field, press key (Esc to clear)</div>
-<div style="${R}"><span>Comments</span><input data-key="keyComments" readonly style="${I}"></div>
-<div style="${R}"><span>Recommendations</span><input data-key="keyRecs" readonly style="${I}"></div>
-<div style="${R}"><span>Details</span><input data-key="keyDetails" readonly style="${I}"></div>
-</div>
-<button data-s="close" style="display:block;margin-top:16px;width:100%;padding:6px;background:${C.bgDark};color:${C.fg};border:1px solid ${C.border};font-family:inherit;font-size:11px;cursor:pointer;text-align:center">Close</button>
-</div>`;
+        const el = (tag, style, text) => { const e = document.createElement(tag); if (style) e.style.cssText = style; if (text) e.textContent = text; return e; };
 
-        // Wire events
-        settingsEl.addEventListener("click", e => { if (e.target === settingsEl) closeSettings(); });
-        settingsEl.querySelector("[data-s=close]").addEventListener("click", closeSettings);
-        settingsEl.querySelector("[data-s=panelMode]").addEventListener("change", function() { prefs.panelMode = this.value; savePrefs(); });
-        settingsEl.querySelector("[data-s=panelWidth]").addEventListener("input", function() {
-            prefs.panelWidth = +this.value;
-            settingsEl.querySelector("[data-s=panelWidthVal]").textContent = this.value + "px";
-            savePrefs();
+        const box = el("div", "background:"+C.bgFloat+";border:1px solid "+C.border+";padding:20px 24px;width:340px;max-width:90vw;font-family:\"JetBrains Mono\",monospace;font-size:12px;color:"+C.fg);
+        box.appendChild(el("div", "font-size:13px;color:"+C.accent+";border-bottom:1px solid "+C.border+";padding-bottom:8px;margin-bottom:16px;font-weight:bold", "⚙ Mindful Settings"));
+
+        // Panel mode
+        const modeRow = el("div", R); modeRow.appendChild(el("span", null, "Panel mode"));
+        const modeSelect = el("select", "background:"+C.bgDark+";color:"+C.fg+";border:1px solid "+C.border+";font-family:inherit;font-size:11px;padding:4px 6px");
+        const o1 = el("option", null, "Side panel"); o1.value = "side";
+        const o2 = el("option", null, "Overlay"); o2.value = "overlay";
+        modeSelect.append(o1, o2); modeSelect.dataset.s = "panelMode";
+        modeRow.appendChild(modeSelect); box.appendChild(modeRow);
+
+        // Panel width
+        const widthRow = el("div", R); widthRow.appendChild(el("span", null, "Panel width"));
+        const ww = el("span", "display:flex;align-items:center;gap:8px");
+        const widthRange = document.createElement("input"); widthRange.type = "range"; widthRange.min = "280"; widthRange.max = "600"; widthRange.step = "10";
+        widthRange.style.cssText = "width:100px;accent-color:"+C.accent; widthRange.dataset.s = "panelWidth";
+        const widthVal = el("span", "color:"+C.accent+";min-width:45px;text-align:right;font-size:11px"); widthVal.dataset.s = "panelWidthVal";
+        ww.append(widthRange, widthVal); widthRow.appendChild(ww); box.appendChild(widthRow);
+
+        // Keybindings
+        const ks = el("div", "margin-top:14px;padding-top:12px;border-top:1px solid "+C.border);
+        ks.appendChild(el("div", "font-size:11px;color:"+C.accent+";margin-bottom:10px", "Keybindings — click field, press key (Esc to clear)"));
+        ["Comments:keyComments", "Recommendations:keyRecs", "Details:keyDetails"].forEach(pair => {
+            const [label, key] = pair.split(":");
+            const row = el("div", R); row.appendChild(el("span", null, label));
+            const inp = document.createElement("input"); inp.readOnly = true; inp.style.cssText = I; inp.dataset.key = key;
+            row.appendChild(inp); ks.appendChild(row);
         });
+        box.appendChild(ks);
+
+        // Close
+        const closeBtn = el("button", "display:block;margin-top:16px;width:100%;padding:6px;background:"+C.bgDark+";color:"+C.fg+";border:1px solid "+C.border+";font-family:inherit;font-size:11px;cursor:pointer;text-align:center", "Close");
+        box.appendChild(closeBtn);
+        settingsEl.appendChild(box);
+
+        // Events
+        settingsEl.addEventListener("click", e => { if (e.target === settingsEl) closeSettings(); });
+        closeBtn.addEventListener("click", closeSettings);
+        modeSelect.addEventListener("change", function() { prefs.panelMode = this.value; savePrefs(); });
+        widthRange.addEventListener("input", function() { prefs.panelWidth = +this.value; widthVal.textContent = this.value + "px"; savePrefs(); });
         settingsEl.querySelectorAll("[data-key]").forEach(inp => {
             inp.addEventListener("keydown", e => {
                 e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
@@ -297,12 +326,11 @@
 
     function openSettings() {
         if (state.panelOpen) closePanel();
-        const el = settingsEl;
-        el.querySelector("[data-s=panelMode]").value = prefs.panelMode;
-        el.querySelector("[data-s=panelWidth]").value = prefs.panelWidth;
-        el.querySelector("[data-s=panelWidthVal]").textContent = prefs.panelWidth + "px";
-        el.querySelectorAll("[data-key]").forEach(inp => { inp.value = prefs[inp.dataset.key] || "(none)"; });
-        el.style.display = "flex";
+        settingsEl.querySelector("[data-s=panelMode]").value = prefs.panelMode;
+        settingsEl.querySelector("[data-s=panelWidth]").value = prefs.panelWidth;
+        settingsEl.querySelector("[data-s=panelWidthVal]").textContent = prefs.panelWidth + "px";
+        settingsEl.querySelectorAll("[data-key]").forEach(inp => { inp.value = prefs[inp.dataset.key] || "(none)"; });
+        settingsEl.style.display = "flex";
     }
     function closeSettings() { settingsEl.style.display = "none"; }
 
