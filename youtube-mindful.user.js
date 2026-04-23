@@ -221,10 +221,7 @@
     let settingsEl;
     function buildSettings() {
         settingsEl = document.createElement("div"); settingsEl.id = "mindful-settings";
-        Object.assign(settingsEl.style, {
-            position:"fixed", inset:"0", background:"rgba(0,0,0,0.88)",
-            zIndex:"100002", display:"none", alignItems:"center", justifyContent:"center",
-        });
+        settingsEl.style.cssText = "position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.88);z-index:100002;display:none;align-items:center;justify-content:center;";
 
         const box = document.createElement("div");
         Object.assign(box.style, {
@@ -286,7 +283,7 @@
         settingsEl._modeEl.value = prefs.panelMode;
         settingsEl._widthEl.value = prefs.panelWidth;
         settingsEl._widthVal.textContent = prefs.panelWidth + "px";
-        settingsEl.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:100002;display:flex;align-items:center;justify-content:center;";
+        settingsEl.style.cssText = "position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.88);z-index:100002;display:flex;align-items:center;justify-content:center;";
     }
     function closeSettings() { settingsEl.style.display = "none"; }
 
