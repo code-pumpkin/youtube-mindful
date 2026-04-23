@@ -432,6 +432,7 @@
 
     // ── Init ──
     function init() {
+        console.log("[YouTube Mindful] v8 init");
         loadPrefs();
         buildSidebar();
         buildSearch();
