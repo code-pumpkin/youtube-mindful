@@ -1,7 +1,7 @@
 /* ==UserStyle==
 @name         YouTube Mindful Mobile
 @namespace    github.com/code-pumpkin/youtube-mindful
-@version      3.1.0
+@version      3.2.0
 @description  Mindful YouTube — mobile (m.youtube.com)
 @author       codePumpkin
 @license      MIT
@@ -44,6 +44,10 @@ ytm-mobile-topbar-renderer, ytm-header, #header,
 /* ── Kill the 48px top gap left by hidden header ── */
 ytm-app { padding-top: 0 !important; }
 .player-container { top: 0 !important; }
+/* Keep player visible even when YouTube tries to hide it */
+#player.inline-player-hidden, .inline-player-hidden {
+    opacity: 1 !important; pointer-events: auto !important;
+}
 
 /* ── Hide YT bottom nav — we replace it ── */
 ytm-pivot-bar-renderer { height: 0 !important; min-height: 0 !important; overflow: hidden !important; opacity: 0 !important; pointer-events: none !important; }
