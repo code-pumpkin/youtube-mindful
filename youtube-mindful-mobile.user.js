@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Mindful Mobile
 // @namespace    youtube-mindful-mobile
-// @version      3.0.0
+// @version      3.3.0
 // @description  Mindful YouTube — mobile experience
 // @author       codePumpkin
 // @match        https://m.youtube.com/*
@@ -311,6 +311,17 @@ body.mindful-m-related #mindful-panel-close { display: block !important; }
 /* ── Engagement panels (YouTube native) ── */
 bottom-sheet-container { background: var(--bg-float) !important; }
 .yt-spec-bottom-sheet-layout-content { background: var(--bg-float) !important; color: var(--fg) !important; }
+/* Ensure engagement panel content is visible so IntersectionObserver fires */
+[panel-identifier="engagement-panel-comments-section"] {
+    visibility: visible !important; opacity: 1 !important;
+    height: auto !important; overflow: visible !important;
+}
+[panel-identifier="engagement-panel-comments-section"] ytm-item-section-renderer,
+[panel-identifier="engagement-panel-comments-section"] .section-list,
+[panel-identifier="engagement-panel-comments-section"] ytm-continuation-item-renderer {
+    visibility: visible !important; opacity: 1 !important;
+    height: auto !important; display: block !important;
+}
 ytm-comment-thread-renderer { border-bottom: 1px solid var(--border) !important; }
 .comment-text { color: var(--fg) !important; font-family: var(--mono) !important; font-size: 13px !important; }
 .comment-title { color: var(--accent) !important; }
