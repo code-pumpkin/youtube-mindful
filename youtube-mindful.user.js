@@ -170,11 +170,10 @@
 
     function fetchSuggest(q) {
         if (!q) { suggestEl.style.display = "none"; return; }
-        const cb = "_ys" + Date.now(), s = document.createElement("script");
-        window[cb] = d => { delete window[cb]; s.remove(); if (d?.[1]) renderSuggest(d[1], q); };
-        s.src = `https://suggestqueries-clients6.youtube.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(q)}&callback=${cb}`;
-        document.head.appendChild(s);
-        setTimeout(() => { if (window[cb]) { delete window[cb]; s.remove(); } }, 3000);
+        fetch(`https://suggestqueries-clients6.youtube.com/complete/search?client=firefox&ds=yt&q=${encodeURIComponent(q)}`)
+            .then(r => r.json())
+            .then(d => { if (d?.[1]) renderSuggest(d[1], q); })
+            .catch(() => {});
     }
 
     function renderSuggest(items, q) {
