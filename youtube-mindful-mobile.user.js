@@ -129,74 +129,130 @@ ytm-media-item .media-item-menu { display: none !important; }
 /* ── Watch page ── */
 .player-container { background: #000 !important; }
 .watch-main-col { background: var(--bg) !important; padding: 0 !important; }
+ytm-single-column-watch-next-results-renderer { background: var(--bg) !important; }
+ytm-companion-slot { display: none !important; }
 
-/* Video title block */
+/* ── Video title ── */
 ytm-slim-video-information-renderer {
     background: var(--bg) !important; color: var(--fg) !important;
-    padding: 12px 14px 8px !important; margin: 0 !important;
-    border-bottom: none !important;
+    padding: 10px 14px 6px !important; margin: 0 !important;
 }
-.slim-video-information-title {
+.slim-video-metadata-header { padding: 0 !important; margin: 0 !important; }
+.slim-video-information-title, .slim-video-metadata-title-modern {
     font-size: 15px !important; color: var(--fg) !important;
-    font-family: var(--mono) !important; line-height: 1.35 !important;
-    font-weight: 500 !important;
+    font-family: var(--mono) !important; line-height: 1.3 !important;
+    font-weight: 500 !important; margin: 0 !important;
 }
-/* View count + date under title */
-.slim-video-information-description,
-ytm-slim-video-information-renderer .subtitle {
+/* Views + date + hashtags */
+.modern-panel-with-inline-badge-subtitle { margin-top: 4px !important; }
+.modern-panel-with-inline-badge-subtitle .secondary-text,
+.modern-panel-with-inline-badge-subtitle .ytAttributedStringHost {
     font-size: 11px !important; color: var(--fg-dim) !important;
-    font-family: var(--mono) !important; margin-top: 4px !important;
+    font-family: var(--mono) !important;
+}
+.slim-video-metadata-information-inline-badge { display: none !important; }
+/* "...more" button */
+.slim-video-information-show-more {
+    background: none !important; border: none !important;
+    color: var(--fg-dim) !important; font-family: var(--mono) !important;
+    font-size: 11px !important; padding: 2px 0 !important;
 }
 
-/* Action bar (like/share/etc) */
-ytm-slim-video-action-bar-renderer {
+/* ── Channel row ── */
+ytm-slim-owner-renderer {
     background: var(--bg) !important;
+    padding: 8px 14px !important;
     border-top: 1px solid var(--border) !important;
     border-bottom: 1px solid var(--border) !important;
-    padding: 4px 0 !important;
+    display: flex !important; align-items: center !important;
 }
-.slim-video-action-bar-actions button { color: var(--fg-dim) !important; }
-.slim-video-action-bar-actions .yt-spec-button-shape-next__button-text-content {
-    font-size: 11px !important; font-family: var(--mono) !important;
+.slim-owner-icon-and-title { display: flex !important; align-items: center !important; gap: 10px !important; flex: 1 !important; }
+.slim-owner-profile-icon { width: 32px !important; height: 32px !important; }
+.slim-owner-profile-icon img { width: 32px !important; height: 32px !important; }
+.slim-owner-channel-name {
+    color: var(--fg) !important; font-family: var(--mono) !important;
+    font-size: 13px !important; font-weight: 500 !important; margin: 0 !important;
+}
+.slim-owner-subtitle, .slim-owner-bylines div {
+    color: var(--fg-dim) !important; font-family: var(--mono) !important;
+    font-size: 11px !important;
+}
+/* Subscribe button */
+.slim-owner-subscribe-button { margin-left: auto !important; }
+.modern-subscribe-button button {
+    background: var(--bg-sel) !important; color: var(--fg) !important;
+    font-family: var(--mono) !important; font-size: 12px !important;
 }
 
-/* Channel info */
-ytm-slim-video-metadata-section-renderer ytm-slim-owner-renderer {
+/* ── Action bar (like/dislike/share) ── */
+ytm-slim-video-action-bar-renderer {
+    background: var(--bg) !important;
+    padding: 6px 10px !important;
+    border-bottom: 1px solid var(--border) !important;
+}
+.slim-video-action-bar-actions {
+    display: flex !important; align-items: center !important;
+    gap: 6px !important; justify-content: flex-start !important;
+}
+.slim_video_action_bar_renderer_button button {
+    color: var(--fg-dim) !important; background: var(--bg-hover) !important;
+    font-family: var(--mono) !important; font-size: 12px !important;
+    padding: 6px 12px !important;
+}
+/* Like/dislike segmented button */
+.ytSegmentedLikeDislikeButtonViewModelSegmentedButtonsWrapper {
+    background: var(--bg-hover) !important;
+}
+.ytSegmentedLikeDislikeButtonViewModelSegmentedButtonsWrapper button {
+    color: var(--fg-dim) !important; background: transparent !important;
+}
+
+/* ── Comments teaser carousel ── */
+.scwnr-content { background: var(--bg) !important; padding: 0 !important; }
+yt-video-metadata-carousel-view-model {
     background: var(--bg) !important; padding: 10px 14px !important;
     border-bottom: 1px solid var(--border) !important;
 }
-.slim-owner-channel-name { color: var(--fg) !important; font-family: var(--mono) !important; font-size: 13px !important; }
-.slim-owner-bylines { color: var(--fg-dim) !important; font-family: var(--mono) !important; font-size: 11px !important; }
-
-/* Comments entry */
-ytm-comments-entry-point-header-renderer {
-    background: var(--bg) !important; color: var(--fg) !important;
-    padding: 10px 14px !important;
-    border-bottom: 1px solid var(--border) !important;
+.ytVideoMetadataCarouselViewModelTitleSection { margin-bottom: 8px !important; }
+.ytCarouselTitleViewModelTitle {
+    color: var(--fg) !important; font-family: var(--mono) !important;
+    font-size: 13px !important; font-weight: 500 !important;
 }
+.ytCarouselTitleViewModelSubtitle {
+    color: var(--fg-dim) !important; font-family: var(--mono) !important;
+    font-size: 11px !important; margin-left: 6px !important;
+}
+/* Comment preview text */
+.ytCommentsEntryPointTeaserViewModelTeaser {
+    color: var(--fg-dim) !important; font-family: var(--mono) !important;
+    font-size: 12px !important; line-height: 1.3 !important;
+}
+/* Carousel dots */
+.ytCarouselDotsShapeDot { background: var(--fg-dark) !important; }
+.ytCarouselDotsShapeDotActive { background: var(--accent) !important; }
 
-/* Related videos section */
-ytm-single-column-watch-next-results-renderer { background: var(--bg) !important; }
+/* ── Related videos ── */
 [section-identifier=related-items] { padding: 0 !important; }
+/* Hide related chips bar */
+ytm-related-chip-cloud-renderer { display: none !important; }
 ytm-video-with-context-renderer {
     background: var(--bg) !important;
     border-bottom: 1px solid var(--border) !important;
     padding: 0 !important; margin: 0 !important;
 }
-/* Related video titles */
+ytm-video-with-context-renderer .details { padding: 6px 10px !important; }
 ytm-video-with-context-renderer .media-item-headline {
     font-size: 12px !important; line-height: 1.3 !important;
 }
-ytm-video-with-context-renderer .details {
-    padding: 6px 10px !important;
-}
 
-/* ── Engagement panels ── */
-.engagement-panel-container { background: var(--bg-float) !important; color: var(--fg) !important; }
-.engagement-panel-section-list-header { background: var(--bg-dark) !important; color: var(--fg) !important; border-bottom: 1px solid var(--border) !important; }
+/* ── Engagement panels (comments full view, description) ── */
+bottom-sheet-container { background: var(--bg-float) !important; }
+.yt-spec-bottom-sheet-layout-content { background: var(--bg-float) !important; color: var(--fg) !important; }
 ytm-comment-thread-renderer { border-bottom: 1px solid var(--border) !important; }
-.comment-text { color: var(--fg) !important; }
+.comment-text { color: var(--fg) !important; font-family: var(--mono) !important; font-size: 13px !important; }
 .comment-title { color: var(--accent) !important; }
+/* Description panel */
+ytm-crawler-description { color: var(--fg-dim) !important; font-family: var(--mono) !important; font-size: 12px !important; line-height: 1.4 !important; }
 
 /* ── Menus ── */
 .menu-content, html[darker-dark-theme] .menu-content,
