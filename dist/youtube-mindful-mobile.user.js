@@ -34,6 +34,8 @@
     Object.defineProperty(document, "hidden", { get: () => false });
     Object.defineProperty(document, "visibilityState", { get: () => "visible" });
     document.addEventListener("visibilitychange", e => e.stopImmediatePropagation(), true);
+    document.addEventListener("fullscreenchange", e => e.stopImmediatePropagation(), true);
+    document.addEventListener("webkitfullscreenchange", e => e.stopImmediatePropagation(), true);
 
     // ── CSS ──
     const CSS = `
@@ -146,7 +148,12 @@ ytm-continuation-item-renderer { display: none !important; }
 
 /* ── Hide watch sections by default ── */
 ytm-slim-video-action-bar-renderer { display: none !important; }
-ytm-item-section-renderer.scwnr-content { display: none !important; }
+/* Hide visually but keep in DOM so YouTube's JS can still use them */
+ytm-item-section-renderer.scwnr-content {
+    height: 0 !important; overflow: hidden !important;
+    opacity: 0 !important; pointer-events: none !important;
+    padding: 0 !important; margin: 0 !important; border: none !important;
+}
 ytm-related-chip-cloud-renderer { display: none !important; }
 
 /* ── Title + channel stay visible ── */
@@ -253,7 +260,8 @@ body.mindful-m-details .ytSegmentedLikeDislikeButtonViewModelSegmentedButtonsWra
 
 /* Show related videos */
 body.mindful-m-related ytm-item-section-renderer.scwnr-content[section-identifier=related-items] {
-    display: block !important;
+    height: 100% !important; opacity: 1 !important;
+    pointer-events: auto !important; overflow-y: auto !important;
 }
 body.mindful-m-related ytm-video-with-context-renderer {
     background: var(--bg) !important; display: block !important;
