@@ -517,8 +517,12 @@ html[darker-dark-theme] c3-toast { background: var(--bg-float) !important; color
             updateWatchBtns();
         }
         function openComments() {
+            const vid = document.querySelector("video");
+            const wasPlaying = vid && !vid.paused;
             const entry = document.querySelector("yt-video-metadata-carousel-view-model, comments-entry-point-teaser-view-model, ytm-comments-entry-point-header-renderer");
             if (entry) entry.click();
+            // YouTube pauses video when opening comments — resume it
+            if (wasPlaying && vid) setTimeout(() => { if (vid.paused) vid.play(); }, 300);
         }
 
         let watchBtns = {};
