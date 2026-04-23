@@ -1,0 +1,158 @@
+/* YouTube Mindful — Mobile (m.youtube.com) */
+/* Separate from desktop — mobile uses ytm-* elements, not ytd-* */
+
+:root {
+    --bg: #101010; --bg-dark: #0a0a0a; --bg-float: #181818;
+    --bg-hover: #252525; --bg-sel: #2a2a2a;
+    --fg: #e8e2d6; --fg-dim: #8a8a8a; --fg-dark: #4a4a4a;
+    --border: #2a2a2a;
+    --accent: #c8c0b0;
+}
+
+/* ── Global colors ── */
+html, body, ytm-app, ytm-browse,
+ytm-single-column-browse-results-renderer {
+    background-color: var(--bg) !important;
+    color: var(--fg) !important;
+}
+html[darker-dark-theme] {
+    background-color: var(--bg) !important;
+    --yt-spec-base-background: var(--bg) !important;
+    --yt-spec-raised-background: var(--bg) !important;
+    --yt-spec-general-background-a: var(--bg) !important;
+    --yt-spec-text-primary: var(--fg) !important;
+    --yt-spec-text-secondary: var(--fg-dim) !important;
+}
+
+/* ── No border radius ── */
+*, *::after, *::before { border-radius: 0 !important; }
+
+/* ── Hide header ── */
+ytm-mobile-topbar-renderer, ytm-header, #header { display: none !important; }
+
+/* ── Hide bottom nav ── */
+ytm-pivot-bar-renderer { display: none !important; }
+[has-pivot-bar=true] ytm-app { padding-bottom: 0 !important; }
+
+/* ── Hide chips ── */
+ytm-feed-filter-chip-bar-renderer, .chip-bar { display: none !important; }
+
+/* ── Hide shorts ── */
+ytm-reel-shelf-renderer, ytm-reel-item-renderer,
+ytm-rich-item-renderer:has(ytm-reel-item-renderer),
+a[href*="/shorts/"] { display: none !important; }
+
+/* ── Home grid ── */
+.rich-grid-renderer-contents {
+    display: flex !important; flex-wrap: wrap !important;
+    gap: 0 !important; padding: 0 !important; margin: 0 !important;
+}
+ytm-rich-item-renderer {
+    width: 100% !important; display: block !important; margin: 0 !important;
+}
+ytm-media-item[use-vertical-layout] {
+    padding: 0 !important; margin: 0 0 8px 0 !important;
+}
+.video-thumbnail-container-large { border-radius: 0 !important; }
+
+/* Video titles */
+.media-item-headline {
+    font-size: 13px !important; color: var(--fg) !important;
+    line-height: 1.3 !important;
+}
+.media-item-metadata, .media-item-info,
+ytm-badge-and-byline-renderer {
+    font-size: 11px !important; color: var(--fg-dim) !important;
+}
+.media-channel { font-size: 11px !important; color: var(--fg-dim) !important; }
+
+/* ── Watch page ── */
+.player-container { background: #000 !important; }
+.watch-main-col { background: var(--bg) !important; }
+
+ytm-slim-video-information-renderer {
+    background: var(--bg-float) !important; color: var(--fg) !important;
+    padding: 8px 12px !important;
+}
+.slim-video-information-title {
+    font-size: 14px !important; color: var(--fg) !important;
+}
+ytm-slim-video-action-bar-renderer {
+    background: var(--bg-float) !important;
+}
+.slim-video-action-bar-actions button {
+    color: var(--fg-dim) !important;
+}
+ytm-slim-video-metadata-section-renderer ytm-slim-owner-renderer {
+    background: var(--bg-float) !important;
+    border-top: 1px solid var(--border) !important;
+}
+
+/* Related videos on watch page */
+ytm-single-column-watch-next-results-renderer {
+    background: var(--bg) !important;
+}
+ytm-video-with-context-renderer {
+    background: var(--bg) !important;
+}
+ytm-comments-entry-point-header-renderer {
+    background: var(--bg-float) !important; color: var(--fg) !important;
+}
+
+/* ── Engagement panels (comments, description) ── */
+.engagement-panel-container {
+    background: var(--bg-float) !important; color: var(--fg) !important;
+}
+.engagement-panel-section-list-header {
+    background: var(--bg-float) !important; color: var(--fg) !important;
+    border-bottom: 1px solid var(--border) !important;
+}
+ytm-comment-thread-renderer {
+    border-bottom: 1px solid var(--border) !important;
+}
+.comment-text { color: var(--fg) !important; }
+.comment-title { color: var(--fg-dim) !important; }
+.comment-published-time { color: var(--fg-dark) !important; }
+
+/* ── Menus / dialogs ── */
+.menu-content {
+    background: var(--bg-float) !important; color: var(--fg) !important;
+}
+html[darker-dark-theme] .menu-content,
+html[darker-dark-theme] .menu-full-width .menu-content {
+    background: var(--bg-float) !important;
+}
+html[darker-dark-theme] .dialog {
+    background: var(--bg-float) !important;
+}
+
+/* ── Search ── */
+.searchbox-input {
+    color: var(--fg) !important;
+    background: var(--bg-float) !important;
+}
+.searchbox-dropdown, .searchbox-dropdown .sbdd_b {
+    background: var(--bg-dark) !important; color: var(--fg) !important;
+}
+
+/* ── Links ── */
+a, a:visited { color: var(--fg) !important; }
+a:hover { color: var(--accent) !important; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px !important; }
+::-webkit-scrollbar-track { background: var(--bg-dark) !important; }
+::-webkit-scrollbar-thumb { background: var(--fg-dark) !important; }
+
+/* ── Channel pages ── */
+ytm-c4-tabbed-header-renderer, .single-column-browse-results-tab-bar {
+    background: var(--bg-dark) !important; color: var(--fg) !important;
+}
+.single-column-browse-results-tabs { color: var(--fg) !important; }
+
+/* ── Subscriptions / Library ── */
+ytm-section-list-renderer { background: var(--bg) !important; }
+ytm-shelf-renderer { background: var(--bg) !important; }
+ytm-item-section-renderer { background: var(--bg) !important; }
+ytm-compact-link-renderer { color: var(--fg) !important; }
+.compact-link-icon { fill: var(--fg-dim) !important; }
