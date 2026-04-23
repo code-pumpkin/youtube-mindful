@@ -47,6 +47,19 @@
         if (b) b.click(); else f.setAttribute("theater", "");
     }
 
+    // Retry theater mode aggressively on watch pages
+    function ensureTheater() {
+        if (!isWatch()) return;
+        forceTheater();
+        let tries = 0;
+        const iv = setInterval(() => {
+            if (++tries > 10 || !isWatch()) { clearInterval(iv); return; }
+            const f = document.querySelector("ytd-watch-flexy");
+            if (f && f.hasAttribute("theater")) { clearInterval(iv); return; }
+            forceTheater();
+        }, 500);
+    }
+
     // ── Stats injection (for details panel) ──
     function injectStats() {
         document.getElementById("mindful-stats")?.remove();
@@ -413,6 +426,12 @@
             if (searchEl.classList.contains("open")) { closeSearch(); return; }
             if (state.panelOpen) { closePanel(); return; }
         }
+        if (e.ctrlKey || e.altKey || e.metaKey) return;
+        if (isWatch()) {
+            if (e.key === "c") { e.preventDefault(); e.stopImmediatePropagation(); togglePanel("comments"); return; }
+            if (e.key === "r") { e.preventDefault(); e.stopImmediatePropagation(); togglePanel("recs"); return; }
+            if (e.key === "d") { e.preventDefault(); e.stopImmediatePropagation(); togglePanel("details"); return; }
+        }
     }
 
     // ── SPA nav ──
@@ -420,7 +439,7 @@
         if (state.panelOpen) closePanel();
         if (searchEl?.classList.contains("open")) closeSearch();
         updateSidebar();
-        setTimeout(forceTheater, 800);
+        setTimeout(ensureTheater, 800);
     }
 
     // ── Init ──
@@ -453,7 +472,7 @@
             if (location.href !== lastUrl) { lastUrl = location.href; onNav(); }
         }).observe(document.body, { childList:true, subtree:true });
 
-        setTimeout(forceTheater, 1000);
+        setTimeout(ensureTheater, 1000);
         setTimeout(updateSidebar, 500);
         setTimeout(updateSidebar, 2000);
     }
