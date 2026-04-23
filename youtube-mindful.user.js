@@ -40,9 +40,14 @@
     }
 
 
-    // Theater mode — pure CSS, no button clicks, no player interaction
-    // The CSS already styles ytd-watch-flexy[theater] but we also handle non-theater
-    // by just letting CSS make the player full-width regardless
+    // Theater mode — single click, no retry, no attribute hacking
+    function forceTheater() {
+        if (!isWatch()) return;
+        const f = document.querySelector("ytd-watch-flexy");
+        if (!f || f.hasAttribute("theater") || f.hasAttribute("fullscreen")) return;
+        const b = document.querySelector("button.ytp-size-button");
+        if (b) b.click();
+    }
 
     // ── Stats injection (for details panel) ──
     function injectStats() {
@@ -479,6 +484,7 @@
         if (searchEl?.classList.contains("open")) closeSearch();
         updateSidebar();
         buildChannelBar();
+        setTimeout(forceTheater, 2000);
     }
 
     // ── Init ──
