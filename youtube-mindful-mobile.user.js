@@ -335,30 +335,6 @@ html[darker-dark-theme] c3-toast { background: var(--bg-float) !important; color
             svg.appendChild(p); return svg;
         }
 
-        // ── Kill junk + fix inline styles ──
-        function killJunk() {
-            document.querySelectorAll([
-                'ytm-reel-shelf-renderer', 'ytm-reel-item-renderer',
-                'ytm-shorts-lockup-view-model', 'grid-shelf-view-model',
-                'ytm-rich-section-renderer',
-                'ad-slot-renderer', 'ytm-promoted-video-renderer',
-                'ytm-promoted-sparkles-web-renderer', 'ytm-companion-ad-renderer',
-                'ytm-statement-banner-renderer',
-                'ytm-backstage-post-thread-renderer', 'ytm-backstage-post-renderer',
-                'a[href*="/shorts/"]', '.pivot-shorts',
-            ].join(',')).forEach(el => { el.style.display = "none"; });
-            // Strip YouTube's inline width/margin on feed items
-            document.querySelectorAll('ytm-rich-item-renderer').forEach(el => {
-                el.style.width = "100%";
-                el.style.margin = "0";
-            });
-            // Strip inline margin on grid wrapper
-            const gw = document.querySelector('.rich-grid-renderer > div[style]');
-            if (gw) gw.style.margin = "0";
-        }
-        new MutationObserver(killJunk).observe(document.body, { childList:true, subtree:true });
-        killJunk();
-
         // ── Search ──
         let searchEl, searchInput, suggestEl, suggestTimer;
         function buildSearch() {
