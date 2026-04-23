@@ -77,49 +77,16 @@
     // ── Side panel ──
     let panel, panelHeader, panelTitle, panelBody;
 
-    // Sources: where to grab content from YT DOM and put into our panel
-    const PANEL_SOURCES = {
-        details:  () => {
-            // Clone the above-the-fold section, make it visible
-            const src = document.querySelector("ytd-watch-flexy #above-the-fold");
-            if (!src) return null;
-            const clone = src.cloneNode(true);
-            clone.style.cssText = "display:block!important;visibility:visible!important;position:static!important;padding:12px!important;font-family:var(--mono)!important;font-size:12px!important;color:var(--fg)!important;";
-            // Unhide children
-            clone.querySelectorAll("#top-row,#bottom-row,#description,#description-inner,ytd-text-inline-expander,#snippet,#plain-snippet-text,ytd-watch-metadata,ytd-structured-description-content-renderer,#attributed-snippet-text").forEach(el => {
-                el.style.cssText = "display:block!important;visibility:visible!important;position:static!important;max-height:none!important;overflow:visible!important;height:auto!important;";
-            });
-            clone.querySelectorAll("#expand,#collapse,[slot='expand-button'],[slot='collapse-button']").forEach(el => el.remove());
-            clone.querySelectorAll("#bottom-row > *:not(#description)").forEach(el => el.remove());
-            setTimeout(() => injectStats(clone), 50);
-            return clone;
-        },
-        comments: () => {
-            const src = document.querySelector("ytd-watch-flexy ytd-comments#comments, ytd-watch-flexy #comments");
-            if (!src) return null;
-            const clone = src.cloneNode(true);
-            clone.style.cssText = "display:block!important;visibility:visible!important;position:static!important;left:auto!important;width:100%!important;pointer-events:auto!important;";
-            return clone;
-        },
-        recs: () => {
-            const src = document.querySelector("ytd-watch-flexy #secondary-inner");
-            if (!src) return null;
-            const clone = src.cloneNode(true);
-            clone.style.cssText = "display:block!important;visibility:visible!important;position:static!important;left:auto!important;width:100%!important;max-width:100%!important;pointer-events:auto!important;overflow:visible!important;opacity:1!important;clip:auto!important;clip-path:none!important;";
-            clone.querySelectorAll("ytd-watch-next-secondary-results-renderer").forEach(el => {
-                el.style.cssText = "display:block!important;visibility:visible!important;position:static!important;width:100%!important;max-width:100%!important;overflow:visible!important;opacity:1!important;";
-            });
-            return clone;
-        },
-        chat: () => {
-            const src = document.querySelector("ytd-live-chat-frame#chat");
-            if (!src) return null;
-            const clone = src.cloneNode(true);
-            clone.style.cssText = "display:block!important;visibility:visible!important;position:static!important;left:auto!important;width:100%!important;height:100%!important;pointer-events:auto!important;";
-            clone.querySelectorAll("iframe").forEach(f => { f.style.cssText = "width:100%!important;height:100%!important;"; });
-            return clone;
-        },
+    // Selectors for each panel's real YT element
+    const PANEL_SEL = {
+        details:  "ytd-watch-flexy #above-the-fold",
+        comments: "ytd-watch-flexy ytd-comments#comments, ytd-watch-flexy #comments",
+        recs:     "ytd-watch-flexy #secondary",
+        chat:     "ytd-live-chat-frame#chat",
     };
+
+    // Stash original parent + next sibling so we can put elements back
+    let stashed = null; // { el, parent, next }
 
     function buildPanel() {
         panel = document.createElement("div"); panel.id = "mindful-panel";
@@ -138,11 +105,43 @@
         if (state.panel) closePanel();
         if (name === "chat" && !isLive()) return;
 
-        const content = PANEL_SOURCES[name]();
-        if (!content) return;
+        const el = document.querySelector(PANEL_SEL[name]);
+        if (!el) return;
 
-        panelBody.innerHTML = "";
-        panelBody.appendChild(content);
+        // Remember where it was
+        stashed = { el, parent: el.parentNode, next: el.nextSibling };
+
+        // Move it into our panel
+        panelBody.appendChild(el);
+
+        // Force visibility — our CSS hides these by default
+        el.style.cssText = "display:block!important;visibility:visible!important;position:static!important;left:auto!important;width:100%!important;max-width:100%!important;pointer-events:auto!important;overflow-y:auto!important;height:auto!important;opacity:1!important;clip:auto!important;clip-path:none!important;";
+
+        if (name === "details") {
+            el.querySelectorAll("#top-row,#bottom-row,#description,#description-inner,ytd-watch-metadata,ytd-text-inline-expander,#snippet,#plain-snippet-text,ytd-structured-description-content-renderer,#attributed-snippet-text").forEach(c => {
+                c.style.cssText = "display:block!important;visibility:visible!important;position:static!important;max-height:none!important;overflow:visible!important;height:auto!important;";
+            });
+            el.style.padding = "12px";
+            el.style.fontFamily = "var(--mono)";
+            el.style.fontSize = "12px";
+            setTimeout(() => injectStats(el), 100);
+        }
+        if (name === "recs") {
+            el.querySelectorAll("#secondary-inner, ytd-watch-next-secondary-results-renderer").forEach(c => {
+                c.style.cssText = "display:block!important;visibility:visible!important;position:static!important;width:100%!important;max-width:100%!important;overflow:visible!important;opacity:1!important;";
+            });
+        }
+        if (name === "chat") {
+            el.style.height = "100%";
+            el.querySelectorAll("iframe").forEach(f => { f.style.cssText = "width:100%!important;height:100%!important;"; });
+        }
+
+        // Trigger comments to load if needed
+        if (name === "comments") {
+            el.scrollTop = 1;
+            window.dispatchEvent(new Event("scroll"));
+        }
+
         panelTitle.textContent = PANEL_LABELS[name];
         panelHeader.style.borderBottomColor = PANEL_COLORS[name];
         panel.classList.add("open");
@@ -152,9 +151,17 @@
     }
 
     function closePanel() {
+        if (stashed) {
+            // Remove inline styles we added
+            stashed.el.style.cssText = "";
+            stashed.el.querySelectorAll("[style]").forEach(c => { c.style.cssText = ""; });
+            // Put it back where it was
+            if (stashed.next) stashed.parent.insertBefore(stashed.el, stashed.next);
+            else stashed.parent.appendChild(stashed.el);
+            stashed = null;
+        }
         panel.classList.remove("open");
         document.body.classList.remove("mindful-panel-open");
-        panelBody.innerHTML = "";
         state.panel = null;
         updateSidebar();
     }
