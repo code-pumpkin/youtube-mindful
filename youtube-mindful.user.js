@@ -171,13 +171,27 @@
 
     function fetchSuggest(q) {
         if (!q) { suggestEl.style.display = "none"; return; }
-        GM_xmlhttpRequest({
-            method: "GET",
-            url: "https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=" + encodeURIComponent(q),
-            onload: function(res) {
-                try { const d = JSON.parse(res.responseText); if (d && d[1]) renderSuggest(d[1], q); } catch(e) {}
-            }
-        });
+        // Try GM_xmlhttpRequest first (bypasses CORS), fallback to google.ac.h hook
+        if (typeof GM_xmlhttpRequest !== "undefined") {
+            GM_xmlhttpRequest({
+                method: "GET",
+                url: "https://suggestqueries-clients6.youtube.com/complete/search?client=firefox&ds=yt&q=" + encodeURIComponent(q),
+                onload: function(res) {
+                    try { const d = JSON.parse(res.responseText); if (d && d[1]) renderSuggest(d[1], q); } catch(e) {}
+                }
+            });
+        } else {
+            // Fallback: hook into YouTube's own google.ac.h callback
+            const origH = window.google && window.google.ac && window.google.ac.h;
+            if (!window.google) window.google = {};
+            if (!window.google.ac) window.google.ac = {};
+            window.google.ac.h = function(data) { if (data && data[1]) renderSuggest(data[1], q); if (origH) window.google.ac.h = origH; };
+            const s = document.createElement("script");
+            s.src = "https://suggestqueries-clients6.youtube.com/complete/search?client=youtube&ds=yt&q=" + encodeURIComponent(q);
+            s.onerror = function() { s.remove(); if (origH) window.google.ac.h = origH; };
+            document.head.appendChild(s);
+            setTimeout(function() { s.remove(); }, 3000);
+        }
     }
 
     function renderSuggest(items, q) {
