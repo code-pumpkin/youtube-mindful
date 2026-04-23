@@ -17,7 +17,6 @@
     --accent:   #e6b450;  --green:    #7fd962;  --red:      #d95757;
     --yellow:   #ffb454;  --cyan:     #73b8ff;  --magenta:  #d2a6ff;
     --sidebar-w: 48px;
-    --panel-w:   0px;
     --mono:     "JetBrains Mono","Fira Code","Cascadia Code",monospace;
 }
 
@@ -49,7 +48,8 @@ tp-yt-app-drawer, #guide, #guide-button, ytd-mini-guide-renderer,
 #guide-inner-content, app-drawer, tp-yt-app-drawer[opened], #guide-wrapper {
     display: none !important; width: 0 !important;
 }
-ytd-app[guide-persistent-and-visible] #page-manager.ytd-app { margin-left: 0 !important; }
+ytd-page-manager { margin-left: var(--sidebar-w) !important; }
+ytd-app[guide-persistent-and-visible] #page-manager.ytd-app { margin-left: var(--sidebar-w) !important; }
 ytd-feed-filter-chip-bar-renderer, #chips-wrapper,
 #header-bar ytd-feed-filter-chip-bar-renderer,
 ytd-browse yt-chip-cloud-renderer, ytd-search yt-chip-cloud-renderer,
@@ -60,14 +60,7 @@ ytd-browse[page-subtype="home"] *, ytd-search * {
     backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
 }
 
-/* ── PAGE MANAGER — offset for sidebar + panel ── */
-ytd-page-manager {
-    margin-left: var(--sidebar-w) !important;
-    margin-right: var(--panel-w) !important;
-    transition: margin 0.2s ease !important;
-}
-
-/* ── HOME GRID — tablet default (3-4 cols) ── */
+/* ── HOME GRID — 4 cols tablet default ── */
 ytd-rich-grid-renderer {
     --ytd-rich-grid-items-per-row: 4 !important;
     --ytd-rich-grid-posts-per-row: 4 !important;
@@ -162,8 +155,6 @@ ytd-watch-flexy #primary.ytd-watch-flexy,
 ytd-watch-flexy #primary-inner.ytd-watch-flexy {
     max-width: 100% !important; width: 100% !important; padding: 0 !important;
 }
-
-/* Player fills available height */
 ytd-watch-flexy[theater] #player-wide-container.ytd-watch-flexy,
 ytd-watch-flexy[theater] #player-theater-container.ytd-watch-flexy {
     height: 100vh !important; max-height: 100vh !important;
@@ -171,57 +162,140 @@ ytd-watch-flexy[theater] #player-theater-container.ytd-watch-flexy {
 ytd-watch-flexy[full-bleed-player] #full-bleed-container.ytd-watch-flexy { max-height: 100vh !important; }
 #movie_player { max-height: 100vh !important; }
 
-/* Hide below-player stuff by default */
-ytd-watch-flexy #below { padding: 0 !important; margin: 0 !important; max-width: 100% !important; height: 0 !important; overflow: hidden !important; }
+/* Hide below-player, secondary, comments, chat by default */
+ytd-watch-flexy #below {
+    padding: 0 !important; margin: 0 !important; max-width: 100% !important;
+    height: 0 !important; overflow: hidden !important;
+}
 ytd-watch-flexy #above-the-fold, ytd-watch-flexy ytd-watch-metadata,
 ytd-watch-flexy #top-row, ytd-watch-flexy #bottom-row,
 ytd-watch-flexy #description, ytd-watch-flexy #description-inner,
 ytd-watch-flexy ytd-text-inline-expander, ytd-watch-flexy #snippet,
 ytd-watch-flexy #plain-snippet-text { display: none !important; }
 
-/* Hide secondary/comments/chat off-screen */
-ytd-watch-flexy #comments, ytd-watch-flexy ytd-comments#comments,
+ytd-watch-flexy #comments, ytd-watch-flexy ytd-comments#comments {
+    position: fixed !important; left: -200vw !important;
+    visibility: hidden !important; pointer-events: none !important;
+}
 ytd-watch-flexy #secondary, ytd-watch-flexy #secondary-inner,
-ytd-watch-flexy ytd-watch-next-secondary-results-renderer,
+ytd-watch-flexy ytd-watch-next-secondary-results-renderer {
+    position: fixed !important; left: -200vw !important;
+    width: 0 !important; height: 0 !important; overflow: hidden !important;
+    visibility: hidden !important; pointer-events: none !important;
+    clip: rect(0,0,0,0) !important; clip-path: inset(50%) !important; opacity: 0 !important;
+}
 ytd-watch-flexy ytd-live-chat-frame#chat {
-    position: fixed !important; left: -200vw !important; visibility: hidden !important; pointer-events: none !important;
+    position: fixed !important; left: -200vw !important;
+    visibility: hidden !important; pointer-events: none !important;
 }
 
-/* ── SIDE PANEL — slides in from right ── */
-#mindful-panel {
-    position: fixed; top: 0; right: 0; bottom: 0;
-    width: 0; overflow: hidden;
-    background: var(--bg-float); border-left: 2px solid var(--border);
-    z-index: 99998; transition: width 0.2s ease;
-    display: flex; flex-direction: column;
+/* ── PANELS — right-docked, pure CSS via body classes ── */
+/* Shared: all panels dock to right side */
+body.mindful-panel-comments ytd-watch-flexy #comments,
+body.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
+body.mindful-panel-recs ytd-watch-flexy #secondary,
+body.mindful-panel-details ytd-watch-flexy #above-the-fold,
+body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
+    position: fixed !important;
+    top: 0 !important; right: 0 !important; bottom: 0 !important;
+    left: auto !important;
+    width: 380px !important; height: 100vh !important; max-height: 100vh !important;
+    overflow-y: auto !important; overflow-x: hidden !important;
+    background: var(--bg-float) !important;
+    padding: 16px !important;
+    z-index: 90000 !important;
+    visibility: visible !important; pointer-events: auto !important;
+    animation: panel-slide 0.18s ease !important;
+    transform: none !important;
 }
-#mindful-panel.open { width: 380px; }
-#mindful-panel-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 8px 12px; border-bottom: 1px solid var(--border);
-    font-family: var(--mono); font-size: 11px; color: var(--fg-dim);
-    flex-shrink: 0;
-}
-#mindful-panel-header button {
-    background: none; border: none; color: var(--fg-dim); font-size: 16px;
-    cursor: pointer; padding: 4px 8px;
-}
-#mindful-panel-header button:hover { color: var(--fg); }
-#mindful-panel-body {
-    flex: 1; overflow-y: auto; overflow-x: hidden; padding: 0;
-}
-
-/* When panel is open, page content shrinks */
-body.mindful-panel-open { --panel-w: 380px; }
-body.mindful-panel-open ytd-watch-flexy[theater] #player-theater-container,
-body.mindful-panel-open ytd-watch-flexy[theater] #player-wide-container {
-    height: 100vh !important; max-height: 100vh !important;
+@keyframes panel-slide {
+    from { transform: translateX(100%); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
 }
 
-/* Panel content containers — reparented into #mindful-panel-body by JS */
-#mindful-panel-body #above-the-fold {
-    padding: 12px !important; font-family: var(--mono) !important;
-    font-size: 12px !important; color: var(--fg) !important;
+/* Border colors per panel */
+body.mindful-panel-comments ytd-watch-flexy #comments,
+body.mindful-panel-comments ytd-watch-flexy ytd-comments#comments {
+    border-left: 3px solid var(--magenta) !important;
+}
+body.mindful-panel-recs ytd-watch-flexy #secondary {
+    border-left: 3px solid var(--cyan) !important;
+}
+body.mindful-panel-details ytd-watch-flexy #above-the-fold {
+    border-left: 3px solid var(--accent) !important;
+}
+body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
+    border-left: 3px solid var(--magenta) !important; padding: 0 !important;
+}
+
+/* Recs inner fix */
+body.mindful-panel-recs ytd-watch-flexy #secondary {
+    top: 0 !important; right: 0 !important;
+    visibility: visible !important; pointer-events: auto !important;
+    width: 380px !important; height: 100vh !important;
+    clip: auto !important; clip-path: none !important; opacity: 1 !important;
+    overflow-y: auto !important;
+}
+body.mindful-panel-recs ytd-watch-flexy #secondary-inner,
+body.mindful-panel-recs ytd-watch-flexy ytd-watch-next-secondary-results-renderer {
+    position: static !important; width: auto !important; height: auto !important;
+    overflow: visible !important; clip: auto !important; clip-path: none !important;
+    opacity: 1 !important; visibility: visible !important; pointer-events: auto !important;
+}
+body.mindful-panel-recs ytd-watch-flexy #secondary-inner { max-width: 100% !important; width: 100% !important; }
+
+/* Details panel — same v6 approach */
+body.mindful-panel-details ytd-watch-flexy #below { height: auto !important; overflow: visible !important; }
+body.mindful-panel-details ytd-watch-flexy #above-the-fold,
+body.mindful-panel-details ytd-watch-flexy ytd-watch-metadata,
+body.mindful-panel-details ytd-watch-flexy #top-row,
+body.mindful-panel-details ytd-watch-flexy #bottom-row,
+body.mindful-panel-details ytd-watch-flexy #description,
+body.mindful-panel-details ytd-watch-flexy ytd-watch-metadata #description,
+body.mindful-panel-details ytd-watch-flexy #description-inner,
+body.mindful-panel-details ytd-watch-flexy ytd-text-inline-expander,
+body.mindful-panel-details ytd-watch-flexy #snippet,
+body.mindful-panel-details ytd-watch-flexy #plain-snippet-text,
+body.mindful-panel-details ytd-watch-flexy ytd-structured-description-content-renderer,
+body.mindful-panel-details ytd-watch-flexy #attributed-snippet-text,
+body.mindful-panel-details ytd-watch-flexy ytd-text-inline-expander #content,
+body.mindful-panel-details ytd-watch-flexy ytd-text-inline-expander .content {
+    display: block !important; visibility: visible !important;
+    pointer-events: auto !important; position: static !important;
+    left: auto !important; top: auto !important;
+}
+body.mindful-panel-details ytd-watch-flexy #above-the-fold {
+    font-family: var(--mono) !important; font-size: 12px !important; color: var(--fg) !important;
+}
+body.mindful-panel-details ytd-watch-flexy #top-row { display: flex !important; flex-wrap: wrap !important; }
+body.mindful-panel-details ytd-watch-flexy #bottom-row { display: block !important; }
+body.mindful-panel-details ytd-watch-flexy #bottom-row > *:not(#description) { display: none !important; }
+body.mindful-panel-details ytd-watch-flexy ytd-text-inline-expander,
+body.mindful-panel-details ytd-watch-flexy ytd-structured-description-content-renderer,
+body.mindful-panel-details ytd-watch-flexy #description-inner,
+body.mindful-panel-details ytd-watch-flexy #description {
+    max-height: none !important; overflow: visible !important; display: block !important; height: auto !important;
+}
+body.mindful-panel-details ytd-watch-flexy #expand,
+body.mindful-panel-details ytd-watch-flexy #collapse,
+body.mindful-panel-details ytd-watch-flexy [slot="expand-button"],
+body.mindful-panel-details ytd-watch-flexy [slot="collapse-button"] { display: none !important; }
+
+/* Chat iframe fill */
+body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat iframe {
+    width: 100% !important; height: 100% !important;
+}
+
+/* Stats injected by JS */
+#mindful-stats {
+    display: flex !important; gap: 12px !important; flex-wrap: wrap !important;
+    padding: 0 0 10px 0 !important; margin-bottom: 10px !important;
+    border-bottom: 1px solid var(--border) !important;
+    font-family: var(--mono) !important; font-size: 11px !important;
+}
+#mindful-title-inject {
+    margin-bottom: 10px !important; padding-bottom: 10px !important;
+    border-bottom: 1px solid var(--border) !important;
 }
 
 /* ── SIDEBAR ── */
@@ -247,8 +321,7 @@ body.mindful-panel-open ytd-watch-flexy[theater] #player-wide-container {
     content: attr(aria-label); position: absolute; left: 52px; top: 50%;
     transform: translateY(-50%); background: var(--bg-float); color: var(--fg);
     font-size: 10px; padding: 3px 8px; border: 1px solid var(--border);
-    white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.15s;
-    z-index: 100000;
+    white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.15s; z-index: 100000;
 }
 #mindful-sidebar button:hover::after { opacity: 1; }
 
@@ -297,40 +370,26 @@ ytd-browse[page-subtype="channels"] { background: var(--bg) !important; }
 ytd-c4-tabbed-header-renderer, ytd-tabbed-page-header { background: var(--bg-dark) !important; }
 yt-tab-shape[tab-title="Shorts"], yt-tab-shape[tab-title="Community"] { display: none !important; }
 
-/* ── STATS ── */
-#mindful-stats {
-    display: flex !important; gap: 12px !important; flex-wrap: wrap !important;
-    padding: 0 0 10px 0 !important; margin-bottom: 10px !important;
-    border-bottom: 1px solid var(--border) !important;
-    font-family: var(--mono) !important; font-size: 11px !important;
-}
-#mindful-title-inject {
-    margin-bottom: 10px !important; padding-bottom: 10px !important;
-    border-bottom: 1px solid var(--border) !important;
-}
-
 /* ── FULLSCREEN ── */
-body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar,
-body:fullscreen #mindful-panel, body:-webkit-full-screen #mindful-panel { display: none !important; }
-:fullscreen ytd-page-manager, :-webkit-full-screen ytd-page-manager { margin-left: 0 !important; margin-right: 0 !important; }
+body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { display: none !important; }
+:fullscreen ytd-page-manager, :-webkit-full-screen ytd-page-manager { margin-left: 0 !important; }
 :fullscreen #movie_player, :-webkit-full-screen #movie_player { max-height: 100vh !important; height: 100vh !important; }
 
-/* ── DESKTOP (>1024px) — more tiles ── */
+/* ── DESKTOP (>1024px) — 6 tiles, wider panel ── */
 @media (min-width: 1025px) {
-    ytd-rich-grid-renderer {
-        --ytd-rich-grid-items-per-row: 6 !important;
-        --ytd-rich-grid-posts-per-row: 6 !important;
-    }
+    ytd-rich-grid-renderer { --ytd-rich-grid-items-per-row: 6 !important; }
     ytd-rich-item-renderer { width: calc(100%/6 - 8px) !important; max-width: calc(100%/6 - 8px) !important; }
-    #mindful-panel.open { width: 420px; }
-    body.mindful-panel-open { --panel-w: 420px; }
+    body.mindful-panel-comments ytd-watch-flexy #comments,
+    body.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
+    body.mindful-panel-recs ytd-watch-flexy #secondary,
+    body.mindful-panel-details ytd-watch-flexy #above-the-fold,
+    body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat { width: 420px !important; }
+    body.mindful-panel-recs ytd-watch-flexy #secondary { width: 420px !important; }
 }
 
 /* ── PHONE (≤600px) ── */
 @media (max-width: 600px) {
-    :root { --sidebar-w: 0px; --panel-w: 0px !important; }
-
-    /* Sidebar → bottom tab bar */
+    :root { --sidebar-w: 0px; }
     #mindful-sidebar {
         top: auto !important; bottom: 0 !important; left: 0 !important; right: 0 !important;
         width: 100% !important; height: 48px !important;
@@ -340,21 +399,25 @@ body:fullscreen #mindful-panel, body:-webkit-full-screen #mindful-panel { displa
     #mindful-sidebar .sep { display: none !important; }
     #mindful-sidebar button { width: 44px; height: 44px; }
     #mindful-sidebar button::after { display: none !important; }
+    ytd-page-manager { margin-left: 0 !important; margin-bottom: 48px !important; }
 
-    ytd-page-manager { margin-left: 0 !important; margin-bottom: 48px !important; margin-right: 0 !important; }
-
-    /* 2-col grid */
     ytd-rich-grid-renderer { --ytd-rich-grid-items-per-row: 2 !important; padding: 4px !important; }
     ytd-rich-item-renderer { width: calc(50% - 6px) !important; max-width: calc(50% - 6px) !important; }
 
-    /* Panel goes full-width bottom sheet */
-    #mindful-panel { top: auto !important; left: 0 !important; right: 0 !important; bottom: 48px !important; width: 100% !important; height: 0; border-left: none !important; border-top: 2px solid var(--border) !important; transition: height 0.2s ease !important; }
-    #mindful-panel.open { width: 100% !important; height: 55vh !important; }
-
-    /* Video shrinks when panel open */
-    body.mindful-panel-open ytd-watch-flexy[theater] #player-theater-container,
-    body.mindful-panel-open ytd-watch-flexy[theater] #player-wide-container,
-    body.mindful-panel-open #movie_player { height: 35vh !important; max-height: 35vh !important; }
+    /* Panels become bottom sheet on phone */
+    body.mindful-panel-comments ytd-watch-flexy #comments,
+    body.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
+    body.mindful-panel-recs ytd-watch-flexy #secondary,
+    body.mindful-panel-details ytd-watch-flexy #above-the-fold,
+    body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
+        top: auto !important; bottom: 48px !important; left: 0 !important; right: 0 !important;
+        width: 100% !important; height: 55vh !important; max-height: 55vh !important;
+        border-left: none !important; border-top: 2px solid var(--border) !important;
+    }
+    body.mindful-panel-recs ytd-watch-flexy #secondary {
+        top: auto !important; bottom: 48px !important; left: 0 !important; right: 0 !important;
+        width: 100% !important; height: 55vh !important;
+    }
 
     ytd-watch-flexy[theater] #player-wide-container.ytd-watch-flexy,
     ytd-watch-flexy[theater] #player-theater-container.ytd-watch-flexy {
@@ -364,7 +427,6 @@ body:fullscreen #mindful-panel, body:-webkit-full-screen #mindful-panel { displa
 
     #mindful-search input { width: 90% !important; font-size: 16px !important; }
     #mindful-suggest { width: 90% !important; }
-
     ytd-search ytd-item-section-renderer #contents { grid-template-columns: 1fr !important; }
 }
 
