@@ -7,11 +7,12 @@ YouTube is A/B testing anti-adblock measures that cause fake buffering when you 
 ## Firefox Desktop (uBlock Origin)
 
 ### Step 1: Update filter lists
-1. Click the **uBlock Origin** icon → click the **gear icon** (dashboard)
-2. Go to **Filter lists** tab
-3. Click **"Purge all caches"**
-4. Click **"Update now"**
-5. Wait for all lists to update, then reload YouTube
+1. Click the **uBlock Origin** icon → click the **gear icon** (opens dashboard)
+2. Go to the **Support** tab
+3. Click **"More"** in the Troubleshooting Information section
+4. Click **"Purge all caches"** (top-right corner of that screen)
+5. Go back to **Filter lists** tab → click **"Update now"**
+6. Reload YouTube
 
 ### Step 2: If still broken, add manual filter
 1. In uBlock dashboard → **My filters** tab
