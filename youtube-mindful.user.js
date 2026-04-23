@@ -220,19 +220,57 @@
     let settingsEl;
     function buildSettings() {
         settingsEl = document.createElement("div"); settingsEl.id = "mindful-settings";
-        const box = document.createElement("div"); box.id = "mindful-settings-box";
-        box.innerHTML = `<h3>⚙ Mindful Settings</h3>
-<label>Panel mode<select id="ms-mode"><option value="side">Side panel</option><option value="overlay">Overlay</option></select></label>
-<label>Panel width<input type="range" id="ms-width" min="280" max="600" step="10"><span class="val" id="ms-width-val"></span></label>
-<button class="close-btn">Close</button>`;
+        Object.assign(settingsEl.style, {
+            position:"fixed", inset:"0", background:"rgba(0,0,0,0.88)",
+            zIndex:"100002", display:"none", alignItems:"center", justifyContent:"center",
+        });
+
+        const box = document.createElement("div");
+        Object.assign(box.style, {
+            background:C.bgFloat, border:`1px solid ${C.border}`,
+            padding:"20px 24px", width:"340px", maxWidth:"90vw",
+            fontFamily:'"JetBrains Mono",monospace', fontSize:"12px", color:C.fg,
+        });
+
+        const title = document.createElement("div");
+        Object.assign(title.style, { fontSize:"13px", color:C.accent, borderBottom:`1px solid ${C.border}`, paddingBottom:"8px", marginBottom:"16px", fontWeight:"bold" });
+        title.textContent = "⚙ Mindful Settings";
+
+        // Panel mode
+        const modeRow = document.createElement("div");
+        Object.assign(modeRow.style, { display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:"14px", color:C.fgDim, fontSize:"11px" });
+        const modeLabel = document.createElement("span"); modeLabel.textContent = "Panel mode";
+        const modeEl = document.createElement("select");
+        Object.assign(modeEl.style, { background:C.bgDark, color:C.fg, border:`1px solid ${C.border}`, fontFamily:'"JetBrains Mono",monospace', fontSize:"11px", padding:"4px 6px" });
+        modeEl.innerHTML = `<option value="side">Side panel</option><option value="overlay">Overlay</option>`;
+        modeRow.append(modeLabel, modeEl);
+
+        // Panel width
+        const widthRow = document.createElement("div");
+        Object.assign(widthRow.style, { display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:"14px", color:C.fgDim, fontSize:"11px" });
+        const widthLabel = document.createElement("span"); widthLabel.textContent = "Panel width";
+        const widthWrap = document.createElement("span");
+        Object.assign(widthWrap.style, { display:"flex", alignItems:"center", gap:"8px" });
+        const widthEl = document.createElement("input"); widthEl.type = "range"; widthEl.min = "280"; widthEl.max = "600"; widthEl.step = "10";
+        Object.assign(widthEl.style, { width:"100px", accentColor:C.accent });
+        const widthVal = document.createElement("span");
+        Object.assign(widthVal.style, { color:C.accent, minWidth:"45px", textAlign:"right", fontSize:"11px" });
+        widthWrap.append(widthEl, widthVal);
+        widthRow.append(widthLabel, widthWrap);
+
+        // Close button
+        const closeBtn = document.createElement("button"); closeBtn.textContent = "Close";
+        Object.assign(closeBtn.style, {
+            display:"block", marginTop:"16px", width:"100%", padding:"6px",
+            background:C.bgDark, color:C.fg, border:`1px solid ${C.border}`,
+            fontFamily:'"JetBrains Mono",monospace', fontSize:"11px", cursor:"pointer", textAlign:"center",
+        });
+
+        box.append(title, modeRow, widthRow, closeBtn);
         settingsEl.appendChild(box);
+
         settingsEl.addEventListener("click", e => { if (e.target === settingsEl) closeSettings(); });
-        box.querySelector(".close-btn").addEventListener("click", closeSettings);
-
-        const modeEl = box.querySelector("#ms-mode");
-        const widthEl = box.querySelector("#ms-width");
-        const widthVal = box.querySelector("#ms-width-val");
-
+        closeBtn.addEventListener("click", closeSettings);
         modeEl.addEventListener("change", () => { prefs.panelMode = modeEl.value; savePrefs(); });
         widthEl.addEventListener("input", () => { prefs.panelWidth = +widthEl.value; widthVal.textContent = widthEl.value + "px"; savePrefs(); });
 
@@ -247,9 +285,9 @@
         settingsEl._modeEl.value = prefs.panelMode;
         settingsEl._widthEl.value = prefs.panelWidth;
         settingsEl._widthVal.textContent = prefs.panelWidth + "px";
-        settingsEl.classList.add("open");
+        settingsEl.style.display = "flex";
     }
-    function closeSettings() { settingsEl.classList.remove("open"); }
+    function closeSettings() { settingsEl.style.display = "none"; }
 
     // ── Sidebar ──
     let sidebar;
@@ -293,7 +331,7 @@
     function onKey(e) {
         if (isTyping()) return;
         if (e.key === "Escape") {
-            if (settingsEl.classList.contains("open")) { closeSettings(); return; }
+            if (settingsEl.style.display === "flex") { closeSettings(); return; }
             if (searchEl.classList.contains("open")) { closeSearch(); return; }
             if (state.panelOpen) { closePanel(); return; }
         }
@@ -338,6 +376,8 @@
         }).observe(document.body, { childList:true, subtree:true });
 
         setTimeout(forceTheater, 1000);
+        setTimeout(updateSidebar, 500);
+        setTimeout(updateSidebar, 2000);
     }
 
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
