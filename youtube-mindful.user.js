@@ -7,6 +7,7 @@
 // @match        https://www.youtube.com/*
 // @grant        GM_xmlhttpRequest
 // @connect      suggestqueries-clients6.youtube.com
+// @connect      *
 // @run-at       document-idle
 // ==/UserScript==
 
