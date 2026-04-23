@@ -73,7 +73,7 @@ ytm-app { padding-top: 0 !important; }
 ytm-pivot-bar-renderer { height: 0 !important; min-height: 0 !important; overflow: hidden !important; opacity: 0 !important; pointer-events: none !important; }
 
 /* ── Bottom padding for our bar ── */
-[has-pivot-bar=true] ytm-app { padding-bottom: 56px !important; }
+ytm-app { padding-bottom: 56px !important; }
 
 /* ── Hide chips ── */
 ytm-feed-filter-chip-bar-renderer, .chip-bar,
