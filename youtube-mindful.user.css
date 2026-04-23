@@ -247,7 +247,6 @@ body.mindful-panel-recs ytd-watch-flexy #secondary-inner { max-width: 100% !impo
 
 /* Details panel — same v6 approach */
 body.mindful-panel-details ytd-watch-flexy #below { height: auto !important; overflow: visible !important; }
-body.mindful-panel-details ytd-watch-flexy #above-the-fold,
 body.mindful-panel-details ytd-watch-flexy ytd-watch-metadata,
 body.mindful-panel-details ytd-watch-flexy #top-row,
 body.mindful-panel-details ytd-watch-flexy #bottom-row,
@@ -266,6 +265,7 @@ body.mindful-panel-details ytd-watch-flexy ytd-text-inline-expander .content {
     left: auto !important; top: auto !important;
 }
 body.mindful-panel-details ytd-watch-flexy #above-the-fold {
+    display: block !important; visibility: visible !important; pointer-events: auto !important;
     font-family: var(--mono) !important; font-size: 12px !important; color: var(--fg) !important;
 }
 body.mindful-panel-details ytd-watch-flexy #top-row { display: flex !important; flex-wrap: wrap !important; }

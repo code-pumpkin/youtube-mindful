@@ -105,10 +105,31 @@
 
     function buildSearch() {
         searchEl = document.createElement("div"); searchEl.id = "mindful-search";
+
         const wrap = document.createElement("div");
-        wrap.style.cssText = "display:flex;flex-direction:column;width:55%;max-width:600px;";
-        searchInput = document.createElement("input"); searchInput.type = "text"; searchInput.placeholder = "search...";
-        suggestEl = document.createElement("div"); suggestEl.id = "mindful-suggest";
+        Object.assign(wrap.style, { display:"flex", flexDirection:"column", width:"60%", maxWidth:"700px" });
+
+        const row = document.createElement("div");
+        Object.assign(row.style, { display:"flex", alignItems:"center" });
+
+        const slash = document.createElement("span");
+        slash.textContent = "/";
+        Object.assign(slash.style, { color:C.yellow, fontFamily:'"JetBrains Mono",monospace', fontSize:"22px", marginRight:"8px" });
+
+        searchInput = document.createElement("input"); searchInput.type = "text"; searchInput.placeholder = "search youtube...";
+        Object.assign(searchInput.style, {
+            flex:"1", background:C.bgDark, border:"none",
+            borderBottom:`2px solid ${C.accent}`, color:C.fg,
+            fontFamily:'"JetBrains Mono",monospace', fontSize:"18px",
+            padding:"10px 4px", outline:"none",
+        });
+
+        suggestEl = document.createElement("div");
+        Object.assign(suggestEl.style, {
+            width:"100%", background:C.bgDark, marginTop:"2px",
+            maxHeight:"40vh", overflowY:"auto", display:"none",
+            border:`1px solid ${C.border}`, borderTop:"none",
+        });
 
         searchInput.addEventListener("keydown", e => {
             e.stopImmediatePropagation();
@@ -118,15 +139,16 @@
                 if (q) location.href = `/results?search_query=${encodeURIComponent(q)}`;
                 closeSearch();
             } else if (e.key === "Escape") { e.preventDefault(); closeSearch(); }
-            else if (e.key === "ArrowDown") { e.preventDefault(); moveSuggest(1); }
-            else if (e.key === "ArrowUp") { e.preventDefault(); moveSuggest(-1); }
+            else if (e.key === "ArrowDown" || (e.key === "Tab" && !e.shiftKey)) { e.preventDefault(); moveSuggest(1); }
+            else if (e.key === "ArrowUp" || (e.key === "Tab" && e.shiftKey)) { e.preventDefault(); moveSuggest(-1); }
         });
         searchInput.addEventListener("input", () => {
             clearTimeout(suggestTimer);
             suggestTimer = setTimeout(() => fetchSuggest(searchInput.value.trim()), 150);
         });
 
-        wrap.append(searchInput, suggestEl);
+        row.append(slash, searchInput);
+        wrap.append(row, suggestEl);
         searchEl.appendChild(wrap);
         searchEl.addEventListener("click", e => { if (e.target === searchEl) closeSearch(); });
         document.body.appendChild(searchEl);
@@ -146,21 +168,35 @@
         if (!items.length) { suggestEl.style.display = "none"; return; }
         items.forEach(item => {
             const text = Array.isArray(item) ? item[0] : String(item);
-            const div = document.createElement("div"); div.className = "item"; div.dataset.q = text;
+            const div = document.createElement("div"); div.dataset.q = text;
+            Object.assign(div.style, {
+                padding:"8px 12px", cursor:"pointer",
+                fontFamily:'"JetBrains Mono",monospace', fontSize:"13px",
+                color:C.fg, borderBottom:`1px solid ${C.border}`,
+            });
             const lo = text.toLowerCase(), lq = q.toLowerCase(), mi = lo.indexOf(lq);
             div.innerHTML = mi >= 0 ? `${esc(text.slice(0,mi))}<span style="color:${C.accent};font-weight:bold">${esc(text.slice(mi,mi+q.length))}</span>${esc(text.slice(mi+q.length))}` : esc(text);
+            div.addEventListener("mouseenter", () => { clearSel(); div.classList.add("sel"); div.style.background=C.bgHover; div.style.color=C.accent; });
+            div.addEventListener("mouseleave", () => { div.classList.remove("sel"); div.style.background="transparent"; div.style.color=C.fg; });
             div.addEventListener("click", () => { location.href = `/results?search_query=${encodeURIComponent(text)}`; closeSearch(); });
             suggestEl.appendChild(div);
         });
         suggestEl.style.display = "block";
     }
 
+    function clearSel() {
+        suggestEl.querySelectorAll(".sel").forEach(el => {
+            el.classList.remove("sel"); el.style.background="transparent"; el.style.color=C.fg;
+        });
+    }
+
     function moveSuggest(dir) {
-        const items = [...suggestEl.querySelectorAll(".item")]; if (!items.length) return;
+        const items = [...suggestEl.querySelectorAll("[data-q]")]; if (!items.length) return;
         const cur = suggestEl.querySelector(".sel"); let idx = cur ? items.indexOf(cur) : -1;
-        items.forEach(i => i.classList.remove("sel"));
+        clearSel();
         idx = (idx + dir + items.length) % items.length;
-        items[idx].classList.add("sel"); items[idx].scrollIntoView({ block:"nearest" });
+        items[idx].classList.add("sel"); items[idx].style.background = C.bgHover; items[idx].style.color = C.accent;
+        items[idx].scrollIntoView({ block:"nearest" });
         searchInput.value = items[idx].dataset.q;
     }
 
