@@ -1,0 +1,8 @@
+# Personal dev files — not for public repo
+personal/
+
+# HTML DOM dumps
+*.html
+
+# Dirinfo
+.dirinfo
