@@ -5,7 +5,8 @@
 // @description  Mindful YouTube — sidebar nav, side panels, responsive.
 // @author       codePumpkin
 // @match        https://www.youtube.com/*
-// @grant        none
+// @grant        GM_xmlhttpRequest
+// @connect      suggestqueries.google.com
 // @run-at       document-idle
 // ==/UserScript==
 
@@ -170,11 +171,13 @@
 
     function fetchSuggest(q) {
         if (!q) { suggestEl.style.display = "none"; return; }
-        // Use YouTube's own same-origin suggest endpoint — no CORS/CSP issues
-        fetch("/complete/search?client=youtube&ds=yt&q=" + encodeURIComponent(q) + "&xhr=t")
-            .then(r => r.json())
-            .then(d => { if (d && d[1]) renderSuggest(d[1], q); })
-            .catch(() => {});
+        GM_xmlhttpRequest({
+            method: "GET",
+            url: "https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=" + encodeURIComponent(q),
+            onload: function(res) {
+                try { const d = JSON.parse(res.responseText); if (d && d[1]) renderSuggest(d[1], q); } catch(e) {}
+            }
+        });
     }
 
     function renderSuggest(items, q) {
