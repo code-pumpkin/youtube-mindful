@@ -511,18 +511,20 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
 `;
 
     const MINDFUL_MOBILE_CSS = `
-body { border: 5px solid red !important; }
 :root {
     --bg: #101010; --bg-dark: #0a0a0a; --bg-float: #181818;
     --bg-hover: #252525; --bg-sel: #2a2a2a;
     --fg: #e8e2d6; --fg-dim: #8a8a8a; --fg-dark: #4a4a4a;
     --border: #2a2a2a;
-    --accent: #c8c0b0;
+    --accent: #c8c0b0; --green: #8fbe7a; --cyan: #90b0c8;
+    --magenta: #b8a0d0; --yellow: #d4c090;
 }
 
-/* ── Global colors ── */
+/* ── Global ── */
 html, body, ytm-app, ytm-browse,
-ytm-single-column-browse-results-renderer {
+ytm-single-column-browse-results-renderer,
+ytm-single-column-watch-next-results-renderer,
+ytm-watch, ytm-settings {
     background-color: var(--bg) !important;
     color: var(--fg) !important;
 }
@@ -531,35 +533,70 @@ html[darker-dark-theme] {
     --yt-spec-base-background: var(--bg) !important;
     --yt-spec-raised-background: var(--bg) !important;
     --yt-spec-general-background-a: var(--bg) !important;
+    --yt-spec-general-background-b: var(--bg) !important;
+    --yt-spec-general-background-c: var(--bg) !important;
     --yt-spec-text-primary: var(--fg) !important;
     --yt-spec-text-secondary: var(--fg-dim) !important;
+    --yt-spec-badge-chip-background: var(--bg-sel) !important;
+    --yt-spec-10-percent-layer: var(--bg-hover) !important;
 }
 
-/* ── No border radius ── */
+/* ── No border radius anywhere ── */
 *, *::after, *::before { border-radius: 0 !important; }
 
-/* ── Restyle header (NOT hide — hiding causes flash loop) ── */
-ytm-mobile-topbar-renderer, ytm-header, #header {
+/* ── Header — dark, minimal ── */
+ytm-mobile-topbar-renderer, ytm-header, #header,
+#header-bar, .mobile-topbar-header {
+    background-color: var(--bg-dark) !important;
+    box-shadow: none !important;
+}
+html[darker-dark-theme] ytm-mobile-topbar-renderer {
     background-color: var(--bg-dark) !important;
 }
-.mobile-topbar-header { box-shadow: none !important; }
+.mobile-topbar-header-content, .mobile-topbar-title {
+    color: var(--fg) !important;
+}
+ytm-mobile-topbar-renderer c3-icon { color: var(--fg-dim) !important; }
 
-/* ── Restyle bottom nav (NOT hide) ── */
+/* ── Bottom nav — dark ── */
 ytm-pivot-bar-renderer {
     background-color: var(--bg-dark) !important;
     border-top: 1px solid var(--border) !important;
+    box-shadow: none !important;
+}
+html[darker-dark-theme] ytm-pivot-bar-renderer {
+    background-color: var(--bg-dark) !important;
+}
+ytm-pivot-bar-renderer c3-icon { color: var(--fg-dim) !important; }
+.pivot-bar-item-title { color: var(--fg-dim) !important; font-size: 10px !important; }
+ytm-pivot-bar-item-renderer .pivot-bar-item-tab[aria-selected=true] c3-icon,
+ytm-pivot-bar-item-renderer .pivot-bar-item-tab[aria-selected=true] .pivot-bar-item-title {
+    color: var(--accent) !important;
 }
 
-/* ── Restyle chips ── */
+/* ── Chips — restyle ── */
 ytm-feed-filter-chip-bar-renderer, .chip-bar {
     background-color: var(--bg) !important;
 }
+ytm-chip-cloud-chip-renderer {
+    background-color: var(--bg-sel) !important;
+    color: var(--fg-dim) !important;
+    border: 1px solid var(--border) !important;
+}
+ytm-chip-cloud-chip-renderer[chip-style="STYLE_DEFAULT"][selected],
+ytm-chip-cloud-chip-renderer[selected] {
+    background-color: var(--fg) !important;
+    color: var(--bg) !important;
+}
 
-/* ── Hide shorts ── */
+/* ── Hide shorts + junk ── */
 ytm-reel-shelf-renderer, ytm-reel-item-renderer,
-a[href*="/shorts/"] { display: none !important; }
+a[href*="/shorts/"],
+ytm-promoted-sparkles-web-renderer,
+ytm-companion-ad-renderer,
+ytm-statement-banner-renderer { display: none !important; }
 
-/* ── Home grid ── */
+/* ── Home grid — clean single column ── */
 .rich-grid-renderer-contents {
     display: flex !important; flex-wrap: wrap !important;
     gap: 0 !important; padding: 0 !important; margin: 0 !important;
@@ -568,68 +605,103 @@ ytm-rich-item-renderer {
     width: 100% !important; display: block !important; margin: 0 !important;
 }
 ytm-media-item[use-vertical-layout] {
-    padding: 0 !important; margin: 0 0 8px 0 !important;
+    padding: 0 !important; margin: 0 0 2px 0 !important;
+    border-bottom: 1px solid var(--border) !important;
 }
+ytm-rich-section-renderer { margin: 0 !important; }
+ytm-rich-grid-renderer { margin: 0 !important; }
 
-/* Video titles */
+/* ── Thumbnails ── */
+.video-thumbnail-container-large,
+.video-thumbnail-container-compact-rounded { border-radius: 0 !important; }
+
+/* ── Video titles + metadata ── */
 .media-item-headline {
     font-size: 13px !important; color: var(--fg) !important;
-    line-height: 1.3 !important;
+    line-height: 1.4 !important; font-weight: 400 !important;
 }
 .media-item-metadata, .media-item-info,
 ytm-badge-and-byline-renderer {
     font-size: 11px !important; color: var(--fg-dim) !important;
 }
 .media-channel { font-size: 11px !important; color: var(--fg-dim) !important; }
+ytm-media-item .details { padding: 8px 12px !important; }
 
 /* ── Watch page ── */
 .player-container { background: #000 !important; }
 .watch-main-col { background: var(--bg) !important; }
 
+/* Video info */
 ytm-slim-video-information-renderer {
     background: var(--bg-float) !important; color: var(--fg) !important;
+    padding: 10px 14px !important; margin: 0 !important;
+    border-bottom: 1px solid var(--border) !important;
 }
 .slim-video-information-title {
-    font-size: 14px !important; color: var(--fg) !important;
-}
-ytm-slim-video-action-bar-renderer {
-    background: var(--bg-float) !important;
-}
-.slim-video-action-bar-actions button {
-    color: var(--fg-dim) !important;
-}
-ytm-slim-video-metadata-section-renderer ytm-slim-owner-renderer {
-    background: var(--bg-float) !important;
-    border-top: 1px solid var(--border) !important;
+    font-size: 15px !important; color: var(--fg) !important;
+    font-weight: 500 !important; line-height: 1.3 !important;
 }
 
-/* Related videos */
+/* Action bar (like/share/etc) */
+ytm-slim-video-action-bar-renderer {
+    background: var(--bg-float) !important;
+    border-bottom: 1px solid var(--border) !important;
+}
+.slim-video-action-bar-actions button,
+.slim-video-action-bar-actions .yt-spec-button-shape-next {
+    color: var(--fg-dim) !important;
+}
+
+/* Channel owner row */
+ytm-slim-video-metadata-section-renderer ytm-slim-owner-renderer {
+    background: var(--bg-float) !important;
+    border-bottom: 1px solid var(--border) !important;
+    padding: 8px 14px !important;
+}
+.slim-owner-channel-name { color: var(--fg) !important; }
+.slim-owner-bylines { color: var(--fg-dim) !important; }
+
+/* Subscribe button */
+.yt-spec-button-shape-next--mono.yt-spec-button-shape-next--filled {
+    background-color: var(--accent) !important;
+    color: var(--bg) !important;
+}
+
+/* ── Related videos ── */
 ytm-single-column-watch-next-results-renderer {
     background: var(--bg) !important;
 }
 ytm-video-with-context-renderer {
     background: var(--bg) !important;
-}
-ytm-comments-entry-point-header-renderer {
-    background: var(--bg-float) !important; color: var(--fg) !important;
+    border-bottom: 1px solid var(--border) !important;
 }
 
-/* ── Engagement panels ── */
+/* ── Comments entry point ── */
+ytm-comments-entry-point-header-renderer {
+    background: var(--bg-float) !important; color: var(--fg) !important;
+    border-bottom: 1px solid var(--border) !important;
+    margin: 0 !important;
+}
+
+/* ── Engagement panels (comments, description) ── */
 .engagement-panel-container {
     background: var(--bg-float) !important; color: var(--fg) !important;
 }
 .engagement-panel-section-list-header {
-    background: var(--bg-float) !important; color: var(--fg) !important;
+    background: var(--bg-dark) !important; color: var(--fg) !important;
     border-bottom: 1px solid var(--border) !important;
 }
 ytm-comment-thread-renderer {
     border-bottom: 1px solid var(--border) !important;
 }
 .comment-text { color: var(--fg) !important; }
-.comment-title { color: var(--fg-dim) !important; }
+.comment-title { color: var(--accent) !important; font-size: 13px !important; }
 .comment-published-time { color: var(--fg-dark) !important; }
+ytm-comment-replies-renderer .yt-spec-button-shape-next--mono.yt-spec-button-shape-next--text {
+    color: var(--cyan) !important;
+}
 
-/* ── Menus ── */
+/* ── Menus / dialogs / bottom sheets ── */
 .menu-content {
     background: var(--bg-float) !important; color: var(--fg) !important;
 }
@@ -640,12 +712,19 @@ html[darker-dark-theme] .menu-full-width .menu-content {
 html[darker-dark-theme] .dialog {
     background: var(--bg-float) !important;
 }
+.menu-item-button { color: var(--fg) !important; }
+.yt-spec-bottom-sheet-layout { background: var(--bg-float) !important; }
 
 /* ── Search ── */
+.mobile-topbar-header[data-mode=searching] {
+    background-color: var(--bg-dark) !important;
+}
 .searchbox-input {
     color: var(--fg) !important;
     background: var(--bg-float) !important;
 }
+.search-bar { background: var(--bg-hover) !important; }
+.search-bar-text { color: var(--fg) !important; }
 .searchbox-dropdown, .searchbox-dropdown .sbdd_b {
     background: var(--bg-dark) !important; color: var(--fg) !important;
 }
@@ -660,10 +739,17 @@ a:hover { color: var(--accent) !important; }
 ::-webkit-scrollbar-thumb { background: var(--fg-dark) !important; }
 
 /* ── Channel pages ── */
-ytm-c4-tabbed-header-renderer, .single-column-browse-results-tab-bar {
+ytm-c4-tabbed-header-renderer {
+    background: var(--bg-dark) !important; color: var(--fg) !important;
+}
+.single-column-browse-results-tab-bar {
     background: var(--bg-dark) !important; color: var(--fg) !important;
 }
 .single-column-browse-results-tabs { color: var(--fg) !important; }
+.single-column-browse-results-tab-bar .single-column-browse-results-tab[aria-selected=true] {
+    color: var(--accent) !important;
+    border-bottom-color: var(--accent) !important;
+}
 
 /* ── Subscriptions / Library ── */
 ytm-section-list-renderer { background: var(--bg) !important; }
@@ -671,6 +757,30 @@ ytm-shelf-renderer { background: var(--bg) !important; }
 ytm-item-section-renderer { background: var(--bg) !important; }
 ytm-compact-link-renderer { color: var(--fg) !important; }
 .compact-link-icon { fill: var(--fg-dim) !important; }
+ytm-channel-list-sub-menu-renderer {
+    background: var(--bg) !important;
+    border-bottom: 1px solid var(--border) !important;
+}
+
+/* ── Settings page ── */
+.setting-generic-category-title-block h2 { color: var(--fg) !important; }
+.setting-title-subtitle-block h3 { color: var(--fg) !important; }
+.setting-title-subtitle-block { color: var(--fg-dim) !important; }
+.setting-generic-category-title-block { color: var(--fg-dim) !important; }
+
+/* ── Toast notifications ── */
+html[darker-dark-theme] c3-toast {
+    background: var(--bg-float) !important;
+    color: var(--fg) !important;
+}
+
+/* ── Buttons general ── */
+.yt-spec-button-shape-next--size-m {
+    border-radius: 0 !important;
+}
+.yt-spec-button-shape-next--call-to-action.yt-spec-button-shape-next--text {
+    color: var(--cyan) !important;
+}
 `;
 
 
@@ -818,6 +928,71 @@ ytm-compact-link-renderer { color: var(--fg) !important; }
             document.head.appendChild(spacer);
 
             mBuildSearch();
+
+            // ── Watch page section tabs ──
+            function mBuildWatchTabs() {
+                if (document.getElementById("mindful-watch-tabs")) return;
+                // Only on watch pages
+                const watchCol = document.querySelector(".watch-main-col, ytm-single-column-watch-next-results-renderer");
+                if (!watchCol) return;
+
+                const tabs = document.createElement("div");
+                tabs.id = "mindful-watch-tabs";
+                Object.assign(tabs.style, {
+                    display:"flex", justifyContent:"space-around", padding:"0",
+                    background:C.bgDark, borderBottom:`1px solid ${C.border}`,
+                    position:"sticky", top:"0", zIndex:"9999",
+                });
+
+                const sections = [
+                    { label:"Related", color:C.cyan, sel:"[section-identifier=related-items]" },
+                    { label:"Comments", color:"#b8a0d0", sel:"ytm-comments-entry-point-header-renderer, ytm-engagement-panel-section-list-renderer" },
+                    { label:"Info", color:C.accent, sel:"ytm-slim-video-information-renderer, ytm-slim-video-metadata-section-renderer" },
+                ];
+
+                let activeTab = null;
+                sections.forEach(sec => {
+                    const btn = document.createElement("button");
+                    btn.textContent = sec.label;
+                    Object.assign(btn.style, {
+                        flex:"1", padding:"10px 0", border:"none", cursor:"pointer",
+                        background:"transparent", color:C.fgDim, fontSize:"12px",
+                        fontFamily:"monospace", borderBottom:"2px solid transparent",
+                        transition:"color 0.15s, border-color 0.15s",
+                    });
+                    btn.addEventListener("click", () => {
+                        // Scroll to section
+                        const target = document.querySelector(sec.sel);
+                        if (target) target.scrollIntoView({ behavior:"smooth", block:"start" });
+                        // Highlight active
+                        tabs.querySelectorAll("button").forEach(b => {
+                            b.style.color = C.fgDim;
+                            b.style.borderBottomColor = "transparent";
+                        });
+                        btn.style.color = sec.color;
+                        btn.style.borderBottomColor = sec.color;
+                    });
+                    tabs.appendChild(btn);
+                });
+
+                // Insert after player
+                const player = document.querySelector(".player-container");
+                if (player && player.parentNode) {
+                    player.parentNode.insertBefore(tabs, player.nextSibling);
+                }
+            }
+
+            // Run on navigation
+            const mObserver = new MutationObserver(() => {
+                if (location.pathname === "/watch") {
+                    setTimeout(mBuildWatchTabs, 500);
+                } else {
+                    const t = document.getElementById("mindful-watch-tabs");
+                    if (t) t.remove();
+                }
+            });
+            mObserver.observe(document.body, { childList:true, subtree:true });
+            if (location.pathname === "/watch") setTimeout(mBuildWatchTabs, 800);
         });
         return;
     }
