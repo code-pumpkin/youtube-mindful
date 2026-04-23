@@ -419,6 +419,8 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
 /* ── PHONE (≤600px) ── */
 @media (max-width: 600px) {
     :root { --sidebar-w: 0px; }
+
+    /* Bottom nav bar */
     #mindful-sidebar {
         top: auto !important; bottom: 0 !important; left: 0 !important; right: 0 !important;
         width: 100% !important; height: 48px !important;
@@ -426,12 +428,35 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         padding: 0 !important; border-right: none !important; border-top: 1px solid var(--border) !important;
     }
     #mindful-sidebar .sep { display: none !important; }
-    #mindful-sidebar button { width: 44px; height: 44px; }
+    #mindful-sidebar button { width: 40px; height: 44px; }
     #mindful-sidebar button::after { display: none !important; }
-    ytd-page-manager { margin-left: 0 !important; margin-bottom: 48px !important; }
 
-    ytd-rich-grid-renderer { --ytd-rich-grid-items-per-row: 2 !important; padding: 4px !important; }
-    ytd-rich-item-renderer { width: calc(50% - 6px) !important; max-width: calc(50% - 6px) !important; }
+    /* Page margin */
+    ytd-page-manager { margin-left: 0 !important; margin-bottom: 48px !important; }
+    ytd-app[guide-persistent-and-visible] #page-manager.ytd-app { margin-left: 0 !important; }
+
+    /* Home grid — 1 col */
+    ytd-rich-grid-renderer {
+        --ytd-rich-grid-items-per-row: 1 !important;
+        --ytd-rich-grid-posts-per-row: 1 !important;
+        --ytd-rich-grid-slim-items-per-row: 1 !important;
+        padding: 0 !important;
+    }
+    ytd-rich-grid-row #contents.ytd-rich-grid-row { gap: 0 !important; }
+    ytd-rich-item-renderer {
+        width: 100% !important; max-width: 100% !important;
+        padding: 0 0 8px 0 !important; margin: 0 !important;
+    }
+    #video-title-link, #video-title { font-size: 13px !important; }
+    #details.ytd-rich-grid-media, #meta.ytd-rich-grid-media { padding: 8px !important; }
+
+    /* Watch page — player fills screen minus bottom bar */
+    ytd-watch-flexy #player-wide-container.ytd-watch-flexy,
+    ytd-watch-flexy #player-theater-container.ytd-watch-flexy,
+    ytd-watch-flexy #player-container-outer.ytd-watch-flexy {
+        height: calc(100vh - 48px) !important; max-height: calc(100vh - 48px) !important;
+    }
+    #movie_player { max-height: calc(100vh - 48px) !important; }
 
     /* Panels become bottom sheet on phone */
     body.mindful-panel-comments ytd-watch-flexy #comments,
@@ -448,15 +473,17 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         width: 100% !important; height: 55vh !important;
     }
 
-    ytd-watch-flexy[theater] #player-wide-container.ytd-watch-flexy,
-    ytd-watch-flexy[theater] #player-theater-container.ytd-watch-flexy {
-        height: calc(100vh - 48px) !important; max-height: calc(100vh - 48px) !important;
-    }
-    #movie_player { max-height: calc(100vh - 48px) !important; }
+    /* Search overlay */
+    #mindful-search { padding-top: 10vh !important; }
+    #mindful-search input { width: 92% !important; max-width: none !important; font-size: 16px !important; }
+    #mindful-suggest { width: 92% !important; max-width: none !important; }
 
-    #mindful-search input { width: 90% !important; font-size: 16px !important; }
-    #mindful-suggest { width: 90% !important; }
+    /* Search results — single column */
     ytd-search ytd-item-section-renderer #contents { grid-template-columns: 1fr !important; }
+    ytd-search ytd-video-renderer ytd-thumbnail img { aspect-ratio: 16/9 !important; }
+
+    /* Channel bar */
+    #mindful-channel-bar { bottom: 48px !important; font-size: 11px !important; }
 }
 
 } /* end @-moz-document */

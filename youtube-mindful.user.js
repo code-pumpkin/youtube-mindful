@@ -432,9 +432,13 @@
 
     function updateSidebar() {
         const w = isWatch();
+        const phone = window.innerWidth <= 600;
         ["details","recs","comments"].forEach(id => { sidebarBtns[id].disabled = !w; });
         sidebarBtns.chat.disabled = !w || !isLive();
         PANELS.forEach(id => { sidebarBtns[id].classList.toggle("active", state.panelOpen === id); });
+        // On phone, only show essential buttons in bottom bar
+        const phoneHide = ["back","subs","history","watchlater","playlist"];
+        phoneHide.forEach(id => { if (sidebarBtns[id]) sidebarBtns[id].style.display = phone ? "none" : ""; });
     }
 
     // ── Keyboard — just Escape ──
