@@ -167,6 +167,54 @@
     function openSearch() { if (state.panelOpen) closePanel(); searchEl.classList.add("open"); searchInput.value = ""; searchInput.focus(); }
     function closeSearch() { searchEl.classList.remove("open"); searchInput.blur(); suggestEl.innerHTML = ""; suggestEl.style.display = "none"; }
 
+    // ── Settings ──
+    const DEFAULTS = { panelMode: "side", panelWidth: 380 };
+    let prefs = { ...DEFAULTS };
+
+    function loadPrefs() {
+        try { const s = localStorage.getItem("mindful-prefs"); if (s) Object.assign(prefs, JSON.parse(s)); } catch {}
+        applyPrefs();
+    }
+    function savePrefs() { localStorage.setItem("mindful-prefs", JSON.stringify(prefs)); applyPrefs(); }
+    function applyPrefs() {
+        document.body.classList.toggle("mindful-mode-overlay", prefs.panelMode === "overlay");
+        document.documentElement.style.setProperty("--mindful-panel-w", prefs.panelWidth + "px");
+    }
+
+    let settingsEl;
+    function buildSettings() {
+        settingsEl = document.createElement("div"); settingsEl.id = "mindful-settings";
+        const box = document.createElement("div"); box.id = "mindful-settings-box";
+        box.innerHTML = `<h3>⚙ Mindful Settings</h3>
+<label>Panel mode<select id="ms-mode"><option value="side">Side panel</option><option value="overlay">Overlay</option></select></label>
+<label>Panel width<input type="range" id="ms-width" min="280" max="600" step="10"><span class="val" id="ms-width-val"></span></label>
+<button class="close-btn">Close</button>`;
+        settingsEl.appendChild(box);
+        settingsEl.addEventListener("click", e => { if (e.target === settingsEl) closeSettings(); });
+        box.querySelector(".close-btn").addEventListener("click", closeSettings);
+
+        const modeEl = box.querySelector("#ms-mode");
+        const widthEl = box.querySelector("#ms-width");
+        const widthVal = box.querySelector("#ms-width-val");
+
+        modeEl.addEventListener("change", () => { prefs.panelMode = modeEl.value; savePrefs(); });
+        widthEl.addEventListener("input", () => { prefs.panelWidth = +widthEl.value; widthVal.textContent = widthEl.value + "px"; savePrefs(); });
+
+        settingsEl._modeEl = modeEl;
+        settingsEl._widthEl = widthEl;
+        settingsEl._widthVal = widthVal;
+        document.body.appendChild(settingsEl);
+    }
+
+    function openSettings() {
+        if (state.panelOpen) closePanel();
+        settingsEl._modeEl.value = prefs.panelMode;
+        settingsEl._widthEl.value = prefs.panelWidth;
+        settingsEl._widthVal.textContent = prefs.panelWidth + "px";
+        settingsEl.classList.add("open");
+    }
+    function closeSettings() { settingsEl.classList.remove("open"); }
+
     // ── Sidebar ──
     let sidebar;
     const sidebarBtns = {};
@@ -182,6 +230,8 @@
             { id:"recs",     icon:"▤",  label:"Recommendations", action: () => isWatch() && togglePanel("recs") },
             { id:"comments", icon:"💬", label:"Comments",        action: () => isWatch() && togglePanel("comments") },
             { id:"chat",     icon:"◉",  label:"Live Chat",      action: () => isWatch() && isLive() && togglePanel("chat") },
+            "sep",
+            { id:"settings", icon:"⚙",  label:"Settings",        action: openSettings },
         ];
         items.forEach(item => {
             if (item === "sep") { const s = document.createElement("div"); s.className = "sep"; sidebar.appendChild(s); return; }
@@ -207,6 +257,7 @@
     function onKey(e) {
         if (isTyping()) return;
         if (e.key === "Escape") {
+            if (settingsEl.classList.contains("open")) { closeSettings(); return; }
             if (searchEl.classList.contains("open")) { closeSearch(); return; }
             if (state.panelOpen) { closePanel(); return; }
         }
@@ -222,8 +273,10 @@
 
     // ── Init ──
     function init() {
+        loadPrefs();
         buildSidebar();
         buildSearch();
+        buildSettings();
         document.body.style.overscrollBehavior = "none";
 
         if ("ontouchstart" in window) {
