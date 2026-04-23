@@ -371,39 +371,7 @@ ytd-browse[page-subtype="channels"] { background: var(--bg) !important; }
 ytd-c4-tabbed-header-renderer, ytd-tabbed-page-header { background: var(--bg-dark) !important; }
 yt-tab-shape[tab-title="Shorts"], yt-tab-shape[tab-title="Community"] { display: none !important; }
 
-/* ── SETTINGS OVERLAY ── */
-#mindful-settings {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.88);
-    z-index: 100002; display: none; align-items: center; justify-content: center;
-}
-#mindful-settings.open { display: flex !important; }
-#mindful-settings-box {
-    background: var(--bg-float); border: 1px solid var(--border);
-    padding: 20px 24px; width: 340px; max-width: 90vw;
-    font-family: var(--mono); font-size: 12px; color: var(--fg);
-}
-#mindful-settings-box h3 {
-    margin: 0 0 16px 0; font-size: 13px; color: var(--accent);
-    border-bottom: 1px solid var(--border); padding-bottom: 8px;
-}
-#mindful-settings-box label {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 12px; color: var(--fg-dim); font-size: 11px;
-}
-#mindful-settings-box select, #mindful-settings-box input[type="range"] {
-    background: var(--bg-dark); color: var(--fg); border: 1px solid var(--border);
-    font-family: var(--mono); font-size: 11px; padding: 4px 6px; cursor: pointer;
-}
-#mindful-settings-box input[type="range"] {
-    width: 120px; accent-color: var(--accent);
-}
-#mindful-settings-box .val { color: var(--accent); min-width: 40px; text-align: right; }
-#mindful-settings-box .close-btn {
-    display: block; margin-top: 16px; width: 100%; padding: 6px;
-    background: var(--bg-sel); color: var(--fg); border: 1px solid var(--border);
-    font-family: var(--mono); font-size: 11px; cursor: pointer; text-align: center;
-}
-#mindful-settings-box .close-btn:hover { background: var(--bg-hover); }
+/* ── SETTINGS — fully inline-styled by JS ── */
 
 /* ── OVERLAY MODE — centered panel instead of side-docked ── */
 body.mindful-mode-overlay.mindful-panel-comments ytd-watch-flexy #comments,
