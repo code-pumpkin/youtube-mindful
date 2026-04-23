@@ -51,15 +51,6 @@
         return t === "input" || t === "textarea" || a.isContentEditable;
     }
 
-
-    function forceTheater() {
-        if (!isWatch()) return;
-        const f = document.querySelector("ytd-watch-flexy");
-        if (!f || f.hasAttribute("theater") || f.hasAttribute("fullscreen")) return;
-        const b = document.querySelector("button.ytp-size-button");
-        if (b) b.click();
-    }
-
     // ── Stats injection (for details panel) ──
     function injectStats() {
         document.getElementById("mindful-stats")?.remove();
@@ -495,7 +486,6 @@
         if (searchEl?.classList.contains("open")) closeSearch();
         updateSidebar();
         buildChannelBar();
-        setTimeout(forceTheater, 800);
     }
 
     // ── Init ──
@@ -530,7 +520,6 @@
             if (location.href !== lastUrl) { lastUrl = location.href; onNav(); }
         }).observe(document.body, { childList:true, subtree:true });
 
-        setTimeout(forceTheater, 1000);
         setTimeout(updateSidebar, 500);
         setTimeout(updateSidebar, 2000);
         setTimeout(buildChannelBar, 500);
