@@ -44,8 +44,10 @@
         if (!isWatch()) return;
         const f = document.querySelector("ytd-watch-flexy");
         if (!f || f.hasAttribute("theater") || f.hasAttribute("fullscreen")) return;
+        // Only set theater after player exists and video is loading
+        const player = document.querySelector("#movie_player");
+        if (!player) return;
         f.setAttribute("theater", "");
-        f.setAttribute("theater-requested_", "");
     }
 
     function ensureTheater() {
