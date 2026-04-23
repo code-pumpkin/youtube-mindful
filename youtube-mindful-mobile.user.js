@@ -223,17 +223,7 @@ body.mindful-m-details ytm-slim-video-metadata-section-renderer {
     display: block !important; visibility: visible !important;
     padding: 48px 0 56px !important;
 }
-/* Comments: first scwnr-content WITHOUT section-identifier */
-body.mindful-m-comments ytm-item-section-renderer.scwnr-content:not([section-identifier]) {
-    position: fixed !important; top: 0 !important; left: 0 !important;
-    right: 0 !important; bottom: 0 !important;
-    width: 100% !important; height: 100% !important;
-    overflow-y: auto !important; -webkit-overflow-scrolling: touch !important;
-    background: var(--bg) !important;
-    z-index: 100002 !important;
-    display: block !important; visibility: visible !important;
-    padding: 48px 0 56px !important;
-}
+/* Comments: trigger native YouTube bottom sheet via JS click — no CSS panel */
 /* Related: last section-identifier=related-items (has the actual videos) */
 body.mindful-m-related ytm-item-section-renderer.scwnr-content[section-identifier=related-items] {
     position: fixed !important; top: 0 !important; left: 0 !important;
@@ -261,11 +251,6 @@ body.mindful-m-details .ytSegmentedLikeDislikeButtonViewModelSegmentedButtonsWra
     background: var(--bg-hover) !important;
 }
 
-/* Show comments section */
-body.mindful-m-comments ytm-item-section-renderer.scwnr-content:not([section-identifier]) {
-    display: block !important;
-}
-
 /* Show related videos */
 body.mindful-m-related ytm-item-section-renderer.scwnr-content[section-identifier=related-items] {
     display: block !important;
@@ -289,7 +274,6 @@ body.mindful-m-related ytm-video-with-context-renderer .media-item-headline {
     -webkit-tap-highlight-color: transparent;
 }
 body.mindful-m-details #mindful-panel-close,
-body.mindful-m-comments #mindful-panel-close,
 body.mindful-m-related #mindful-panel-close { display: block !important; }
 
 /* ── Engagement panels (YouTube native) ── */
@@ -516,13 +500,17 @@ html[darker-dark-theme] c3-toast { background: var(--bg-float) !important; color
         panelClose.addEventListener("click", closePanel);
         document.body.appendChild(panelClose);
 
-        const PANELS = ["mindful-m-details", "mindful-m-comments", "mindful-m-related"];
+        const PANELS = ["mindful-m-details", "mindful-m-related"];
         function closePanel() { PANELS.forEach(c => document.body.classList.remove(c)); updateWatchBtns(); }
         function togglePanel(cls) {
             const wasOpen = document.body.classList.contains(cls);
             closePanel();
             if (!wasOpen) document.body.classList.add(cls);
             updateWatchBtns();
+        }
+        function openComments() {
+            const entry = document.querySelector("yt-video-metadata-carousel-view-model, comments-entry-point-teaser-view-model, ytm-comments-entry-point-header-renderer");
+            if (entry) entry.click();
         }
 
         let watchBtns = {};
@@ -542,13 +530,13 @@ html[darker-dark-theme] c3-toast { background: var(--bg-float) !important; color
             row.id = "mindful-watch-btns";
             watchBtns = {};
             [
-                { id:"mindful-m-details",  label:"⊕ Details" },
-                { id:"mindful-m-comments", label:"💬 Comments" },
-                { id:"mindful-m-related",  label:"▶ Related" },
+                { id:"mindful-m-details",  label:"⊕ Details", action: () => togglePanel("mindful-m-details") },
+                { id:"mindful-m-comments", label:"💬 Comments", action: openComments },
+                { id:"mindful-m-related",  label:"▶ Related", action: () => togglePanel("mindful-m-related") },
             ].forEach(item => {
                 const b = document.createElement("button");
                 b.textContent = item.label;
-                b.addEventListener("click", () => togglePanel(item.id));
+                b.addEventListener("click", item.action);
                 row.appendChild(b);
                 watchBtns[item.id] = b;
             });
