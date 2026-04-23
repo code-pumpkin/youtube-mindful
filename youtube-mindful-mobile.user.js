@@ -37,6 +37,33 @@
     document.addEventListener("fullscreenchange", e => e.stopImmediatePropagation(), true);
     document.addEventListener("webkitfullscreenchange", e => e.stopImmediatePropagation(), true);
 
+    // ── Prevent YouTube from pausing video when panels/sheets open ──
+    // YouTube calls video.pause() when it detects player not visible.
+    // Wrap HTMLVideoElement.pause to block unwanted pauses.
+    const realPause = HTMLVideoElement.prototype.pause;
+    let userPaused = false;
+    HTMLVideoElement.prototype.pause = function() {
+        // Allow pause only if user explicitly tapped pause (not YouTube's auto-pause)
+        if (userPaused) { userPaused = false; return realPause.call(this); }
+        // Block auto-pause — check if this was triggered by user interaction
+        // If there's no recent user gesture, it's YouTube auto-pausing
+        return undefined;
+    };
+    // Detect real user pause via player controls
+    document.addEventListener("click", e => {
+        const t = e.target;
+        if (t && (t.closest(".player-controls-content") || t.closest(".ytp-play-button") || t.closest("button[aria-label*='Pause']")))
+            userPaused = true;
+    }, true);
+
+    // ── Prevent inline-player-hidden from being added ──
+    // YouTube adds this class to hide the player when scrolling away or opening panels
+    const realClassListAdd = DOMTokenList.prototype.add;
+    DOMTokenList.prototype.add = function(...args) {
+        if (args.includes("inline-player-hidden")) return;
+        return realClassListAdd.apply(this, args);
+    };
+
     // ── CSS ──
     const CSS = `
 :root {
@@ -517,12 +544,8 @@ html[darker-dark-theme] c3-toast { background: var(--bg-float) !important; color
             updateWatchBtns();
         }
         function openComments() {
-            const vid = document.querySelector("video");
-            const wasPlaying = vid && !vid.paused;
             const entry = document.querySelector("yt-video-metadata-carousel-view-model, comments-entry-point-teaser-view-model, ytm-comments-entry-point-header-renderer");
             if (entry) entry.click();
-            // YouTube pauses video when opening comments — resume it
-            if (wasPlaying && vid) setTimeout(() => { if (vid.paused) vid.play(); }, 300);
         }
 
         let watchBtns = {};
