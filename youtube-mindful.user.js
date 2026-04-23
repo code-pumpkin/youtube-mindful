@@ -552,7 +552,6 @@ ytm-feed-filter-chip-bar-renderer, .chip-bar { display: none !important; }
 
 /* ── Hide shorts ── */
 ytm-reel-shelf-renderer, ytm-reel-item-renderer,
-ytm-rich-item-renderer:has(ytm-reel-item-renderer),
 a[href*="/shorts/"] { display: none !important; }
 
 /* ── Home grid ── */
