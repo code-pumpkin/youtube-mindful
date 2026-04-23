@@ -44,21 +44,14 @@
         if (!isWatch()) return;
         const f = document.querySelector("ytd-watch-flexy");
         if (!f || f.hasAttribute("theater") || f.hasAttribute("fullscreen")) return;
-        // Only set theater after player exists and video is loading
-        const player = document.querySelector("#movie_player");
-        if (!player) return;
-        f.setAttribute("theater", "");
+        const b = document.querySelector(".ytp-size-button");
+        if (b) b.click();
     }
 
+    // Single delayed attempt — no retry loop
     function ensureTheater() {
         if (!isWatch()) return;
-        let tries = 0;
-        const iv = setInterval(() => {
-            if (++tries > 6 || !isWatch()) { clearInterval(iv); return; }
-            const f = document.querySelector("ytd-watch-flexy");
-            if (f && f.hasAttribute("theater")) { clearInterval(iv); return; }
-            forceTheater();
-        }, 1000);
+        setTimeout(forceTheater, 1500);
     }
 
     // ── Stats injection (for details panel) ──
