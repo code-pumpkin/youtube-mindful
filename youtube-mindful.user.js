@@ -170,13 +170,11 @@
 
     function fetchSuggest(q) {
         if (!q) { suggestEl.style.display = "none"; return; }
-        const xhr = new XMLHttpRequest();
-        xhr.open("GET", "https://clients1.google.com/complete/search?client=firefox&ds=yt&q=" + encodeURIComponent(q));
-        xhr.onload = function() {
-            try { const d = JSON.parse(xhr.responseText); if (d && d[1]) renderSuggest(d[1], q); }
-            catch(e) {}
-        };
-        xhr.send();
+        // Use YouTube's own same-origin suggest endpoint — no CORS/CSP issues
+        fetch("/complete/search?client=youtube&ds=yt&q=" + encodeURIComponent(q) + "&xhr=t")
+            .then(r => r.json())
+            .then(d => { if (d && d[1]) renderSuggest(d[1], q); })
+            .catch(() => {});
     }
 
     function renderSuggest(items, q) {
