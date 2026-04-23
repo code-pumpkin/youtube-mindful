@@ -218,7 +218,7 @@
     function closeSearch() { searchEl.classList.remove("open"); searchInput.blur(); suggestEl.innerHTML = ""; suggestEl.style.display = "none"; }
 
     // ── Settings ──
-    const DEFAULTS = { panelMode: "side", panelWidth: 380 };
+    const DEFAULTS = { panelMode: "side", panelWidth: 380, keyComments: "", keyRecs: "", keyDetails: "" };
     let prefs = { ...DEFAULTS };
 
     function loadPrefs() {
@@ -269,6 +269,44 @@
         widthWrap.append(widthEl, widthVal);
         widthRow.append(widthLabel, widthWrap);
 
+        // Keybindings
+        const keySection = document.createElement("div");
+        Object.assign(keySection.style, { marginTop:"14px", paddingTop:"12px", borderTop:`1px solid ${C.border}` });
+        const keyTitle = document.createElement("div");
+        Object.assign(keyTitle.style, { fontSize:"11px", color:C.accent, marginBottom:"10px" });
+        keyTitle.textContent = "Keybindings (click input, press a key)";
+
+        function makeKeyRow(label, prefKey) {
+            const row = document.createElement("div");
+            Object.assign(row.style, { display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:"8px", color:C.fgDim, fontSize:"11px" });
+            const lbl = document.createElement("span"); lbl.textContent = label;
+            const inp = document.createElement("input"); inp.type = "text"; inp.readOnly = true;
+            inp.value = prefs[prefKey] || "(none)";
+            Object.assign(inp.style, {
+                width:"80px", background:C.bgDark, color:C.fg, border:`1px solid ${C.border}`,
+                fontFamily:'"JetBrains Mono",monospace', fontSize:"11px", padding:"4px 6px",
+                textAlign:"center", cursor:"pointer",
+            });
+            inp.addEventListener("keydown", e => {
+                e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+                if (e.key === "Escape") { prefs[prefKey] = ""; inp.value = "(none)"; }
+                else if (e.key === "Backspace") { prefs[prefKey] = ""; inp.value = "(none)"; }
+                else { prefs[prefKey] = e.key; inp.value = e.key; }
+                savePrefs();
+            });
+            inp.addEventListener("focus", () => { inp.style.borderColor = C.accent; });
+            inp.addEventListener("blur", () => { inp.style.borderColor = C.border; });
+            inp.dataset.prefKey = prefKey;
+            row.append(lbl, inp);
+            return row;
+        }
+
+        keySection.append(keyTitle,
+            makeKeyRow("Comments", "keyComments"),
+            makeKeyRow("Recommendations", "keyRecs"),
+            makeKeyRow("Details", "keyDetails"),
+        );
+
         // Close button
         const closeBtn = document.createElement("button"); closeBtn.textContent = "Close";
         Object.assign(closeBtn.style, {
@@ -277,7 +315,7 @@
             fontFamily:'"JetBrains Mono",monospace', fontSize:"11px", cursor:"pointer", textAlign:"center",
         });
 
-        box.append(title, modeRow, widthRow, closeBtn);
+        box.append(title, modeRow, widthRow, keySection, closeBtn);
         settingsEl.appendChild(box);
 
         settingsEl.addEventListener("click", e => { if (e.target === settingsEl) closeSettings(); });
@@ -296,6 +334,9 @@
         settingsEl._modeEl.value = prefs.panelMode;
         settingsEl._widthEl.value = prefs.panelWidth;
         settingsEl._widthVal.textContent = prefs.panelWidth + "px";
+        settingsEl.querySelectorAll("input[data-pref-key]").forEach(inp => {
+            inp.value = prefs[inp.dataset.prefKey] || "(none)";
+        });
         settingsEl.style.cssText = "position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.88);z-index:100002;display:flex;align-items:center;justify-content:center;";
     }
     function closeSettings() { settingsEl.style.display = "none"; }
@@ -425,6 +466,12 @@
             if (settingsEl.style.display === "flex") { closeSettings(); return; }
             if (searchEl.classList.contains("open")) { closeSearch(); return; }
             if (state.panelOpen) { closePanel(); return; }
+        }
+        if (e.ctrlKey || e.altKey || e.metaKey) return;
+        if (isWatch()) {
+            if (prefs.keyComments && e.key === prefs.keyComments) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); togglePanel("comments"); return; }
+            if (prefs.keyRecs && e.key === prefs.keyRecs) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); togglePanel("recs"); return; }
+            if (prefs.keyDetails && e.key === prefs.keyDetails) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); togglePanel("details"); return; }
         }
     }
 
