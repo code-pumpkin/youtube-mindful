@@ -1,3 +1,14 @@
+/* ==UserStyle==
+@name         YouTube Mindful Mobile
+@namespace    github.com/code-pumpkin/youtube-mindful
+@version      1.0.0
+@description  Mindful YouTube — mobile (m.youtube.com)
+@author       codePumpkin
+@license      MIT
+==/UserStyle== */
+
+@-moz-document domain("m.youtube.com") {
+
 /* YouTube Mindful — Mobile (m.youtube.com) */
 /* Separate from desktop — mobile uses ytm-* elements, not ytd-* */
 
@@ -156,3 +167,5 @@ ytm-shelf-renderer { background: var(--bg) !important; }
 ytm-item-section-renderer { background: var(--bg) !important; }
 ytm-compact-link-renderer { color: var(--fg) !important; }
 .compact-link-icon { fill: var(--fg-dim) !important; }
+
+} /* end @-moz-document */
