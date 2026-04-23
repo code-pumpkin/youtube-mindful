@@ -170,17 +170,13 @@
 
     function fetchSuggest(q) {
         if (!q) { suggestEl.style.display = "none"; return; }
-        const script = document.createElement("script");
-        const cb = "_mfSuggest" + Date.now();
-        window[cb] = function(data) {
-            delete window[cb];
-            if (script.parentNode) script.parentNode.removeChild(script);
-            if (data && data[1]) renderSuggest(data[1], q);
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", "https://clients1.google.com/complete/search?client=firefox&ds=yt&q=" + encodeURIComponent(q));
+        xhr.onload = function() {
+            try { const d = JSON.parse(xhr.responseText); if (d && d[1]) renderSuggest(d[1], q); }
+            catch(e) {}
         };
-        script.src = "https://clients1.google.com/complete/search?client=youtube&ds=yt&q=" + encodeURIComponent(q) + "&callback=" + cb;
-        script.onerror = function() { delete window[cb]; if (script.parentNode) script.parentNode.removeChild(script); };
-        document.head.appendChild(script);
-        setTimeout(function() { if (window[cb]) { delete window[cb]; if (script.parentNode) script.parentNode.removeChild(script); } }, 3000);
+        xhr.send();
     }
 
     function renderSuggest(items, q) {
