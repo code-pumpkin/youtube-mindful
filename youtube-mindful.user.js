@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Mindful v8
 // @namespace    youtube-mindful
-// @version      8.0.0
+// @version      8.1.0
 // @description  Mindful YouTube — sidebar nav, side panels, responsive.
 // @author       codePumpkin
 // @match        https://www.youtube.com/*
