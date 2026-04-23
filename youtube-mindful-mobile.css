@@ -32,7 +32,7 @@ ytm-mobile-topbar-renderer, ytm-header, #header { display: none !important; }
 
 /* ── Hide bottom nav ── */
 ytm-pivot-bar-renderer { display: none !important; }
-[has-pivot-bar=true] ytm-app { padding-bottom: 0 !important; }
+[has-pivot-bar=true] ytm-app { padding-bottom: 48px !important; }
 
 /* ── Hide chips ── */
 ytm-feed-filter-chip-bar-renderer, .chip-bar { display: none !important; }

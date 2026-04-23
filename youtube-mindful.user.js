@@ -545,7 +545,7 @@ ytm-mobile-topbar-renderer, ytm-header, #header { display: none !important; }
 
 /* ── Hide bottom nav ── */
 ytm-pivot-bar-renderer { display: none !important; }
-[has-pivot-bar=true] ytm-app { padding-bottom: 0 !important; }
+[has-pivot-bar=true] ytm-app { padding-bottom: 48px !important; }
 
 /* ── Hide chips ── */
 ytm-feed-filter-chip-bar-renderer, .chip-bar { display: none !important; }
@@ -714,8 +714,116 @@ ytm-compact-link-renderer { color: var(--fg) !important; }
     if (document.head) injectCSS();
     else document.addEventListener("DOMContentLoaded", injectCSS, { once: true });
 
-    // On mobile, only inject CSS — skip sidebar/panels (different DOM)
-    if (isMobile) return;
+    // On mobile, build minimal UI (our own elements only, zero YouTube DOM touching)
+    if (isMobile) {
+        const waitBody = fn => document.body ? fn() : document.addEventListener("DOMContentLoaded", fn, { once: true });
+        waitBody(() => {
+            // Search overlay
+            let mSearchEl, mSearchInput, mSuggestEl, mSuggestTimer;
+            function mBuildSearch() {
+                mSearchEl = document.createElement("div");
+                Object.assign(mSearchEl.style, {
+                    position:"fixed", inset:"0", background:"rgba(0,0,0,0.88)",
+                    zIndex:"100001", display:"none", alignItems:"flex-start",
+                    justifyContent:"center", paddingTop:"10vh",
+                });
+                const wrap = document.createElement("div");
+                Object.assign(wrap.style, { display:"flex", flexDirection:"column", width:"92%" });
+                mSearchInput = document.createElement("input"); mSearchInput.type = "text"; mSearchInput.placeholder = "search youtube...";
+                Object.assign(mSearchInput.style, {
+                    width:"100%", background:C.bgDark, border:"none",
+                    borderBottom:`2px solid ${C.accent}`, color:C.fg,
+                    fontFamily:"monospace", fontSize:"16px", padding:"10px 4px", outline:"none",
+                });
+                mSuggestEl = document.createElement("div");
+                Object.assign(mSuggestEl.style, {
+                    width:"100%", background:C.bgDark, maxHeight:"40vh",
+                    overflowY:"auto", display:"none", border:`1px solid ${C.border}`, borderTop:"none",
+                });
+                mSearchInput.addEventListener("keydown", e => {
+                    e.stopImmediatePropagation();
+                    if (e.key === "Enter") {
+                        const s = mSuggestEl.querySelector(".sel");
+                        const q = s ? s.dataset.q : mSearchInput.value.trim();
+                        if (q) location.href = `/results?search_query=${encodeURIComponent(q)}`;
+                        mCloseSearch();
+                    } else if (e.key === "Escape") { mCloseSearch(); }
+                });
+                mSearchInput.addEventListener("input", () => {
+                    clearTimeout(mSuggestTimer);
+                    mSuggestTimer = setTimeout(() => {
+                        const q = mSearchInput.value.trim();
+                        if (!q) { while(mSuggestEl.firstChild) mSuggestEl.removeChild(mSuggestEl.firstChild); mSuggestEl.style.display="none"; return; }
+                        if (typeof GM_xmlhttpRequest !== "undefined") {
+                            GM_xmlhttpRequest({
+                                method:"GET",
+                                url:"https://suggestqueries-clients6.youtube.com/complete/search?client=firefox&ds=yt&q="+encodeURIComponent(q),
+                                onload: function(res) {
+                                    try {
+                                        const d = JSON.parse(res.responseText);
+                                        if (d && d[1]) {
+                                            while(mSuggestEl.firstChild) mSuggestEl.removeChild(mSuggestEl.firstChild);
+                                            d[1].forEach(item => {
+                                                const text = Array.isArray(item) ? item[0] : String(item);
+                                                const div = document.createElement("div"); div.dataset.q = text;
+                                                Object.assign(div.style, { padding:"10px 12px", cursor:"pointer", fontFamily:"monospace", fontSize:"14px", color:C.fg, borderBottom:`1px solid ${C.border}` });
+                                                div.textContent = text;
+                                                div.addEventListener("click", () => { location.href = `/results?search_query=${encodeURIComponent(text)}`; mCloseSearch(); });
+                                                mSuggestEl.appendChild(div);
+                                            });
+                                            mSuggestEl.style.display = "block";
+                                        }
+                                    } catch(e) {}
+                                }
+                            });
+                        }
+                    }, 200);
+                });
+                wrap.append(mSearchInput, mSuggestEl);
+                mSearchEl.appendChild(wrap);
+                mSearchEl.addEventListener("click", e => { if (e.target === mSearchEl) mCloseSearch(); });
+                document.body.appendChild(mSearchEl);
+            }
+            function mOpenSearch() { mSearchEl.style.display = "flex"; mSearchInput.value = ""; mSearchInput.focus(); }
+            function mCloseSearch() { mSearchEl.style.display = "none"; while(mSuggestEl.firstChild) mSuggestEl.removeChild(mSuggestEl.firstChild); mSuggestEl.style.display = "none"; }
+
+            // Bottom bar
+            const bar = document.createElement("div");
+            Object.assign(bar.style, {
+                position:"fixed", bottom:"0", left:"0", right:"0", height:"48px",
+                background:C.bgDark, borderTop:`1px solid ${C.border}`,
+                display:"flex", justifyContent:"space-around", alignItems:"center",
+                zIndex:"99999",
+            });
+            const btns = [
+                { label:"Home", icon:"M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z", action:()=>location.href="/" },
+                { label:"Search", icon:"M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z", action:mOpenSearch },
+                { label:"Subs", icon:"M18 1H6a2 2 0 00-2 2h16a2 2 0 00-2-2zm3 4H3a2 2 0 00-2 2v13a2 2 0 002 2h18a2 2 0 002-2V7a2 2 0 00-2-2zM3 20V7h18v13H3zm13-6.5L10 10v7l6-3.5z", action:()=>location.href="/feed/subscriptions" },
+                { label:"History", icon:"M13 3a9 9 0 00-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7a6.98 6.98 0 01-4.95-2.05l-1.41 1.41A8.96 8.96 0 0013 21a9 9 0 000-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z", action:()=>location.href="/feed/history" },
+            ];
+            btns.forEach(b => {
+                const btn = document.createElement("button");
+                Object.assign(btn.style, { width:"44px", height:"44px", border:"none", background:"transparent", color:C.fgDim, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center" });
+                const svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
+                svg.setAttribute("viewBox","0 0 24 24"); svg.setAttribute("width","22"); svg.setAttribute("height","22");
+                svg.style.pointerEvents = "none";
+                const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+                path.setAttribute("d", b.icon); path.setAttribute("fill","currentColor");
+                svg.appendChild(path); btn.appendChild(svg);
+                btn.addEventListener("click", e => { e.preventDefault(); b.action(); });
+                bar.appendChild(btn);
+            });
+            document.body.appendChild(bar);
+
+            // Add bottom padding so content isn't hidden behind bar
+            const spacer = document.createElement("style");
+            spacer.textContent = "body { padding-bottom: 48px !important; }";
+            document.head.appendChild(spacer);
+
+            mBuildSearch();
+        });
+        return;
+    }
 
     function isTyping() {
         const a = document.activeElement;
