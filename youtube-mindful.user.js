@@ -318,6 +318,43 @@
         });
         document.body.appendChild(sidebar);
         updateSidebar();
+
+        // Steal notification bell + profile avatar from masthead into sidebar
+        setTimeout(adoptMastheadItems, 1500);
+        setTimeout(adoptMastheadItems, 4000);
+    }
+
+    function adoptMastheadItems() {
+        if (!sidebar) return;
+        // Notification bell
+        if (!sidebar.querySelector("ytd-notification-topbar-button-renderer")) {
+            const bell = document.querySelector("ytd-notification-topbar-button-renderer");
+            if (bell) {
+                bell.style.cssText = "display:flex!important;align-items:center;justify-content:center;width:40px;height:40px;overflow:hidden;";
+                const btn = bell.querySelector("#button, button");
+                if (btn) btn.style.cssText = "padding:0!important;width:40px!important;height:40px!important;display:flex!important;align-items:center!important;justify-content:center!important;";
+                bell.querySelectorAll("tp-yt-paper-tooltip").forEach(t => t.remove());
+                const icon = bell.querySelector("yt-icon-badge-shape, yt-icon");
+                if (icon) icon.style.cssText = "width:20px!important;height:20px!important;color:var(--fg-dim)!important;";
+                // Insert before the last sep
+                const seps = sidebar.querySelectorAll(".sep");
+                const lastSep = seps[seps.length - 1];
+                if (lastSep) sidebar.insertBefore(bell, lastSep);
+                else sidebar.appendChild(bell);
+            }
+        }
+        // Profile avatar
+        if (!sidebar.querySelector("ytd-topbar-menu-button-renderer")) {
+            const avatar = document.querySelector("ytd-topbar-menu-button-renderer:has(#avatar-btn)");
+            if (avatar) {
+                avatar.style.cssText = "display:flex!important;align-items:center;justify-content:center;width:40px;height:40px;overflow:hidden;";
+                const btn = avatar.querySelector("#avatar-btn");
+                if (btn) btn.style.cssText = "padding:0!important;width:32px!important;height:32px!important;display:flex!important;align-items:center!important;justify-content:center!important;cursor:pointer!important;background:none!important;border:none!important;";
+                const img = avatar.querySelector("yt-img-shadow, img");
+                if (img) img.style.cssText = "width:28px!important;height:28px!important;border-radius:50%!important;";
+                sidebar.appendChild(avatar);
+            }
+        }
     }
 
     function updateSidebar() {
