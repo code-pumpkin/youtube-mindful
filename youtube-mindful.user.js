@@ -511,6 +511,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
 `;
 
     const MINDFUL_MOBILE_CSS = `
+body { border: 5px solid red !important; }
 :root {
     --bg: #101010; --bg-dark: #0a0a0a; --bg-float: #181818;
     --bg-hover: #252525; --bg-sel: #2a2a2a;
