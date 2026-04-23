@@ -6,7 +6,7 @@
 // @author       codePumpkin
 // @match        https://www.youtube.com/*
 // @grant        GM_xmlhttpRequest
-// @connect      suggestqueries.google.com
+// @connect      suggestqueries-clients6.youtube.com
 // @run-at       document-idle
 // ==/UserScript==
 
