@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Mindful Mobile
 // @namespace    youtube-mindful-mobile
-// @version      3.5.0
+// @version      3.6.0
 // @description  Mindful YouTube — mobile experience
 // @author       codePumpkin
 // @match        https://m.youtube.com/*
@@ -324,10 +324,11 @@ bottom-sheet-container { background: var(--bg-float) !important; }
     visibility: visible !important; opacity: 1 !important;
     height: auto !important; display: block !important;
 }
-/* Make the engagement panel close button hidden — we use our own */
-ytm-engagement-panel-header-renderer button,
-.engagement-panel-title-header-renderer button {
-    display: none !important;
+/* Hide YouTube's native engagement panel close button visually — we use our own */
+/* Keep it in DOM so JS can still click it to close the panel */
+ytm-engagement-panel-section-list-renderer ytm-button-renderer.close-button {
+    width: 0 !important; height: 0 !important; overflow: hidden !important;
+    padding: 0 !important; margin: 0 !important; border: none !important;
 }
 ytm-comment-thread-renderer { border-bottom: 1px solid var(--border) !important; }
 .comment-text { color: var(--fg) !important; font-family: var(--mono) !important; font-size: 13px !important; }
@@ -578,13 +579,22 @@ html[darker-dark-theme] c3-toast { background: var(--bg-float) !important; color
                     }
                     if (vid.paused) vid.play();
                     if (vid.muted) vid.muted = false;
+                    // YouTube adds paused-mode to #movie_player — remove it
+                    const mp = document.getElementById("movie_player");
+                    if (mp) mp.classList.remove("paused-mode");
                 }, 500);
             }
         }
         function closeComments() {
             clearInterval(commentResumeInterval);
-            const closeBtn = document.querySelector('[panel-identifier="engagement-panel-comments-section"] button[aria-label*="Close"], ytm-engagement-panel-header-renderer button');
+            // Use the actual close button from the engagement panel header
+            const closeBtn = document.querySelector("ytm-engagement-panel-section-list-renderer.engagement-panel-comments-section ytm-button-renderer.close-button button");
             if (closeBtn) closeBtn.click();
+            // Also try the scrim hidden button as fallback
+            else {
+                const scrim = document.querySelector("ytm-engagement-panel-section-list-renderer.engagement-panel-comments-section ytw-scrim button");
+                if (scrim) scrim.click();
+            }
             document.body.classList.remove("mindful-m-comments-open");
         }
 
