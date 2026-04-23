@@ -7,7 +7,7 @@
 @license      MIT
 ==/UserStyle== */
 
-@-moz-document domain("www.youtube.com") {
+@-moz-document domain("youtube.com") {
 
 :root {
     --bg:       #101010;  --bg-dark:  #0a0a0a;  --bg-float: #181818;

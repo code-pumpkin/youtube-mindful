@@ -5,6 +5,8 @@
 // @description  Mindful YouTube — sidebar nav, side panels, responsive.
 // @author       codePumpkin
 // @match        https://www.youtube.com/*
+// @match        https://m.youtube.com/*
+// @match        https://music.youtube.com/*
 // @grant        GM_xmlhttpRequest
 // @connect      suggestqueries-clients6.youtube.com
 // @connect      *
