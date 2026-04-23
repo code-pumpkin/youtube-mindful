@@ -262,19 +262,6 @@ body.mindful-m-watch [has-pivot-bar=true] ytm-app { padding-bottom: 40px !import
 
     ready(() => {
 
-            // TEMP: dump DOM after 8 seconds
-            setTimeout(() => {
-                const clone = document.documentElement.cloneNode(true);
-                clone.querySelectorAll("img,video,source,script,link[rel=preload]").forEach(el => { el.removeAttribute("src"); el.removeAttribute("srcset"); });
-                clone.querySelectorAll("style").forEach(el => el.textContent = "");
-                const html = clone.outerHTML;
-                const blob = new Blob([html], {type:"text/html"});
-                const a = document.createElement("a");
-                a.href = URL.createObjectURL(blob);
-                a.download = location.pathname === "/watch" ? "yt-watch.html" : "yt-home.html";
-                document.body.appendChild(a); a.click(); a.remove();
-            }, 8000);
-
         const isWatch = () => location.pathname === "/watch";
 
         // ── SVG helper ──
