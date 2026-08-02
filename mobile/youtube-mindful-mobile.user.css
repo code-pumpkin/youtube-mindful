@@ -1,22 +1,71 @@
 /* ==UserStyle==
 @name         YouTube Mindful Mobile
 @namespace    github.com/code-pumpkin/youtube-mindful
-@version      3.6.0
-@description  Mindful YouTube — mobile (m.youtube.com)
+@version      4.0.0
+@description  Mindful YouTube — mobile (m.youtube.com), calm design system + prewarmed panels.
 @author       codePumpkin
 @license      MIT
 ==/UserStyle== */
 
 @-moz-document domain("m.youtube.com") {
+
+/* ══════════════════════════════════════════════════════════════════
+   DESIGN TOKENS — identical scale to desktop
+   ══════════════════════════════════════════════════════════════════ */
 :root {
-    --bg: #101010; --bg-dark: #0a0a0a; --bg-float: #181818;
-    --bg-hover: #252525; --bg-sel: #2a2a2a;
-    --fg: #e8e2d6; --fg-dim: #8a8a8a; --fg-dark: #4a4a4a;
-    --border: #2a2a2a; --accent: #c8c0b0;
-    --cyan: #90b0c8; --magenta: #b8a0d0; --mono: monospace;
+    --bg:         #121110;
+    --bg-sunken:  #0d0c0b;
+    --surface:    #1a1917;
+    --surface-2:  #232120;
+    --border:     #2a2724;
+
+    --fg:         #eae5dc;   /* 15.0:1 */
+    --fg-muted:   #a39d94;   /*  7.0:1 */
+    --fg-subtle:  #8e8981;   /*  5.1:1 */
+
+    --accent:     #b8a98f;   /*  8.2:1 */
+    --success:    #8faa78;
+    --warning:    #c9b177;
+    --danger:     #c4796b;
+    --info:       #8ba3b8;
+
+    /* legacy aliases */
+    --bg-dark: var(--bg-sunken);  --bg-float: var(--surface);
+    --bg-hover: var(--surface-2); --bg-sel: var(--surface-2);
+    --fg-dim: var(--fg-muted);    --fg-dark: var(--fg-subtle);
+    --cyan: var(--info); --magenta: var(--accent);
+    --green: var(--success); --yellow: var(--warning);
+
+    --radius: 0.375rem; --radius-sm: 0.25rem; --radius-pill: 9999px;
+
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --mono: "JetBrains Mono", "SF Mono", monospace;
+    --fs-xs: 0.75rem; --fs-sm: 0.8125rem; --fs-base: 0.9375rem; --fs-lg: 1.0625rem;
+
+    --sp-1: 0.25rem; --sp-2: 0.5rem; --sp-3: 0.75rem;
+    --sp-4: 1rem; --sp-5: 1.25rem; --sp-6: 1.5rem;
+
+    --dur: 160ms;
+    --ease: cubic-bezier(0.2, 0, 0.2, 1);
+
+    /* bar height incl. safe area — single source of truth */
+    --bar-h: 3.25rem;
+    --bar-total: calc(var(--bar-h) + env(safe-area-inset-bottom, 0px));
+
+    --z-panel: 100000; --z-nav: 100000; --z-overlay: 100001; --z-modal: 100002;
 }
 
-/* ── Global ── */
+@media (prefers-reduced-motion: reduce) {
+    :root { --dur: 1ms; }
+    *, *::before, *::after {
+        animation-duration: 1ms !important; transition-duration: 1ms !important;
+        animation-iteration-count: 1 !important; scroll-behavior: auto !important;
+    }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   GLOBAL
+   ══════════════════════════════════════════════════════════════════ */
 html, body, ytm-app, ytm-browse,
 ytm-single-column-browse-results-renderer,
 ytm-single-column-watch-next-results-renderer,
@@ -24,60 +73,69 @@ ytm-watch, ytm-settings {
     background-color: var(--bg) !important;
     color: var(--fg) !important;
 }
+body { font-family: var(--sans) !important; }
 html[darker-dark-theme] {
     background-color: var(--bg) !important;
     --yt-spec-base-background: var(--bg) !important;
-    --yt-spec-raised-background: var(--bg) !important;
+    --yt-spec-raised-background: var(--surface) !important;
     --yt-spec-general-background-a: var(--bg) !important;
     --yt-spec-general-background-b: var(--bg) !important;
     --yt-spec-general-background-c: var(--bg) !important;
     --yt-spec-text-primary: var(--fg) !important;
-    --yt-spec-text-secondary: var(--fg-dim) !important;
-    --yt-spec-badge-chip-background: var(--bg-sel) !important;
+    --yt-spec-text-secondary: var(--fg-muted) !important;
+    --yt-spec-badge-chip-background: var(--surface-2) !important;
 }
-*, *::after, *::before { border-radius: 0 !important; }
 
-/* ── Hide YT header — safe collapse ── */
-ytm-mobile-topbar-renderer, ytm-header, #header,
-#header-bar { height: 0 !important; min-height: 0 !important; overflow: hidden !important; opacity: 0 !important; pointer-events: none !important; }
+/* ── RADIUS — softened ── */
+*, *::after, *::before { border-radius: var(--radius-sm) !important; }
+ytm-media-item .media-item-thumbnail-container,
+ytm-media-item img, ytm-video-with-context-renderer img {
+    border-radius: var(--radius) !important;
+}
+.slim-owner-profile-icon, .slim-owner-profile-icon img,
+ytm-profile-icon, ytm-profile-icon img { border-radius: 50% !important; }
+#player, .player-container, video { border-radius: 0 !important; }
+.yt-spec-button-shape-next, ytm-badge-and-byline-renderer .badge {
+    border-radius: var(--radius-pill) !important;
+}
 
-/* ── Kill the 48px top gap left by hidden header ── */
+:focus-visible { outline: 2px solid var(--accent) !important; outline-offset: 2px !important; }
+
+/* ══════════════════════════════════════════════════════════════════
+   HIDE YT HEADER + NAV
+   ══════════════════════════════════════════════════════════════════ */
+ytm-mobile-topbar-renderer, ytm-header, #header, #header-bar {
+    height: 0 !important; min-height: 0 !important; overflow: hidden !important;
+    opacity: 0 !important; pointer-events: none !important;
+}
 ytm-app { padding-top: 0 !important; }
 .player-container { top: 0 !important; }
-/* Keep player visible even when YouTube tries to hide it */
 #player.inline-player-hidden, .inline-player-hidden {
     opacity: 1 !important; pointer-events: auto !important;
 }
+ytm-pivot-bar-renderer {
+    height: 0 !important; min-height: 0 !important; overflow: hidden !important;
+    opacity: 0 !important; pointer-events: none !important;
+}
+ytm-app { padding-bottom: var(--bar-total) !important; }
+ytm-feed-filter-chip-bar-renderer, .chip-bar, .rich-grid-sticky-header {
+    height: 0 !important; overflow: hidden !important; opacity: 0 !important;
+}
 
-/* ── Hide YT bottom nav — we replace it ── */
-ytm-pivot-bar-renderer { height: 0 !important; min-height: 0 !important; overflow: hidden !important; opacity: 0 !important; pointer-events: none !important; }
-
-/* ── Bottom padding for our bar ── */
-ytm-app { padding-bottom: 56px !important; }
-
-/* ── Hide chips ── */
-ytm-feed-filter-chip-bar-renderer, .chip-bar,
-.rich-grid-sticky-header { height: 0 !important; overflow: hidden !important; opacity: 0 !important; }
-
-/* ── Nuke shorts, ads, posts ── */
+/* ══════════════════════════════════════════════════════════════════
+   NUKE SHORTS, ADS, POSTS
+   ══════════════════════════════════════════════════════════════════ */
 ytm-reel-shelf-renderer, ytm-reel-item-renderer,
-ytm-shorts-lockup-view-model,
-grid-shelf-view-model,
-ad-slot-renderer,
-ytm-promoted-video-renderer,
-ytm-promoted-sparkles-web-renderer,
-ytm-companion-ad-renderer,
-ytm-statement-banner-renderer,
-ytm-backstage-post-thread-renderer,
-ytm-backstage-post-renderer,
-.reel-shelf-header,
-.pivot-shorts,
-a[href*="/shorts/"] { display: none !important; }
+ytm-shorts-lockup-view-model, grid-shelf-view-model,
+ad-slot-renderer, ytm-promoted-video-renderer,
+ytm-promoted-sparkles-web-renderer, ytm-companion-ad-renderer,
+ytm-statement-banner-renderer, ytm-backstage-post-thread-renderer,
+ytm-backstage-post-renderer, .reel-shelf-header, .pivot-shorts,
+a[href*="/shorts/"], ytm-rich-section-renderer { display: none !important; }
 
-/* ── Rich sections: hide ones containing shorts/ads, keep others ── */
-ytm-rich-section-renderer { display: none !important; }
-
-/* ── Home feed — tight single column ── */
+/* ══════════════════════════════════════════════════════════════════
+   HOME FEED — calm single column with breathing room
+   ══════════════════════════════════════════════════════════════════ */
 .rich-grid-renderer { margin: 0 !important; }
 .rich-grid-renderer-contents { padding: 0 !important; margin: 0 !important; }
 ytm-rich-item-renderer {
@@ -88,203 +146,248 @@ ytm-rich-item-renderer {
     --ytm-rich-item-dismissal-margin: 0px !important;
 }
 ytm-video-with-context-renderer, ytm-radio-renderer { margin: 0 !important; padding: 0 !important; }
-ytm-media-item {
-    padding: 0 !important; margin: 0 !important;
-}
-ytm-media-item .media-item-thumbnail-container {
-    margin-bottom: 0 !important;
-}
+ytm-media-item { padding: 0 0 var(--sp-4) 0 !important; margin: 0 !important; }
+ytm-media-item .media-item-thumbnail-container { margin-bottom: 0 !important; }
 ytm-media-item .details {
-    padding: 8px 12px !important; margin: 0 !important;
-    border-bottom: 1px solid var(--border) !important;
+    padding: var(--sp-3) var(--sp-4) 0 !important; margin: 0 !important;
+    border-bottom: none !important;
 }
 .media-item-headline {
-    font-size: 13px !important; color: var(--fg) !important;
-    line-height: 1.3 !important; font-weight: 400 !important;
-    font-family: var(--mono) !important;
+    font-family: var(--sans) !important; font-size: var(--fs-base) !important;
+    color: var(--fg) !important; line-height: 1.4 !important; font-weight: 500 !important;
 }
-.media-item-metadata, .media-item-info, ytm-badge-and-byline-renderer {
-    font-size: 11px !important; color: var(--fg-dim) !important; font-family: var(--mono) !important;
+.media-item-metadata, .media-item-info {
+    font-family: var(--mono) !important; font-size: var(--fs-xs) !important;
+    color: var(--fg-subtle) !important;
 }
-.media-channel { font-size: 11px !important; color: var(--fg-dim) !important; }
-/* Kill the 3-dot menu on feed items */
+ytm-badge-and-byline-renderer, .media-channel {
+    font-family: var(--sans) !important; font-size: var(--fs-sm) !important;
+    color: var(--fg-muted) !important;
+}
 ytm-media-item .media-item-menu { display: none !important; }
+ytm-thumbnail-overlay-time-status-renderer, .thumbnail-overlay-time-status-renderer {
+    font-family: var(--mono) !important; font-size: var(--fs-xs) !important;
+}
 
-/* ── Watch page ── */
+/* ══════════════════════════════════════════════════════════════════
+   WATCH PAGE
+   ══════════════════════════════════════════════════════════════════ */
 .player-container { background: #000 !important; }
 .watch-main-col { background: var(--bg) !important; padding: 0 !important; }
 ytm-single-column-watch-next-results-renderer { background: var(--bg) !important; }
 ytm-companion-slot { display: none !important; }
-
-/* ── Hide continuation spinner visually but keep functional for infinite scroll ── */
 ytm-continuation-item-renderer { height: 1px !important; overflow: hidden !important; opacity: 0 !important; }
-
-/* ── Watch: hide action bar + related chips, keep everything else ── */
 ytm-slim-video-action-bar-renderer { display: none !important; }
 ytm-related-chip-cloud-renderer { display: none !important; }
-/* Related sections: collapse (not comments) */
+
+/* ── COLD STATE — related sections collapsed ── */
 ytm-item-section-renderer.scwnr-content[section-identifier] {
     height: 0 !important; overflow: hidden !important;
     opacity: 0 !important; pointer-events: none !important;
     padding: 0 !important; margin: 0 !important; border: none !important;
 }
 
-/* ── Title + channel stay visible ── */
+/* ── Title + channel ── */
 ytm-slim-video-information-renderer {
     background: var(--bg) !important; color: var(--fg) !important;
-    padding: 10px 14px 6px !important; margin: 0 !important;
+    padding: var(--sp-4) var(--sp-4) var(--sp-2) !important; margin: 0 !important;
 }
 .slim-video-metadata-header { padding: 0 !important; margin: 0 !important; }
 .slim-video-information-title, .slim-video-metadata-title-modern {
-    font-size: 15px !important; color: var(--fg) !important;
-    font-family: var(--mono) !important; line-height: 1.3 !important;
-    font-weight: 500 !important; margin: 0 !important;
+    font-family: var(--sans) !important; font-size: var(--fs-lg) !important;
+    color: var(--fg) !important; line-height: 1.35 !important;
+    font-weight: 600 !important; margin: 0 !important;
 }
-.modern-panel-with-inline-badge-subtitle { margin-top: 4px !important; }
+.modern-panel-with-inline-badge-subtitle { margin-top: var(--sp-2) !important; }
 .modern-panel-with-inline-badge-subtitle .secondary-text,
 .modern-panel-with-inline-badge-subtitle .ytAttributedStringHost {
-    font-size: 11px !important; color: var(--fg-dim) !important;
-    font-family: var(--mono) !important;
+    font-family: var(--mono) !important; font-size: var(--fs-xs) !important;
+    color: var(--fg-subtle) !important;
 }
 .slim-video-metadata-information-inline-badge { display: none !important; }
 .slim-video-information-show-more { display: none !important; }
 
 ytm-slim-owner-renderer {
-    background: var(--bg) !important; padding: 8px 14px !important;
+    background: var(--bg) !important; padding: var(--sp-3) var(--sp-4) !important;
     border-bottom: 1px solid var(--border) !important;
 }
-.slim-owner-icon-and-title { display: flex !important; align-items: center !important; gap: 10px !important; flex: 1 !important; }
-.slim-owner-profile-icon, .slim-owner-profile-icon img { width: 32px !important; height: 32px !important; }
+.slim-owner-icon-and-title {
+    display: flex !important; align-items: center !important;
+    gap: var(--sp-3) !important; flex: 1 !important;
+}
+.slim-owner-profile-icon, .slim-owner-profile-icon img { width: 2rem !important; height: 2rem !important; }
 .slim-owner-channel-name {
-    color: var(--fg) !important; font-family: var(--mono) !important;
-    font-size: 13px !important; font-weight: 500 !important; margin: 0 !important;
+    color: var(--fg) !important; font-family: var(--sans) !important;
+    font-size: var(--fs-base) !important; font-weight: 500 !important; margin: 0 !important;
 }
 .slim-owner-subtitle, .slim-owner-bylines div {
-    color: var(--fg-dim) !important; font-family: var(--mono) !important; font-size: 11px !important;
+    color: var(--fg-muted) !important; font-family: var(--mono) !important; font-size: var(--fs-xs) !important;
 }
 .slim-owner-subscribe-button { margin-left: auto !important; }
 
-/* ── Panel buttons row ── */
+/* ══════════════════════════════════════════════════════════════════
+   WATCH BUTTON ROW
+   ══════════════════════════════════════════════════════════════════ */
 #mindful-watch-btns {
-    display: flex; gap: 0; border-bottom: 1px solid var(--border);
-    background: var(--bg-dark);
+    display: flex; gap: 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
 }
 #mindful-watch-btns button {
-    flex: 1; padding: 10px 0; border: none; background: transparent;
-    color: var(--fg-dim); font-family: monospace; font-size: 10px;
+    flex: 1; min-height: 2.75rem; padding: var(--sp-2) 0;
+    border: none; background: transparent;
+    color: var(--fg-muted); font-family: var(--sans); font-size: var(--fs-xs);
     cursor: pointer; -webkit-tap-highlight-color: transparent;
-    border-right: 1px solid var(--border);
-    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    border-radius: 0 !important;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: var(--sp-1); position: relative;
+    transition: color var(--dur) var(--ease), background var(--dur) var(--ease);
 }
-#mindful-watch-btns button:last-child { border-right: none; }
-#mindful-watch-btns button.active { color: var(--accent); background: var(--bg-sel); }
-/* Details button default highlight — info is always visible */
-#mindful-watch-btns button:first-child { color: var(--accent); }
+#mindful-watch-btns button.active { color: var(--accent); background: var(--surface); }
+#mindful-watch-btns button.active::after {
+    content: ""; position: absolute; left: 25%; right: 25%; bottom: 0;
+    height: 2px; background: var(--accent); border-radius: var(--radius-pill);
+}
+/* Prewarm indicator — subtle dot, content is ready */
+#mindful-watch-btns button[data-warm="ready"] .warm-dot {
+    opacity: 1;
+}
+#mindful-watch-btns button .warm-dot {
+    position: absolute; top: var(--sp-2); right: 22%;
+    width: 4px; height: 4px; border-radius: 50%;
+    background: var(--success); opacity: 0;
+    transition: opacity var(--dur) var(--ease);
+}
 
-/* ── Description area below buttons ── */
+/* ══════════════════════════════════════════════════════════════════
+   DESCRIPTION
+   ══════════════════════════════════════════════════════════════════ */
 #mindful-watch-desc {
-    padding: 14px; font-family: monospace; font-size: 12px;
-    color: var(--fg-dim); line-height: 1.5;
+    padding: var(--sp-4); font-family: var(--sans); font-size: var(--fs-sm);
+    color: var(--fg-muted); line-height: 1.6;
     white-space: pre-wrap; word-break: break-word;
+    max-width: 42rem;
 }
 #mindful-watch-desc .chapter {
-    display: block; padding: 6px 0; color: var(--cyan);
+    display: block; padding: var(--sp-2) 0; color: var(--fg);
+    font-family: var(--mono); font-size: var(--fs-sm);
     cursor: pointer; -webkit-tap-highlight-color: transparent;
+    min-height: 2.75rem; display: flex; align-items: center;
+    transition: color var(--dur) var(--ease);
 }
+#mindful-watch-desc .chapter:hover { color: var(--accent); }
 
-/* ── PANELS — full-screen via body classes (like desktop) ── */
-/* Shared: all panels go full-screen fixed */
-body.mindful-m-details ytm-slim-video-metadata-section-renderer {
+/* ══════════════════════════════════════════════════════════════════
+   PANELS — fullscreen via body classes
+   WARM state gives real geometry (so YouTube fetches) but stays
+   invisible and inert behind the page.
+   ══════════════════════════════════════════════════════════════════ */
+body.mindful-m-details ytm-slim-video-metadata-section-renderer,
+body.mindful-warm-details ytm-slim-video-metadata-section-renderer,
+body.mindful-m-related ytm-item-section-renderer.scwnr-content[section-identifier=related-items],
+body.mindful-warm-related ytm-item-section-renderer.scwnr-content[section-identifier=related-items] {
     position: fixed !important; top: 0 !important; left: 0 !important;
     right: 0 !important; bottom: 0 !important;
     width: 100% !important; height: 100% !important;
     overflow-y: auto !important; -webkit-overflow-scrolling: touch !important;
     background: var(--bg) !important;
-    z-index: 100002 !important;
+    border-radius: 0 !important;
+    z-index: var(--z-panel) !important;
     display: block !important; visibility: visible !important;
-    padding: 48px 0 56px !important;
+    opacity: 1 !important; pointer-events: auto !important;
+    padding: var(--sp-6) 0 var(--bar-total) !important;
+    margin: 0 !important; border: none !important;
 }
-/* Comments: trigger native YouTube bottom sheet via JS click — no CSS panel */
-/* Style the visible comments teaser */
+body.mindful-m-details ytm-slim-video-metadata-section-renderer,
+body.mindful-m-related ytm-item-section-renderer.scwnr-content[section-identifier=related-items] {
+    animation: panel-in var(--dur) var(--ease) !important;
+}
+@keyframes panel-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── WARM-ONLY — invisible + inert ── */
+body.mindful-warm-details:not(.mindful-m-details) ytm-slim-video-metadata-section-renderer,
+body.mindful-warm-related:not(.mindful-m-related) ytm-item-section-renderer.scwnr-content[section-identifier=related-items] {
+    opacity: 0 !important;
+    pointer-events: none !important;
+    z-index: -1 !important;
+    animation: none !important;
+}
+/* Descendant interaction is blocked by the inert attribute set in JS. */
+
+/* ── Details panel action bar ── */
+body.mindful-m-details ytm-slim-video-action-bar-renderer { display: flex !important; }
+body.mindful-m-details ytm-slim-video-action-bar-renderer .slim-video-action-bar-actions {
+    display: flex !important; gap: var(--sp-2) !important; padding: var(--sp-3) var(--sp-4) !important;
+    flex-wrap: wrap !important;
+}
+body.mindful-m-details .slim_video_action_bar_renderer_button button,
+body.mindful-m-details .ytSegmentedLikeDislikeButtonViewModelSegmentedButtonsWrapper button {
+    color: var(--fg-muted) !important; background: var(--surface-2) !important;
+    min-height: 2.75rem !important;
+}
+body.mindful-m-details .ytSegmentedLikeDislikeButtonViewModelSegmentedButtonsWrapper {
+    background: var(--surface-2) !important;
+}
+
+/* ── Related list ── */
+body.mindful-m-related ytm-video-with-context-renderer {
+    background: var(--bg) !important; display: block !important;
+    border-bottom: 1px solid var(--border) !important;
+    padding: 0 0 var(--sp-3) 0 !important; margin: 0 0 var(--sp-3) 0 !important;
+}
+body.mindful-m-related ytm-video-with-context-renderer .details { padding: var(--sp-3) var(--sp-4) 0 !important; }
+body.mindful-m-related ytm-video-with-context-renderer .media-item-headline {
+    font-size: var(--fs-sm) !important; line-height: 1.4 !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   COMMENTS TEASER
+   ══════════════════════════════════════════════════════════════════ */
 ytm-item-section-renderer.scwnr-content:not([section-identifier]) {
-    background: var(--bg) !important; padding: 0 8px !important;
+    background: var(--bg) !important; padding: 0 var(--sp-2) !important;
     border-bottom: 1px solid var(--border) !important;
 }
 yt-video-metadata-carousel-view-model { background: var(--bg) !important; }
 .ytCarouselTitleViewModelTitle {
-    color: var(--fg) !important; font-family: monospace !important;
-    font-size: 13px !important; font-weight: 500 !important;
+    color: var(--fg) !important; font-family: var(--sans) !important;
+    font-size: var(--fs-base) !important; font-weight: 500 !important;
 }
 .ytCarouselTitleViewModelSubtitle {
-    color: var(--fg-dim) !important; font-family: monospace !important;
-    font-size: 11px !important;
+    color: var(--fg-muted) !important; font-family: var(--sans) !important; font-size: var(--fs-sm) !important;
 }
 .ytCommentsEntryPointTeaserViewModelTeaser {
-    color: var(--fg-dim) !important; font-family: monospace !important;
-    font-size: 12px !important;
+    color: var(--fg-muted) !important; font-family: var(--sans) !important; font-size: var(--fs-sm) !important;
 }
-.ytCarouselDotsShapeDot { background: var(--fg-dark) !important; }
+.ytCarouselDotsShapeDot { background: var(--surface-2) !important; }
 .ytCarouselDotsShapeDotActive { background: var(--accent) !important; }
 
-/* Related: last section-identifier=related-items (has the actual videos) */
-body.mindful-m-related ytm-item-section-renderer.scwnr-content[section-identifier=related-items] {
-    position: fixed !important; top: 0 !important; left: 0 !important;
-    right: 0 !important; bottom: 0 !important;
-    width: 100% !important; height: 100% !important;
-    overflow-y: auto !important; -webkit-overflow-scrolling: touch !important;
-    background: var(--bg) !important;
-    z-index: 100002 !important;
-    display: block !important; visibility: visible !important;
-    padding: 48px 0 56px !important;
-}
-
-/* Show action bar inside details panel */
-body.mindful-m-details ytm-slim-video-action-bar-renderer {
-    display: flex !important;
-}
-body.mindful-m-details ytm-slim-video-action-bar-renderer .slim-video-action-bar-actions {
-    display: flex !important; gap: 6px !important; padding: 10px 14px !important;
-}
-body.mindful-m-details .slim_video_action_bar_renderer_button button,
-body.mindful-m-details .ytSegmentedLikeDislikeButtonViewModelSegmentedButtonsWrapper button {
-    color: var(--fg-dim) !important; background: var(--bg-hover) !important;
-}
-body.mindful-m-details .ytSegmentedLikeDislikeButtonViewModelSegmentedButtonsWrapper {
-    background: var(--bg-hover) !important;
-}
-
-/* Show related videos */
-body.mindful-m-related ytm-item-section-renderer.scwnr-content[section-identifier=related-items] {
-    height: 100% !important; opacity: 1 !important;
-    pointer-events: auto !important; overflow-y: auto !important;
-}
-body.mindful-m-related ytm-video-with-context-renderer {
-    background: var(--bg) !important; display: block !important;
-    border-bottom: 1px solid var(--border) !important;
-    padding: 0 !important; margin: 0 !important;
-}
-body.mindful-m-related ytm-video-with-context-renderer .details { padding: 6px 10px !important; }
-body.mindful-m-related ytm-video-with-context-renderer .media-item-headline {
-    font-size: 12px !important; line-height: 1.3 !important;
-}
-
-/* ── Close button for panels ── */
+/* ══════════════════════════════════════════════════════════════════
+   PANEL CLOSE BUTTON — 44px touch target
+   ══════════════════════════════════════════════════════════════════ */
 #mindful-panel-close {
-    position: fixed; top: 8px; right: 12px; z-index: 100003;
-    display: none; background: var(--bg-dark); border: 1px solid var(--border);
-    color: var(--fg); font-size: 18px; width: 36px; height: 36px;
-    cursor: pointer; font-family: monospace;
+    position: fixed; top: var(--sp-2); right: var(--sp-3); z-index: var(--z-modal);
+    display: none; align-items: center; justify-content: center;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--fg); font-size: var(--fs-base);
+    width: 2.75rem; height: 2.75rem;
+    cursor: pointer; font-family: var(--sans);
     -webkit-tap-highlight-color: transparent;
+    transition: background var(--dur) var(--ease);
 }
+#mindful-panel-close:hover { background: var(--surface-2); }
 body.mindful-m-details #mindful-panel-close,
-body.mindful-m-related #mindful-panel-close { display: block !important; }
-/* Also show close button when comments engagement panel is open */
-body.mindful-m-comments-open #mindful-panel-close { display: block !important; }
+body.mindful-m-related #mindful-panel-close,
+body.mindful-m-comments-open #mindful-panel-close { display: flex !important; }
 
-/* ── Engagement panels (YouTube native) ── */
-bottom-sheet-container { background: var(--bg-float) !important; }
-.yt-spec-bottom-sheet-layout-content { background: var(--bg-float) !important; color: var(--fg) !important; }
-/* Ensure engagement panel content is visible so IntersectionObserver fires */
+/* ══════════════════════════════════════════════════════════════════
+   ENGAGEMENT PANELS (native comments)
+   ══════════════════════════════════════════════════════════════════ */
+bottom-sheet-container { background: var(--surface) !important; }
+.yt-spec-bottom-sheet-layout-content { background: var(--surface) !important; color: var(--fg) !important; }
 [panel-identifier="engagement-panel-comments-section"] {
     visibility: visible !important; opacity: 1 !important;
     height: auto !important; overflow: visible !important;
@@ -295,70 +398,116 @@ bottom-sheet-container { background: var(--bg-float) !important; }
     visibility: visible !important; opacity: 1 !important;
     height: auto !important; display: block !important;
 }
-/* Hide YouTube's native engagement panel close button visually — we use our own */
-/* Keep it in DOM so JS can still click it to close the panel */
 ytm-engagement-panel-section-list-renderer ytm-button-renderer.close-button {
     width: 0 !important; height: 0 !important; overflow: hidden !important;
     padding: 0 !important; margin: 0 !important; border: none !important;
 }
-ytm-comment-thread-renderer { border-bottom: 1px solid var(--border) !important; }
-.comment-text { color: var(--fg) !important; font-family: var(--mono) !important; font-size: 13px !important; }
-.comment-title { color: var(--accent) !important; }
-ytm-crawler-description { color: var(--fg-dim) !important; font-family: var(--mono) !important; font-size: 12px !important; line-height: 1.4 !important; }
+ytm-comment-thread-renderer {
+    border-bottom: 1px solid var(--border) !important;
+    padding: var(--sp-3) var(--sp-4) !important;
+}
+.comment-text {
+    color: var(--fg) !important; font-family: var(--sans) !important;
+    font-size: var(--fs-sm) !important; line-height: 1.6 !important;
+}
+.comment-title { color: var(--fg-muted) !important; font-family: var(--sans) !important; font-size: var(--fs-xs) !important; }
+.comment-vote-count, .comment-published-time {
+    font-family: var(--mono) !important; font-size: var(--fs-xs) !important; color: var(--fg-subtle) !important;
+}
+ytm-crawler-description {
+    color: var(--fg-muted) !important; font-family: var(--sans) !important;
+    font-size: var(--fs-sm) !important; line-height: 1.6 !important;
+}
 
-/* ── Menus ── */
+/* ══════════════════════════════════════════════════════════════════
+   MENUS / DIALOGS
+   ══════════════════════════════════════════════════════════════════ */
 .menu-content, html[darker-dark-theme] .menu-content,
-html[darker-dark-theme] .menu-full-width .menu-content { background: var(--bg-float) !important; color: var(--fg) !important; }
-html[darker-dark-theme] .dialog { background: var(--bg-float) !important; }
-.yt-spec-bottom-sheet-layout { background: var(--bg-float) !important; }
-
-/* ── Search ── */
-.mobile-topbar-header[data-mode=searching] { background-color: var(--bg-dark) !important; }
-.searchbox-input { color: var(--fg) !important; background: var(--bg-float) !important; }
-.search-bar { background: var(--bg-hover) !important; }
-.searchbox-dropdown, .searchbox-dropdown .sbdd_b { background: var(--bg-dark) !important; color: var(--fg) !important; }
-
-/* ── Links ── */
-a, a:visited { color: var(--fg) !important; }
-
-/* ── Channel pages ── */
-ytm-c4-tabbed-header-renderer, .single-column-browse-results-tab-bar { background: var(--bg-dark) !important; color: var(--fg) !important; }
-
-/* ── Subs/Library ── */
-ytm-section-list-renderer, ytm-shelf-renderer, ytm-item-section-renderer { background: var(--bg) !important; }
-ytm-compact-link-renderer { color: var(--fg) !important; }
-.compact-link-icon { fill: var(--fg-dim) !important; }
-
-/* ── Settings ── */
-.setting-generic-category-title-block h2, .setting-title-subtitle-block h3 { color: var(--fg) !important; }
-
-/* ── Buttons ── */
-.yt-spec-button-shape-next--mono.yt-spec-button-shape-next--filled { background-color: var(--accent) !important; color: var(--bg) !important; }
-html[darker-dark-theme] c3-toast { background: var(--bg-float) !important; color: var(--fg) !important; }
-
-/* ── Our bottom bar ── */
-#mindful-m-bar {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    height: 52px; background: var(--bg-dark);
-    border-top: 1px solid var(--border);
-    display: flex; align-items: center; justify-content: space-around;
-    z-index: 100000; padding: 0 4px;
+html[darker-dark-theme] .menu-full-width .menu-content {
+    background: var(--surface) !important; color: var(--fg) !important;
 }
-#mindful-m-bar button {
-    flex: 1; max-width: 72px; height: 44px; border: none; background: transparent;
-    color: var(--fg-dim); cursor: pointer;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 2px; font-size: 9px; font-family: monospace;
-    -webkit-tap-highlight-color: transparent;
-}
-#mindful-m-bar button.active { color: var(--accent) !important; }
-#mindful-m-bar button svg { pointer-events: none; }
+html[darker-dark-theme] .dialog { background: var(--surface) !important; }
+.yt-spec-bottom-sheet-layout { background: var(--surface) !important; }
 
-/* ── Search overlay ── */
+/* ══════════════════════════════════════════════════════════════════
+   SEARCH
+   ══════════════════════════════════════════════════════════════════ */
+.mobile-topbar-header[data-mode=searching] { background-color: var(--bg-sunken) !important; }
+.searchbox-input { color: var(--fg) !important; background: var(--surface) !important; }
+.search-bar { background: var(--surface-2) !important; }
+.searchbox-dropdown, .searchbox-dropdown .sbdd_b { background: var(--surface) !important; color: var(--fg) !important; }
+
 #mindful-m-search {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.92);
-    z-index: 100001; display: none; align-items: flex-start;
+    position: fixed; inset: 0; background: rgba(13, 12, 11, 0.9);
+    backdrop-filter: blur(4px);
+    z-index: var(--z-overlay); display: none; align-items: flex-start;
     justify-content: center; padding-top: 12vh;
 }
 #mindful-m-search.open { display: flex !important; }
+
+/* ══════════════════════════════════════════════════════════════════
+   LINKS / CHANNEL / SUBS / SETTINGS
+   ══════════════════════════════════════════════════════════════════ */
+a, a:visited { color: var(--fg) !important; }
+ytm-c4-tabbed-header-renderer, .single-column-browse-results-tab-bar {
+    background: var(--bg-sunken) !important; color: var(--fg) !important;
+}
+ytm-section-list-renderer, ytm-shelf-renderer, ytm-item-section-renderer { background: var(--bg) !important; }
+ytm-compact-link-renderer { color: var(--fg) !important; }
+.compact-link-icon { fill: var(--fg-muted) !important; }
+.setting-generic-category-title-block h2, .setting-title-subtitle-block h3 { color: var(--fg) !important; }
+.yt-spec-button-shape-next--mono.yt-spec-button-shape-next--filled {
+    background-color: var(--accent) !important; color: var(--bg) !important;
+}
+html[darker-dark-theme] c3-toast { background: var(--surface) !important; color: var(--fg) !important; }
+
+/* ══════════════════════════════════════════════════════════════════
+   BOTTOM BAR — 44px targets, safe-area aware
+   ══════════════════════════════════════════════════════════════════ */
+#mindful-m-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    min-height: var(--bar-h);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: var(--bg-sunken);
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-around;
+    z-index: var(--z-nav);
+}
+#mindful-m-bar button {
+    flex: 1; max-width: 5rem; min-height: 2.75rem;
+    border: none; background: transparent;
+    color: var(--fg-muted); cursor: pointer;
+    border-radius: var(--radius-sm);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: var(--sp-1); font-size: var(--fs-xs); font-family: var(--sans);
+    -webkit-tap-highlight-color: transparent;
+    transition: color var(--dur) var(--ease), background var(--dur) var(--ease);
+    position: relative;
+}
+#mindful-m-bar button:active { background: var(--surface-2); }
+#mindful-m-bar button.active { color: var(--accent) !important; }
+#mindful-m-bar button.active::before {
+    content: ""; position: absolute; top: 0; left: 30%; right: 30%;
+    height: 2px; background: var(--accent); border-radius: var(--radius-pill);
+}
+#mindful-m-bar button svg { pointer-events: none; }
+
+/* ══════════════════════════════════════════════════════════════════
+   SCROLLBAR
+   ══════════════════════════════════════════════════════════════════ */
+* { scrollbar-width: thin; scrollbar-color: var(--surface-2) transparent; }
+::-webkit-scrollbar { width: 0.25rem !important; }
+::-webkit-scrollbar-track { background: transparent !important; }
+::-webkit-scrollbar-thumb { background: var(--surface-2) !important; border-radius: var(--radius-pill) !important; }
+
+/* ══════════════════════════════════════════════════════════════════
+   320px FLOOR
+   ══════════════════════════════════════════════════════════════════ */
+@media (max-width: 360px) {
+    #mindful-m-bar button { font-size: 0.6875rem; }
+    ytm-media-item .details { padding: var(--sp-2) var(--sp-3) 0 !important; }
+    #mindful-watch-desc { padding: var(--sp-3) !important; }
+    body { overflow-x: hidden !important; }
+}
+
 }
