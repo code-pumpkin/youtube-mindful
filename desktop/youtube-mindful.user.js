@@ -875,7 +875,10 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         if (lb) { const m = (lb.getAttribute("aria-label") || "").match(/([\d,]+)/); likes = m ? m[1] : ""; }
 
         const container = document.querySelector("ytd-watch-flexy #above-the-fold");
-        if (!container) return;
+        if (!container) {
+            console.warn("[mindful] injectStats: #above-the-fold not found — Details panel will render empty");
+            return;
+        }
         if (title) {
             const el = document.createElement("div"); el.id = "mindful-title-inject";
             const t = document.createElement("div");
@@ -994,7 +997,23 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         if (warmClasses[name]) setInert(name, false);
         document.body.classList.add(panelClasses[name]);
         state.panelOpen = name;
-        if (name === "details") { injectStats(); setTimeout(injectStats, 250); }
+        if (name === "details") {
+            injectStats(); setTimeout(injectStats, 250);
+            // Diagnostic: next cold-open, this reports whether the warm
+            // step actually ran, whether the DOM root exists, and what
+            // CSS computed for it — paste this console output back if
+            // Details still renders empty/blank.
+            setTimeout(() => {
+                const root = document.querySelector("ytd-watch-flexy #above-the-fold");
+                if (!root) {
+                    console.warn("[mindful] details open: #above-the-fold not in DOM at all");
+                } else {
+                    const cs = getComputedStyle(root);
+                    console.log("[mindful] details open: warmed=%s display=%s visibility=%s opacity=%s height=%s childCount=%d",
+                        isWarm("details"), cs.display, cs.visibility, cs.opacity, cs.height, root.children.length);
+                }
+            }, 300);
+        }
         if (name === "recs") setTimeout(() => window.dispatchEvent(new Event("resize")), 40);
         updateSidebar();
         // Move focus into the panel so a keyboard/screen-reader user lands
