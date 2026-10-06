@@ -92,6 +92,18 @@
 /* ══════════════════════════════════════════════════════════════════
    GLOBAL
    ══════════════════════════════════════════════════════════════════ */
+/* Anchor the rem scale. Every size in this stylesheet (sidebar width,
+   grid gaps, panel/chat font sizes) is in rem, which is relative to
+   html's font-size — and this sheet never set that explicitly, so it
+   drifted with whatever YouTube's own CSS or the browser's zoom/
+   text-size setting left "html" at. That's why the whole UI could
+   shrink together (small sidebar + no grid gaps + tiny chat font are
+   one bug, not three): pin it so 1rem is always 16px here regardless
+   of page zoom or YouTube's own root sizing.
+   !important is deliberate: this is the one value every other rem in
+   the sheet depends on, so it must win over anything else touching it.
+   prefers-reduced-motion is irrelevant here; this is not a transition. */
+html { font-size: 16px !important; }
 html, body, ytd-app, #content, ytd-browse, ytd-search,
 ytd-watch-flexy, ytd-page-manager, ytd-two-column-browse-results-renderer,
 ytd-rich-grid-renderer, #page-manager, tp-yt-app-drawer {
@@ -274,27 +286,30 @@ ytd-watch-flexy #primary-inner.ytd-watch-flexy {
 ytd-watch-flexy #player-wide-container.ytd-watch-flexy,
 ytd-watch-flexy #player-theater-container.ytd-watch-flexy,
 ytd-watch-flexy #player-container-outer.ytd-watch-flexy {
-    height: 100vh !important; max-height: 100vh !important; max-width: 100% !important;
     display: flex !important; align-items: center !important; justify-content: center !important;
     overflow: hidden !important; background: var(--bg-sunken) !important;
+    max-width: 100vw !important; max-height: 100vh !important;
 }
 ytd-watch-flexy[full-bleed-player] #full-bleed-container.ytd-watch-flexy { max-height: 100vh !important; }
 /* The black-bar / empty-space bug: YouTube's player JS sets its own
    width from the container's box; forcing only "height" here (and never
    "width") left the two layout systems disagreeing whenever the window's
    aspect ratio wasn't exactly 16:9 (ultrawide monitor, odd video source,
-   mid-resize frame). Lock the whole player box to object-fit:contain
-   behaviour: constrain BOTH axes against the container, let the video
-   element itself handle any residual mismatch instead of leaving dead
-   space on one side. */
+   mid-resize frame).
+   First attempt forced width:100%; height:100% directly on #movie_player,
+   which fights YouTube's own inline sizing (its ResizeObserver sets
+   explicit px width/height on this element) and left the player blank —
+   stretching BOTH axes to fill a container that wasn't itself 16:9 broke
+   its internal layout instead of fixing it. Correct fix: give
+   #movie_player itself the right shape via aspect-ratio (bounded by
+   whichever viewport axis is tighter), and let its own JS size the
+   internal video element inside that already-correct box. */
 #movie_player {
-    max-height: 100vh !important; width: 100% !important; height: 100% !important;
-    max-width: 100% !important;
-}
-#movie_player .html5-video-container,
-#movie_player video.video-stream {
-    width: 100% !important; height: 100% !important;
-    object-fit: contain !important;
+    aspect-ratio: 16 / 9 !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    width: auto !important;
+    height: 100% !important;
 }
 
 /* ── COLD STATE — panels parked offscreen, not yet loaded ── */
@@ -723,16 +738,16 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     ytd-watch-flexy #player-wide-container.ytd-watch-flexy,
     ytd-watch-flexy #player-theater-container.ytd-watch-flexy,
     ytd-watch-flexy #player-container-outer.ytd-watch-flexy {
-        height: calc(100vh - 3.25rem) !important; max-height: calc(100vh - 3.25rem) !important;
+        max-height: calc(100vh - 3.25rem) !important;
         display: flex !important; align-items: center !important; justify-content: center !important;
         overflow: hidden !important; background: var(--bg-sunken) !important;
+        max-width: 100vw !important;
     }
     #movie_player {
-        max-height: calc(100vh - 3.25rem) !important; width: 100% !important; height: 100% !important;
-    }
-    #movie_player .html5-video-container,
-    #movie_player video.video-stream {
-        width: 100% !important; height: 100% !important; object-fit: contain !important;
+        aspect-ratio: 16 / 9 !important;
+        max-height: calc(100vh - 3.25rem) !important;
+        max-width: 100vw !important;
+        width: auto !important; height: 100% !important;
     }
 
     /* Panels become bottom sheets */
