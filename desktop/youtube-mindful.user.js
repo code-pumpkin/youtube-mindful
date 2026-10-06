@@ -818,9 +818,21 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     // Must patch pageWindow.fetch, not the local `window.fetch` reference —
     // on Firefox those are two different functions (see pageWindow above),
     // so the old code was patching a fetch nothing ever called.
+    //
+    // Idempotency guard: YouTube's own player retries a failed /player call
+    // reusing the SAME init object rather than building a fresh one. Without
+    // the "already injected" check, the second pass through this hook saw
+    // the substring "contentPlaybackContext":{ still present (our own
+    // inserted key sits right after the brace) and replaced again, writing
+    // isInlinePlaybackNoAd twice into the same object — a HAR capture showed
+    // this exact alternating success/UNPLAYABLE pattern across repeated
+    // calls, which is the "infinite reload" symptom. Guard by checking the
+    // key isn't already there before mutating.
     const realFetch = pageWindow.fetch;
     pageWindow.fetch = function(input, init) {
-        if (init && init.body && typeof init.body === "string" && init.body.includes('"contentPlaybackContext":{')) {
+        if (init && init.body && typeof init.body === "string"
+            && init.body.includes('"contentPlaybackContext":{')
+            && !init.body.includes('"isInlinePlaybackNoAd"')) {
             init.body = init.body.replace('"contentPlaybackContext":{', '"contentPlaybackContext":{"isInlinePlaybackNoAd":true,');
         }
         return realFetch.apply(this, arguments);
