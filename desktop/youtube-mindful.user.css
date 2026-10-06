@@ -275,9 +275,27 @@ ytd-watch-flexy #player-wide-container.ytd-watch-flexy,
 ytd-watch-flexy #player-theater-container.ytd-watch-flexy,
 ytd-watch-flexy #player-container-outer.ytd-watch-flexy {
     height: 100vh !important; max-height: 100vh !important; max-width: 100% !important;
+    display: flex !important; align-items: center !important; justify-content: center !important;
+    overflow: hidden !important; background: var(--bg-sunken) !important;
 }
 ytd-watch-flexy[full-bleed-player] #full-bleed-container.ytd-watch-flexy { max-height: 100vh !important; }
-#movie_player { max-height: 100vh !important; }
+/* The black-bar / empty-space bug: YouTube's player JS sets its own
+   width from the container's box; forcing only "height" here (and never
+   "width") left the two layout systems disagreeing whenever the window's
+   aspect ratio wasn't exactly 16:9 (ultrawide monitor, odd video source,
+   mid-resize frame). Lock the whole player box to object-fit:contain
+   behaviour: constrain BOTH axes against the container, let the video
+   element itself handle any residual mismatch instead of leaving dead
+   space on one side. */
+#movie_player {
+    max-height: 100vh !important; width: 100% !important; height: 100% !important;
+    max-width: 100% !important;
+}
+#movie_player .html5-video-container,
+#movie_player video.video-stream {
+    width: 100% !important; height: 100% !important;
+    object-fit: contain !important;
+}
 
 /* ── COLD STATE — panels parked offscreen, not yet loaded ── */
 ytd-watch-flexy #below {
@@ -500,6 +518,47 @@ ytd-watch-flexy #comments .published-time-text {
 }
 #mindful-sidebar button:hover::after,
 #mindful-sidebar button:focus-visible::after { opacity: 1; }
+/* Key badge — small, muted, bottom-right of the icon. Shows the fixed
+   shortcut (1-4, /) so it's discoverable without opening Settings. */
+.mindful-key-badge {
+    position: absolute; bottom: 1px; right: 2px;
+    font-family: var(--mono); font-size: 0.5625rem; line-height: 1;
+    color: var(--fg-subtle); opacity: 0.75; pointer-events: none;
+}
+#mindful-sidebar button.active .mindful-key-badge,
+#mindful-sidebar button:hover .mindful-key-badge { color: var(--accent); opacity: 1; }
+
+/* ══════════════════════════════════════════════════════════════════
+   HELP OVERLAY — "?" shows the full keymap
+   ══════════════════════════════════════════════════════════════════ */
+#mindful-help {
+    position: fixed; inset: 0; background: rgba(13, 12, 11, 0.85);
+    backdrop-filter: blur(4px); z-index: var(--z-modal);
+    display: none; align-items: center; justify-content: center;
+}
+.mindful-help-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: var(--sp-6);
+    width: 320px; max-width: 90vw; outline: none;
+}
+.mindful-help-title {
+    font-family: var(--sans); font-size: var(--fs-lg); font-weight: 500;
+    color: var(--fg); margin-bottom: var(--sp-4);
+}
+.mindful-help-row {
+    display: flex; align-items: center; gap: var(--sp-3);
+    padding: var(--sp-2) 0; border-bottom: 1px solid var(--border);
+}
+.mindful-help-row:last-child { border-bottom: none; }
+.mindful-help-row kbd {
+    font-family: var(--mono); font-size: var(--fs-xs); color: var(--accent);
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 0.125rem 0.5rem;
+    min-width: 1.5rem; text-align: center; flex-shrink: 0;
+}
+.mindful-help-row span {
+    font-family: var(--sans); font-size: var(--fs-sm); color: var(--fg-muted);
+}
 
 /* ══════════════════════════════════════════════════════════════════
    SEARCH OVERLAY
@@ -665,8 +724,16 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     ytd-watch-flexy #player-theater-container.ytd-watch-flexy,
     ytd-watch-flexy #player-container-outer.ytd-watch-flexy {
         height: calc(100vh - 3.25rem) !important; max-height: calc(100vh - 3.25rem) !important;
+        display: flex !important; align-items: center !important; justify-content: center !important;
+        overflow: hidden !important; background: var(--bg-sunken) !important;
     }
-    #movie_player { max-height: calc(100vh - 3.25rem) !important; }
+    #movie_player {
+        max-height: calc(100vh - 3.25rem) !important; width: 100% !important; height: 100% !important;
+    }
+    #movie_player .html5-video-container,
+    #movie_player video.video-stream {
+        width: 100% !important; height: 100% !important; object-fit: contain !important;
+    }
 
     /* Panels become bottom sheets */
     body.mindful-warm-comments ytd-watch-flexy #comments,
