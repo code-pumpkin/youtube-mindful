@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         YouTube Mindful v9
 // @namespace    youtube-mindful
-// @version      9.0.0
+// @version      9.1.0
 // @description  Mindful YouTube — calm design system, sidebar nav, prewarmed panels.
 // @author       codePumpkin
 // @match        https://www.youtube.com/*
 // @grant        GM_xmlhttpRequest
+// @grant        unsafeWindow
 // @connect      suggestqueries-clients6.youtube.com
 // @connect      *
 // @run-at       document-start
@@ -13,6 +14,13 @@
 
 (function () {
     "use strict";
+
+    // Firefox (Tampermonkey/Violentmonkey) runs document-start userscripts in
+    // an X-ray-wrapped sandbox: patching `window.fetch` there patches a copy,
+    // not what YouTube's own page scripts call. `unsafeWindow` is the real
+    // page window on every engine; on engines with no sandbox (old GM / some
+    // Chrome setups) it's just `window` again, so this is always safe.
+    const pageWindow = typeof unsafeWindow !== "undefined" ? unsafeWindow : window;
 
     const C = {
         bgDark:"#0d0c0b", bgFloat:"#1a1917", border:"#2a2724", bgHover:"#232120",
@@ -34,7 +42,7 @@
         details:"mindful-warm-details", recs:"mindful-warm-recs", comments:"mindful-warm-comments",
     };
 
-    let state = { panelOpen: null, warmed: {}, warmTimers: [] };
+    let state = { panelOpen: null, warmed: {}, warmTimers: [], panelReturnFocus: null };
 
     const MINDFUL_CSS = `
 /* ══════════════════════════════════════════════════════════════════
@@ -303,9 +311,27 @@ ytd-watch-flexy #player-wide-container.ytd-watch-flexy,
 ytd-watch-flexy #player-theater-container.ytd-watch-flexy,
 ytd-watch-flexy #player-container-outer.ytd-watch-flexy {
     height: 100vh !important; max-height: 100vh !important; max-width: 100% !important;
+    display: flex !important; align-items: center !important; justify-content: center !important;
+    overflow: hidden !important; background: var(--bg-sunken) !important;
 }
 ytd-watch-flexy[full-bleed-player] #full-bleed-container.ytd-watch-flexy { max-height: 100vh !important; }
-#movie_player { max-height: 100vh !important; }
+/* The black-bar / empty-space bug: YouTube's player JS sets its own
+   width from the container's box; forcing only "height" here (and never
+   "width") left the two layout systems disagreeing whenever the window's
+   aspect ratio wasn't exactly 16:9 (ultrawide monitor, odd video source,
+   mid-resize frame). Lock the whole player box to object-fit:contain
+   behaviour: constrain BOTH axes against the container, let the video
+   element itself handle any residual mismatch instead of leaving dead
+   space on one side. */
+#movie_player {
+    max-height: 100vh !important; width: 100% !important; height: 100% !important;
+    max-width: 100% !important;
+}
+#movie_player .html5-video-container,
+#movie_player video.video-stream {
+    width: 100% !important; height: 100% !important;
+    object-fit: contain !important;
+}
 
 /* ── COLD STATE — panels parked offscreen, not yet loaded ── */
 ytd-watch-flexy #below {
@@ -528,6 +554,47 @@ ytd-watch-flexy #comments .published-time-text {
 }
 #mindful-sidebar button:hover::after,
 #mindful-sidebar button:focus-visible::after { opacity: 1; }
+/* Key badge — small, muted, bottom-right of the icon. Shows the fixed
+   shortcut (1-4, /) so it's discoverable without opening Settings. */
+.mindful-key-badge {
+    position: absolute; bottom: 1px; right: 2px;
+    font-family: var(--mono); font-size: 0.5625rem; line-height: 1;
+    color: var(--fg-subtle); opacity: 0.75; pointer-events: none;
+}
+#mindful-sidebar button.active .mindful-key-badge,
+#mindful-sidebar button:hover .mindful-key-badge { color: var(--accent); opacity: 1; }
+
+/* ══════════════════════════════════════════════════════════════════
+   HELP OVERLAY — "?" shows the full keymap
+   ══════════════════════════════════════════════════════════════════ */
+#mindful-help {
+    position: fixed; inset: 0; background: rgba(13, 12, 11, 0.85);
+    backdrop-filter: blur(4px); z-index: var(--z-modal);
+    display: none; align-items: center; justify-content: center;
+}
+.mindful-help-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: var(--sp-6);
+    width: 320px; max-width: 90vw; outline: none;
+}
+.mindful-help-title {
+    font-family: var(--sans); font-size: var(--fs-lg); font-weight: 500;
+    color: var(--fg); margin-bottom: var(--sp-4);
+}
+.mindful-help-row {
+    display: flex; align-items: center; gap: var(--sp-3);
+    padding: var(--sp-2) 0; border-bottom: 1px solid var(--border);
+}
+.mindful-help-row:last-child { border-bottom: none; }
+.mindful-help-row kbd {
+    font-family: var(--mono); font-size: var(--fs-xs); color: var(--accent);
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 0.125rem 0.5rem;
+    min-width: 1.5rem; text-align: center; flex-shrink: 0;
+}
+.mindful-help-row span {
+    font-family: var(--sans); font-size: var(--fs-sm); color: var(--fg-muted);
+}
 
 /* ══════════════════════════════════════════════════════════════════
    SEARCH OVERLAY
@@ -693,8 +760,16 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     ytd-watch-flexy #player-theater-container.ytd-watch-flexy,
     ytd-watch-flexy #player-container-outer.ytd-watch-flexy {
         height: calc(100vh - 3.25rem) !important; max-height: calc(100vh - 3.25rem) !important;
+        display: flex !important; align-items: center !important; justify-content: center !important;
+        overflow: hidden !important; background: var(--bg-sunken) !important;
     }
-    #movie_player { max-height: calc(100vh - 3.25rem) !important; }
+    #movie_player {
+        max-height: calc(100vh - 3.25rem) !important; width: 100% !important; height: 100% !important;
+    }
+    #movie_player .html5-video-container,
+    #movie_player video.video-stream {
+        width: 100% !important; height: 100% !important; object-fit: contain !important;
+    }
 
     /* Panels become bottom sheets */
     body.mindful-warm-comments ytd-watch-flexy #comments,
@@ -743,24 +818,32 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
 
 
     // ── Anti-backoff: prevent YouTube fake buffering ──
-    // Intercept fetch to inject isInlinePlaybackNoAd into player requests
-    // This prevents SABR backoff delays on both cold and SPA navigation
-    const realFetch = window.fetch;
-    window.fetch = function(input, init) {
+    // Intercept fetch to inject isInlinePlaybackNoAd into player requests.
+    // This prevents SABR backoff delays on both cold and SPA navigation.
+    // Must patch pageWindow.fetch, not the local `window.fetch` reference —
+    // on Firefox those are two different functions (see pageWindow above),
+    // so the old code was patching a fetch nothing ever called.
+    const realFetch = pageWindow.fetch;
+    pageWindow.fetch = function(input, init) {
         if (init && init.body && typeof init.body === "string" && init.body.includes('"contentPlaybackContext":{')) {
             init.body = init.body.replace('"contentPlaybackContext":{', '"contentPlaybackContext":{"isInlinePlaybackNoAd":true,');
         }
         return realFetch.apply(this, arguments);
     };
-    // Also hook Object.assign as backup
-    const realAssign = Object.assign;
-    Object.assign = function() {
-        const ret = realAssign.apply(this, arguments);
-        if (arguments.length === 3 && ret && ret.body && typeof ret.body === "string" && ret.body.includes('"contentPlaybackContext":{')) {
-            ret.body = ret.body.replace('"contentPlaybackContext":{', '"contentPlaybackContext":{"isInlinePlaybackNoAd":true,');
-        }
-        return ret;
-    };
+
+    // ── Background playback: spoof the Page Visibility API ──
+    // YouTube pauses/throttles playback when it thinks the tab is hidden
+    // (visibilitychange + document.hidden). The README advertised this but
+    // the code never actually did it — real cause of playback stopping when
+    // you switch tabs. Freeze both read paths and stop the real event from
+    // reaching YouTube's own listeners.
+    try {
+        Object.defineProperty(pageWindow.document, "hidden", { get: () => false, configurable: true });
+        Object.defineProperty(pageWindow.document, "visibilityState", { get: () => "visible", configurable: true });
+        pageWindow.document.addEventListener("visibilitychange", e => e.stopImmediatePropagation(), true);
+    } catch (e) {
+        console.warn("[YouTube Mindful] visibility spoof failed:", e);
+    }
 
     const isWatch = () => location.pathname === "/watch";
     const isLive  = () => !!document.querySelector("ytd-live-chat-frame#chat, .ytp-live-badge[disabled], .ytp-live");
@@ -851,10 +934,25 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         else el.removeAttribute("inert");
     }
 
-    function warmPanel(name) {
+    // YouTube's Polymer components for #secondary/#comments can still be
+    // unmounted when our timer fires (yt-navigate-finish fires before they
+    // attach). A single querySelector attempt then silently finds nothing
+    // and the panel never warms — that's the "only works after I click"
+    // bug. Poll for the root instead of firing once.
+    const WARM_RETRY_MS = 200;
+    const WARM_RETRY_MAX = 15; // 3s budget
+
+    function warmPanel(name, attempt) {
+        attempt = attempt || 0;
         if (!prefs.prewarm) return;
         if (!isWatch() || isWarm(name)) return;
         if (!warmClasses[name]) return;
+        const root = document.querySelector(WARM_ROOTS[name]);
+        if (!root) {
+            if (attempt >= WARM_RETRY_MAX) return; // gave it 3s, YT page likely changed again
+            state.warmTimers.push(setTimeout(() => warmPanel(name, attempt + 1), WARM_RETRY_MS));
+            return;
+        }
         document.body.classList.add(warmClasses[name]);
         state.warmed[name] = true;
         setInert(name, true);
@@ -886,9 +984,14 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     }
 
     // ── Panels — toggle body classes, CSS does the rest ──
+    // state.panelReturnFocus remembers which sidebar button opened the
+    // panel, so Escape/toggle-closed gives focus back there instead of
+    // dropping it onto <body> (which is where a keyboard user would
+    // otherwise silently lose their place).
     function openPanel(name) {
         if (state.panelOpen) closePanel();
         if (name === "chat" && !isLive()) return;
+        state.panelReturnFocus = document.activeElement;
         // Warm-on-demand: if the timer hasn't fired yet, warming first means
         // the panel is already laid out when the open class lands.
         warmPanel(name);
@@ -899,6 +1002,19 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         if (name === "details") { injectStats(); setTimeout(injectStats, 250); }
         if (name === "recs") setTimeout(() => window.dispatchEvent(new Event("resize")), 40);
         updateSidebar();
+        // Move focus into the panel so a keyboard/screen-reader user lands
+        // somewhere meaningful instead of the panel opening invisibly to them.
+        const root = document.querySelector(WARM_ROOTS[name] || panelFocusRoot(name));
+        if (root) {
+            const target = root.querySelector("a, button, [tabindex]") || root;
+            if (!root.hasAttribute("tabindex") && target === root) root.setAttribute("tabindex", "-1");
+            setTimeout(() => target.focus({ preventScroll: true }), 50);
+        }
+    }
+
+    function panelFocusRoot(name) {
+        return name === "chat" ? "ytd-watch-flexy ytd-live-chat-frame#chat"
+             : name === "details" ? "ytd-watch-flexy #above-the-fold" : null;
     }
 
     function closePanel() {
@@ -913,6 +1029,12 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         }
         state.panelOpen = null;
         updateSidebar();
+        // Return focus to whatever opened the panel (sidebar button or
+        // keyboard shortcut target) rather than letting it fall off the page.
+        if (state.panelReturnFocus && document.contains(state.panelReturnFocus)) {
+            state.panelReturnFocus.focus({ preventScroll: true });
+        }
+        state.panelReturnFocus = null;
     }
 
     function togglePanel(name) { state.panelOpen === name ? closePanel() : openPanel(name); }
@@ -1032,7 +1154,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     function closeSearch() { searchEl.classList.remove("open"); searchInput.blur(); while(suggestEl.firstChild) suggestEl.removeChild(suggestEl.firstChild); suggestEl.style.display = "none"; }
 
     // ── Settings ──
-    const DEFAULTS = { panelMode: "side", panelWidth: 380, prewarm: true, keyComments: "x", keyRecs: "z", keyDetails: "q" };
+    const DEFAULTS = { panelMode: "side", panelWidth: 380, prewarm: true };
     let prefs = { ...DEFAULTS };
 
     function loadPrefs() {
@@ -1084,16 +1206,10 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         box.appendChild(el("div", "font-size:11px;color:"+C.fgDim+";margin:-6px 0 14px 0;line-height:1.5;opacity:0.8",
             "Loads comments and recommendations in the background so panels open instantly."));
 
-        // Keybindings
-        const ks = el("div", "margin-top:14px;padding-top:12px;border-top:1px solid "+C.border);
-        ks.appendChild(el("div", "font-size:11px;color:"+C.accent+";margin-bottom:10px", "Keybindings — click field, press key (Esc to clear)"));
-        ["Comments:keyComments", "Recommendations:keyRecs", "Details:keyDetails"].forEach(pair => {
-            const [label, key] = pair.split(":");
-            const row = el("div", R); row.appendChild(el("span", null, label));
-            const inp = document.createElement("input"); inp.readOnly = true; inp.style.cssText = I; inp.dataset.key = key;
-            row.appendChild(inp); ks.appendChild(row);
-        });
-        box.appendChild(ks);
+        // Shortcuts are fixed now (press ? anywhere to see them) — no
+        // per-key rebind UI, so point people at the help overlay instead.
+        box.appendChild(el("div", "font-size:11px;color:"+C.fgDim+";margin:14px 0 0 0;padding-top:12px;border-top:1px solid "+C.border+";line-height:1.5;opacity:0.8",
+            "Press ? anywhere on YouTube for the full list of keyboard shortcuts."));
 
         // Close
         const closeBtn = el("button", "display:block;margin-top:16px;width:100%;padding:6px;background:"+C.bgDark+";color:"+C.fg+";border:1px solid "+C.border+";font-family:inherit;font-size:11px;cursor:pointer;text-align:center", "Close");
@@ -1111,15 +1227,6 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
             if (prefs.prewarm) scheduleWarm();
             else clearWarm();
             updateSidebar();
-        });
-        settingsEl.querySelectorAll("[data-key]").forEach(inp => {
-            inp.addEventListener("keydown", e => {
-                e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
-                const k = inp.dataset.key;
-                if (e.key === "Escape" || e.key === "Backspace") { prefs[k] = ""; inp.value = "(none)"; }
-                else { prefs[k] = e.key; inp.value = e.key; }
-                savePrefs();
-            });
         });
 
         document.body.appendChild(settingsEl);
@@ -1169,31 +1276,64 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
 
     function buildSidebar() {
         sidebar = document.createElement("div"); sidebar.id = "mindful-sidebar";
+        sidebar.setAttribute("role", "toolbar");
+        sidebar.setAttribute("aria-label", "YouTube Mindful navigation");
+        sidebar.setAttribute("aria-orientation", "vertical");
         const items = [
             { id:"home",   icon:"home",   label:"Home",    action: () => { if (location.pathname !== "/") { const l = document.querySelector("a#logo,a[href='/']"); l ? l.click() : (location.href="/"); } }},
-            { id:"search", icon:"search", label:"Search",  action: openSearch },
+            { id:"search", icon:"search", label:"Search",  key:"/", action: openSearch },
             { id:"back",   icon:"back",   label:"Back",    action: () => history.back() },
             "sep",
-            { id:"details",  icon:"details",  label:"Details",         action: () => isWatch() && togglePanel("details") },
-            { id:"recs",     icon:"recs",     label:"Recommendations", action: () => isWatch() && togglePanel("recs") },
-            { id:"comments", icon:"comments", label:"Comments",        action: () => isWatch() && togglePanel("comments") },
-            { id:"chat",     icon:"chat",     label:"Live Chat",       action: () => isWatch() && isLive() && togglePanel("chat") },
+            { id:"details",  icon:"details",  label:"Details",         key:"1", action: () => isWatch() && togglePanel("details") },
+            { id:"recs",     icon:"recs",     label:"Recommendations", key:"2", action: () => isWatch() && togglePanel("recs") },
+            { id:"comments", icon:"comments", label:"Comments",        key:"3", action: () => isWatch() && togglePanel("comments") },
+            { id:"chat",     icon:"chat",     label:"Live Chat",       key:"4", action: () => isWatch() && isLive() && togglePanel("chat") },
             "sep",
             { id:"subs",      icon:"subs",      label:"Subscriptions", action: () => location.href="/feed/subscriptions" },
             { id:"history",   icon:"history",    label:"History",       action: () => location.href="/feed/history" },
             { id:"watchlater",icon:"watchlater", label:"Watch Later",   action: () => location.href="/playlist?list=WL" },
             { id:"playlist",  icon:"playlist",   label:"Playlists",     action: () => location.href="/feed/playlists" },
             "sep",
-            { id:"settings", icon:"settings", label:"Settings",        action: openSettings },
+            { id:"settings", icon:"settings", label:"Settings (? for all shortcuts)", action: openSettings },
         ];
+        const focusable = [];
         items.forEach(item => {
-            if (item === "sep") { const s = document.createElement("div"); s.className = "sep"; sidebar.appendChild(s); return; }
+            if (item === "sep") { const s = document.createElement("div"); s.className = "sep"; s.setAttribute("role", "separator"); sidebar.appendChild(s); return; }
             const b = document.createElement("button");
-            b.setAttribute("aria-label", item.label);
+            b.type = "button";
+            b.setAttribute("aria-label", item.key ? `${item.label} (${item.key === "/" ? "/" : item.key})` : item.label);
+            if (item.key) b.setAttribute("aria-keyshortcuts", item.key);
+            // Roving tabindex: only the first control is reachable by Tab;
+            // arrow keys move the roving index. This is the standard
+            // toolbar pattern (WAI-ARIA APG) — without it, 13 Tab-stops
+            // sit between the player and anything useful on the page.
+            b.tabIndex = focusable.length === 0 ? 0 : -1;
             b.appendChild(ico(ICONS[item.icon]));
+            if (item.key) {
+                const badge = document.createElement("span");
+                badge.className = "mindful-key-badge";
+                badge.textContent = item.key;
+                badge.setAttribute("aria-hidden", "true");
+                b.appendChild(badge);
+            }
             b.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); item.action(); });
             sidebar.appendChild(b);
             sidebarBtns[item.id] = b;
+            focusable.push(b);
+        });
+        sidebar.addEventListener("keydown", e => {
+            const idx = focusable.indexOf(document.activeElement);
+            if (idx === -1) return;
+            let next = -1;
+            if (e.key === "ArrowDown") next = (idx + 1) % focusable.length;
+            else if (e.key === "ArrowUp") next = (idx - 1 + focusable.length) % focusable.length;
+            else if (e.key === "Home") next = 0;
+            else if (e.key === "End") next = focusable.length - 1;
+            else return;
+            e.preventDefault();
+            focusable[idx].tabIndex = -1;
+            focusable[next].tabIndex = 0;
+            focusable[next].focus();
         });
         document.body.appendChild(sidebar);
         updateSidebar();
@@ -1266,20 +1406,91 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         phoneHide.forEach(id => { if (sidebarBtns[id]) sidebarBtns[id].style.display = phone ? "none" : ""; });
     }
 
-    // ── Keyboard — just Escape ──
+    // ── Keyboard — fixed, discoverable shortcuts ──
+    // Numbered panel keys (1-4) replace the old silent user-rebindable
+    // x/z/q scheme: a fixed, visible mapping (shown as badges on the
+    // sidebar buttons, and in full in the ? help overlay) is something a
+    // keyboard user can learn once, instead of having to open Settings
+    // first to discover what their own bindings even are.
+    const PANEL_KEYS = { "1": "details", "2": "recs", "3": "comments", "4": "chat" };
+
     function onKey(e) {
         if (isTyping()) return;
         if (e.key === "Escape") {
+            if (helpEl && helpEl.style.display === "flex") { closeHelp(); return; }
             if (settingsEl.style.display === "flex") { closeSettings(); return; }
             if (searchEl.classList.contains("open")) { closeSearch(); return; }
             if (state.panelOpen) { closePanel(); return; }
         }
         if (e.ctrlKey || e.altKey || e.metaKey) return;
-        if (isWatch()) {
-            if (prefs.keyComments && e.key === prefs.keyComments) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); togglePanel("comments"); return; }
-            if (prefs.keyRecs && e.key === prefs.keyRecs) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); togglePanel("recs"); return; }
-            if (prefs.keyDetails && e.key === prefs.keyDetails) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); togglePanel("details"); return; }
+        if (e.key === "?") { e.preventDefault(); toggleHelp(); return; }
+        if (e.key === "/") { e.preventDefault(); openSearch(); return; }
+        if (isWatch() && PANEL_KEYS[e.key]) {
+            const name = PANEL_KEYS[e.key];
+            if (name === "chat" && !isLive()) return;
+            e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+            togglePanel(name);
         }
+    }
+
+    // ── Help overlay — the full keymap, one keystroke away ──
+    let helpEl;
+    const HELP_ROWS = [
+        ["1", "Toggle video details panel"],
+        ["2", "Toggle recommendations panel"],
+        ["3", "Toggle comments panel"],
+        ["4", "Toggle live chat panel (when live)"],
+        ["/", "Open search"],
+        ["Esc", "Close whatever is open"],
+        ["Tab", "Enter the sidebar toolbar"],
+        ["\u2191 \u2193", "Move between sidebar buttons"],
+        ["?", "Toggle this help"],
+    ];
+
+    function buildHelp() {
+        helpEl = document.createElement("div");
+        helpEl.id = "mindful-help";
+        helpEl.setAttribute("role", "dialog");
+        helpEl.setAttribute("aria-modal", "true");
+        helpEl.setAttribute("aria-label", "Keyboard shortcuts");
+        helpEl.style.display = "none";
+
+        const box = document.createElement("div");
+        box.className = "mindful-help-box";
+        box.tabIndex = -1;
+        const h = document.createElement("div");
+        h.className = "mindful-help-title";
+        h.textContent = "Keyboard shortcuts";
+        box.appendChild(h);
+
+        const table = document.createElement("div");
+        table.className = "mindful-help-table";
+        HELP_ROWS.forEach(([key, desc]) => {
+            const row = document.createElement("div");
+            row.className = "mindful-help-row";
+            const k = document.createElement("kbd");
+            k.textContent = key;
+            const d = document.createElement("span");
+            d.textContent = desc;
+            row.append(k, d);
+            table.appendChild(row);
+        });
+        box.appendChild(table);
+        helpEl.appendChild(box);
+        helpEl.addEventListener("click", e => { if (e.target === helpEl) closeHelp(); });
+        document.body.appendChild(helpEl);
+    }
+
+    function toggleHelp() { helpEl.style.display === "flex" ? closeHelp() : openHelp(); }
+    function openHelp() {
+        state.helpReturnFocus = document.activeElement;
+        helpEl.style.display = "flex";
+        helpEl.querySelector(".mindful-help-box").focus();
+    }
+    function closeHelp() {
+        helpEl.style.display = "none";
+        if (state.helpReturnFocus && document.contains(state.helpReturnFocus)) state.helpReturnFocus.focus();
+        state.helpReturnFocus = null;
     }
 
     // ── Channel tab bar ──
@@ -1334,6 +1545,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         buildSidebar();
         buildSearch();
         buildSettings();
+        buildHelp();
         document.body.style.overscrollBehavior = "none";
 
         if ("ontouchstart" in window) {
@@ -1355,9 +1567,22 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         });
 
         let lastUrl = location.href;
+        // Fallback only — yt-navigate-finish covers almost every nav.
+        // The original observer fired its callback synchronously on EVERY
+        // DOM mutation anywhere in document.body with subtree:true, on a
+        // page that mutates constantly (comment stream, autoplay countdown,
+        // recs lazy-render, live chat). That's the stuck/freezing feeling:
+        // a same-work-every-tick observer competing with YouTube's own
+        // Polymer render loop. Debounce it so it only does work after the
+        // DOM has gone quiet for a beat, not on every single mutation.
+        let navCheckTimer = null;
         new MutationObserver(() => {
-            if (location.href !== lastUrl) { lastUrl = location.href; onNav(); }
-        }).observe(document.body, { childList:true, subtree:true });
+            if (navCheckTimer) return;
+            navCheckTimer = setTimeout(() => {
+                navCheckTimer = null;
+                if (location.href !== lastUrl) { lastUrl = location.href; onNav(); }
+            }, 150);
+        }).observe(document.body, { childList: true, subtree: true });
 
         setTimeout(updateSidebar, 500);
         setTimeout(updateSidebar, 2000);
