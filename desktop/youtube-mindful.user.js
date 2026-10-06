@@ -86,28 +86,37 @@
     --magenta:    var(--accent);
 
     /* radius */
-    --radius:     0.375rem;
-    --radius-sm:  0.25rem;
+    --radius:     6px;
+    --radius-sm:  4px;
     --radius-pill: 9999px;
 
-    /* type */
+    /* type
+       Fixed px, not rem. This stylesheet's rem values were computed
+       against html's font-size — but html belongs to YouTube's own
+       Material/Polymer design system, which may use a different root
+       size than the 16px browser default, and overriding it (tried,
+       then reverted — see git history) rescales every YouTube-native
+       rem value too, not just this stylesheet's, producing the
+       "small, big, everything at once" inconsistency. Fixed px for
+       this UI's own chrome is immune to html's font-size regardless
+       of what sets it — YouTube's CSS, this script, or browser zoom. */
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
     --mono: "JetBrains Mono", "Fira Code", "SF Mono", Consolas, monospace;
-    --fs-xs:   0.75rem;
-    --fs-sm:   0.8125rem;
-    --fs-base: 0.9375rem;
-    --fs-lg:   1.0625rem;
+    --fs-xs:   12px;
+    --fs-sm:   13px;
+    --fs-base: 15px;
+    --fs-lg:   17px;
 
-    /* spacing — 0.25rem grid */
-    --sp-1: 0.25rem;  --sp-2: 0.5rem;  --sp-3: 0.75rem;
-    --sp-4: 1rem;     --sp-5: 1.25rem; --sp-6: 1.5rem;  --sp-8: 2rem;
+    /* spacing — 4px grid */
+    --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px;
+    --sp-4: 16px; --sp-5: 20px; --sp-6: 24px;  --sp-8: 32px;
 
     /* motion */
     --dur: 160ms;
     --ease: cubic-bezier(0.2, 0, 0.2, 1);
 
     /* layout */
-    --sidebar-w: 3rem;
+    --sidebar-w: 48px;
     --mindful-panel-w: 380px;
 
     /* z-layers — no z-index wars */
@@ -128,18 +137,6 @@
 /* ══════════════════════════════════════════════════════════════════
    GLOBAL
    ══════════════════════════════════════════════════════════════════ */
-/* Anchor the rem scale. Every size in this stylesheet (sidebar width,
-   grid gaps, panel/chat font sizes) is in rem, which is relative to
-   html's font-size — and this sheet never set that explicitly, so it
-   drifted with whatever YouTube's own CSS or the browser's zoom/
-   text-size setting left "html" at. That's why the whole UI could
-   shrink together (small sidebar + no grid gaps + tiny chat font are
-   one bug, not three): pin it so 1rem is always 16px here regardless
-   of page zoom or YouTube's own root sizing.
-   !important is deliberate: this is the one value every other rem in
-   the sheet depends on, so it must win over anything else touching it.
-   prefers-reduced-motion is irrelevant here; this is not a transition. */
-html { font-size: 16px !important; }
 html, body, ytd-app, #content, ytd-browse, ytd-search,
 ytd-watch-flexy, ytd-page-manager, ytd-two-column-browse-results-renderer,
 ytd-rich-grid-renderer, #page-manager, tp-yt-app-drawer {
@@ -322,31 +319,22 @@ ytd-watch-flexy #primary-inner.ytd-watch-flexy {
 ytd-watch-flexy #player-wide-container.ytd-watch-flexy,
 ytd-watch-flexy #player-theater-container.ytd-watch-flexy,
 ytd-watch-flexy #player-container-outer.ytd-watch-flexy {
-    display: flex !important; align-items: center !important; justify-content: center !important;
-    overflow: hidden !important; background: var(--bg-sunken) !important;
-    max-width: 100vw !important; max-height: 100vh !important;
+    height: 100vh !important; max-height: 100vh !important; max-width: 100% !important;
 }
 ytd-watch-flexy[full-bleed-player] #full-bleed-container.ytd-watch-flexy { max-height: 100vh !important; }
-/* The black-bar / empty-space bug: YouTube's player JS sets its own
-   width from the container's box; forcing only "height" here (and never
-   "width") left the two layout systems disagreeing whenever the window's
-   aspect ratio wasn't exactly 16:9 (ultrawide monitor, odd video source,
-   mid-resize frame).
-   First attempt forced width:100%; height:100% directly on #movie_player,
-   which fights YouTube's own inline sizing (its ResizeObserver sets
-   explicit px width/height on this element) and left the player blank —
-   stretching BOTH axes to fill a container that wasn't itself 16:9 broke
-   its internal layout instead of fixing it. Correct fix: give
-   #movie_player itself the right shape via aspect-ratio (bounded by
-   whichever viewport axis is tighter), and let its own JS size the
-   internal video element inside that already-correct box. */
-#movie_player {
-    aspect-ratio: 16 / 9 !important;
-    max-width: 100vw !important;
-    max-height: 100vh !important;
-    width: auto !important;
-    height: 100% !important;
-}
+/* Reverted to the project's own hard-won baseline (commits 0438164 and
+   7449cf3): forcing height AND aspect-ratio/flex-centering on this
+   container caused YouTube to detect a size change on #movie_player and
+   enter a reinit loop (new cpn, repeated /player calls) — the player
+   never settles, which reads as "doesn't want to show up". The original
+   fix for THAT was to touch only height here, leave width alone, and
+   leave #movie_player with nothing but a max-height clamp — pure CSS,
+   zero JS interaction with the player. The 2026-10-06 attempt to also
+   fix an occasional black-bar/empty-space symptom by adding
+   aspect-ratio + flex-centering reintroduced the exact pattern that
+   caused the reinit loop. Reverted; the black-bar symptom needs a
+   different approach that doesn't change #movie_player's own box. */
+#movie_player { max-height: 100vh !important; }
 
 /* ── COLD STATE — panels parked offscreen, not yet loaded ── */
 ytd-watch-flexy #below {
@@ -532,7 +520,7 @@ ytd-watch-flexy #comments .published-time-text {
     font-family: var(--sans); overflow-y: auto; overflow-x: hidden;
 }
 #mindful-sidebar button {
-    width: 2.25rem; height: 2.25rem; border: none; background: transparent;
+    width: 36px; height: 36px; border: none; background: transparent;
     color: var(--fg-muted); cursor: pointer; border-radius: var(--radius-sm);
     display: flex; align-items: center; justify-content: center;
     transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
@@ -543,24 +531,24 @@ ytd-watch-flexy #comments .published-time-text {
 #mindful-sidebar button:active { transform: scale(0.96); }
 #mindful-sidebar button.active { color: var(--accent) !important; background: var(--surface-2) !important; }
 #mindful-sidebar button.active::before {
-    content: ""; position: absolute; left: -0.5rem; top: 20%; bottom: 20%;
+    content: ""; position: absolute; left: -8px; top: 20%; bottom: 20%;
     width: 2px; background: var(--accent); border-radius: var(--radius-pill);
 }
 #mindful-sidebar button[disabled] { opacity: 0.35 !important; pointer-events: none !important; }
 /* Prewarm indicator — content already fetched, panel opens instantly */
 #mindful-sidebar button[data-warm="ready"]::before {
-    content: ""; position: absolute; top: 0.3125rem; right: 0.3125rem;
+    content: ""; position: absolute; top: 5px; right: 5px;
     width: 4px; height: 4px; border-radius: 50%;
     background: var(--success); opacity: 0.7;
 }
 #mindful-sidebar button.active[data-warm="ready"]::before {
-    left: -0.5rem; right: auto; top: 20%; bottom: 20%;
+    left: -8px; right: auto; top: 20%; bottom: 20%;
     width: 2px; height: auto; background: var(--accent);
     border-radius: var(--radius-pill); opacity: 1;
 }
-#mindful-sidebar .sep { width: 1.25rem; height: 1px; background: var(--border); margin: var(--sp-2) 0; }
+#mindful-sidebar .sep { width: 20px; height: 1px; background: var(--border); margin: var(--sp-2) 0; }
 #mindful-sidebar button::after {
-    content: attr(aria-label); position: absolute; left: 3.25rem; top: 50%;
+    content: attr(aria-label); position: absolute; left: 52px; top: 50%;
     transform: translateY(-50%); background: var(--surface); color: var(--fg);
     font-family: var(--sans); font-size: var(--fs-xs); padding: var(--sp-1) var(--sp-2);
     border: 1px solid var(--border); border-radius: var(--radius-sm);
@@ -573,7 +561,7 @@ ytd-watch-flexy #comments .published-time-text {
    shortcut (1-4, /) so it's discoverable without opening Settings. */
 .mindful-key-badge {
     position: absolute; bottom: 1px; right: 2px;
-    font-family: var(--mono); font-size: 0.5625rem; line-height: 1;
+    font-family: var(--mono); font-size: 9px; line-height: 1;
     color: var(--fg-subtle); opacity: 0.75; pointer-events: none;
 }
 #mindful-sidebar button.active .mindful-key-badge,
@@ -604,8 +592,8 @@ ytd-watch-flexy #comments .published-time-text {
 .mindful-help-row kbd {
     font-family: var(--mono); font-size: var(--fs-xs); color: var(--accent);
     background: var(--surface-2); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); padding: 0.125rem 0.5rem;
-    min-width: 1.5rem; text-align: center; flex-shrink: 0;
+    border-radius: var(--radius-sm); padding: 2px 8px;
+    min-width: 24px; text-align: center; flex-shrink: 0;
 }
 .mindful-help-row span {
     font-family: var(--sans); font-size: var(--fs-sm); color: var(--fg-muted);
@@ -648,7 +636,7 @@ ytd-watch-flexy #comments .published-time-text {
    SCROLLBAR
    ══════════════════════════════════════════════════════════════════ */
 * { scrollbar-width: thin; scrollbar-color: var(--surface-2) transparent; }
-::-webkit-scrollbar { width: 0.375rem !important; height: 0.375rem !important; }
+::-webkit-scrollbar { width: 6px !important; height: 6px !important; }
 ::-webkit-scrollbar-track { background: transparent !important; }
 ::-webkit-scrollbar-thumb { background: var(--surface-2) !important; border-radius: var(--radius-pill) !important; }
 ::-webkit-scrollbar-thumb:hover { background: var(--fg-subtle) !important; }
@@ -735,7 +723,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     #mindful-sidebar {
         top: auto !important; bottom: 0 !important; left: 0 !important; right: 0 !important;
         width: 100% !important; height: auto !important;
-        min-height: 3.25rem !important;
+        min-height: 52px !important;
         flex-direction: row !important; justify-content: space-around !important;
         align-items: center !important;
         padding: var(--sp-1) var(--sp-2) !important;
@@ -743,7 +731,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         border-right: none !important; border-top: 1px solid var(--border) !important;
     }
     #mindful-sidebar .sep { display: none !important; }
-    #mindful-sidebar button { width: 2.75rem; height: 2.75rem; }
+    #mindful-sidebar button { width: 44px; height: 44px; }
     #mindful-sidebar button::after { display: none !important; }
     #mindful-sidebar button.active::before {
         left: 20%; right: 20%; top: auto; bottom: 0;
@@ -752,7 +740,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
 
     ytd-page-manager {
         margin-left: 0 !important;
-        margin-bottom: calc(3.25rem + env(safe-area-inset-bottom, 0px)) !important;
+        margin-bottom: calc(52px + env(safe-area-inset-bottom, 0px)) !important;
     }
     ytd-app[guide-persistent-and-visible] #page-manager.ytd-app { margin-left: 0 !important; }
 
@@ -774,17 +762,9 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     ytd-watch-flexy #player-wide-container.ytd-watch-flexy,
     ytd-watch-flexy #player-theater-container.ytd-watch-flexy,
     ytd-watch-flexy #player-container-outer.ytd-watch-flexy {
-        max-height: calc(100vh - 3.25rem) !important;
-        display: flex !important; align-items: center !important; justify-content: center !important;
-        overflow: hidden !important; background: var(--bg-sunken) !important;
-        max-width: 100vw !important;
+        height: calc(100vh - 52px) !important; max-height: calc(100vh - 52px) !important;
     }
-    #movie_player {
-        aspect-ratio: 16 / 9 !important;
-        max-height: calc(100vh - 3.25rem) !important;
-        max-width: 100vw !important;
-        width: auto !important; height: 100% !important;
-    }
+    #movie_player { max-height: calc(100vh - 52px) !important; }
 
     /* Panels become bottom sheets */
     body.mindful-warm-comments ytd-watch-flexy #comments,
@@ -796,7 +776,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     body.mindful-warm-details ytd-watch-flexy #above-the-fold,
     body.mindful-panel-details ytd-watch-flexy #above-the-fold,
     body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
-        top: auto !important; bottom: 3.25rem !important; left: 0 !important; right: 0 !important;
+        top: auto !important; bottom: 52px !important; left: 0 !important; right: 0 !important;
         width: 100% !important; height: 55vh !important; max-height: 55vh !important;
         border-left: none !important; border-top: 1px solid var(--border) !important;
         border-radius: var(--radius) var(--radius) 0 0 !important;
@@ -814,18 +794,18 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     }
 
     #mindful-search { padding-top: 10vh !important; }
-    #mindful-search input { width: 92% !important; max-width: none !important; font-size: 1rem !important; }
+    #mindful-search input { width: 92% !important; max-width: none !important; font-size: 16px !important; }
     #mindful-suggest { width: 92% !important; max-width: none !important; }
 
     ytd-search ytd-item-section-renderer #contents { grid-template-columns: 1fr !important; }
     ytd-search ytd-video-renderer ytd-thumbnail img { aspect-ratio: 16/9 !important; }
 
-    #mindful-channel-bar { bottom: 3.75rem !important; }
+    #mindful-channel-bar { bottom: 60px !important; }
 }
 
 /* 320px floor — nothing may overflow horizontally */
 @media (max-width: 360px) {
-    #mindful-sidebar button { width: 2.5rem; height: 2.5rem; }
+    #mindful-sidebar button { width: 40px; height: 40px; }
     ytd-page-manager { overflow-x: hidden !important; }
 }
 `;
