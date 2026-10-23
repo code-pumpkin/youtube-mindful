@@ -188,7 +188,7 @@ ytd-rich-grid-renderer {
     --ytd-rich-grid-items-per-row: 2 !important;
     --ytd-rich-grid-posts-per-row: 2 !important;
     --ytd-rich-grid-slim-items-per-row: 2 !important;
-    max-width: 100% !important; width: 100% !important; padding: var(--sp-4) !important;
+    max-width: 100% !important; width: 100% !important; padding: var(--sp-6) !important;
 }
 ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer { padding: 0 !important; }
 ytd-rich-grid-row { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
@@ -200,6 +200,30 @@ ytd-rich-item-renderer {
     min-width: 0 !important; margin: 0 !important; padding: 0 !important;
     background: transparent !important;
     transition: background var(--dur) var(--ease) !important;
+}
+
+/* Current Home renderer — YouTube migrated cards from rich-grid-media to ViewModel. */
+/* YouTube fixes the root at 10px, so Home recalibrates the 4px spacing scale locally. */
+ytd-browse[page-subtype="home"] {
+    --sp-1: 0.4rem;  --sp-2: 0.8rem;  --sp-3: 1.2rem;
+    --sp-4: 1.6rem;  --sp-5: 2rem;    --sp-6: 2.4rem;  --sp-8: 3.2rem;
+    --fs-xs: 1.2rem; --fs-sm: 1.3rem; --fs-base: 1.5rem;
+}
+ytd-browse[page-subtype="home"] ytd-rich-grid-renderer {
+    box-sizing: border-box !important;
+    max-width: 1440px !important; margin: 0 auto !important;
+}
+ytd-browse[page-subtype="home"] ytd-rich-grid-renderer > #contents.ytd-rich-grid-renderer {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    column-gap: var(--sp-6) !important;
+    row-gap: var(--sp-8) !important;
+}
+ytd-browse[page-subtype="home"] ytd-rich-item-renderer {
+    width: 100% !important; max-width: none !important;
+}
+ytd-browse[page-subtype="home"] ytd-continuation-item-renderer {
+    grid-column: 1 / -1 !important;
 }
 ytd-rich-item-renderer:hover { background: var(--surface) !important; }
 
@@ -222,6 +246,37 @@ ytd-rich-item-renderer #avatar-link,
 ytd-rich-item-renderer ytd-channel-thumbnail-with-link-renderer { display: none !important; }
 #details.ytd-rich-grid-media, #meta.ytd-rich-grid-media {
     padding: var(--sp-3) var(--sp-2) var(--sp-2) !important; margin: 0 !important;
+}
+/* ViewModel metadata: keep title, channel, age, and duration; remove avatar/icon noise. */
+ytd-browse[page-subtype="home"] .ytLockupViewModelMetadata {
+    gap: var(--sp-3) !important;
+    padding: var(--sp-3) var(--sp-2) 0 !important;
+}
+ytd-browse[page-subtype="home"] yt-decorated-avatar-view-model {
+    display: none !important;
+}
+ytd-browse[page-subtype="home"] yt-lockup-metadata-view-model {
+    width: 100% !important; min-width: 0 !important;
+}
+ytd-browse[page-subtype="home"] .ytLockupMetadataViewModelTitle {
+    color: var(--fg) !important;
+    font-family: var(--sans) !important;
+    font-size: var(--fs-base) !important;
+    font-weight: 500 !important;
+    line-height: 1.4 !important;
+}
+ytd-browse[page-subtype="home"] .ytLockupMetadataViewModelMetadata {
+    margin-top: var(--sp-1) !important;
+}
+ytd-browse[page-subtype="home"] .ytContentMetadataViewModelMetadataText {
+    color: var(--fg-subtle) !important;
+    font-family: var(--mono) !important;
+    font-size: var(--fs-xs) !important;
+}
+ytd-browse[page-subtype="home"] .ytContentMetadataViewModelLeadingIcon,
+ytd-browse[page-subtype="home"] .ytContentMetadataViewModelLeadingIcon + .ytContentMetadataViewModelMetadataText,
+ytd-browse[page-subtype="home"] .ytContentMetadataViewModelLeadingIcon + .ytContentMetadataViewModelMetadataText + .ytContentMetadataViewModelDelimiter {
+    display: none !important;
 }
 .ytp-videowall-still-info-title, ytd-thumbnail-overlay-time-status-renderer span {
     font-family: var(--mono) !important; font-size: var(--fs-xs) !important;
@@ -506,11 +561,9 @@ ytd-watch-flexy #comments .published-time-text {
     width: 2px; background: var(--accent); border-radius: var(--radius-pill);
 }
 #mindful-sidebar button[disabled] { opacity: 0.35 !important; pointer-events: none !important; }
-/* Prewarm indicator — content already fetched, panel opens instantly */
-#mindful-sidebar button[data-warm="ready"]::before {
-    content: ""; position: absolute; top: 0.3125rem; right: 0.3125rem;
-    width: 4px; height: 4px; border-radius: 50%;
-    background: var(--success); opacity: 0.7;
+/* Prewarming is internal state; only active panels need a visible indicator. */
+#mindful-sidebar button[data-warm="ready"]:not(.active)::before {
+    display: none !important;
 }
 #mindful-sidebar button.active[data-warm="ready"]::before {
     left: -0.5rem; right: auto; top: 20%; bottom: 20%;
@@ -528,6 +581,45 @@ ytd-watch-flexy #comments .published-time-text {
 }
 #mindful-sidebar button:hover::after,
 #mindful-sidebar button:focus-visible::after { opacity: 1; }
+
+/* Library menu — secondary destinations stay off the primary navigation. */
+#mindful-library {
+    position: fixed;
+    left: var(--mindful-library-left, calc(var(--sidebar-w) + 0.8rem));
+    bottom: var(--mindful-library-bottom, 1.2rem);
+    z-index: var(--z-overlay);
+    display: none;
+    min-width: 18rem;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.8rem;
+    background: var(--surface);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+#mindful-library.open { display: flex !important; }
+#mindful-library button {
+    min-height: 4.4rem;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 0 1.2rem;
+    background: transparent;
+    color: var(--fg-muted);
+    border: 0;
+    border-radius: var(--radius-sm);
+    font-family: var(--sans);
+    font-size: 1.3rem;
+    text-align: left;
+    cursor: pointer;
+}
+#mindful-library button:hover,
+#mindful-library button:focus-visible {
+    background: var(--surface-2);
+    color: var(--fg);
+}
+#mindful-library button svg { flex: 0 0 auto; pointer-events: none; }
 
 /* ══════════════════════════════════════════════════════════════════
    SEARCH OVERLAY
@@ -574,7 +666,8 @@ ytd-watch-flexy #comments .published-time-text {
 /* ══════════════════════════════════════════════════════════════════
    MISC
    ══════════════════════════════════════════════════════════════════ */
-ytd-notification-topbar-button-renderer, #voice-search-button { display: none !important; }
+ytd-notification-topbar-button-renderer, #voice-search-button,
+ytd-mealbar-promo-renderer { display: none !important; }
 tp-yt-paper-dialog, ytd-popup-container, ytd-menu-popup-renderer {
     background: var(--surface) !important; color: var(--fg) !important;
     border: 1px solid var(--border) !important;
@@ -626,23 +719,148 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         --ytd-rich-grid-slim-items-per-row: 3 !important;
         padding: var(--sp-6) !important;
     }
+    ytd-browse[page-subtype="home"] ytd-rich-grid-renderer > #contents.ytd-rich-grid-renderer {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
     ytd-rich-item-renderer {
         width: calc(100%/3 - var(--sp-4)) !important;
         max-width: calc(100%/3 - var(--sp-4)) !important;
     }
 }
 
-/* Wide — 4 columns, capped reading width */
+/* Wide — 3 columns, capped reading width */
 @media (min-width: 1600px) {
     ytd-rich-grid-renderer {
-        --ytd-rich-grid-items-per-row: 4 !important;
-        --ytd-rich-grid-posts-per-row: 4 !important;
-        --ytd-rich-grid-slim-items-per-row: 4 !important;
-        max-width: 1600px !important; margin: 0 auto !important;
+        --ytd-rich-grid-items-per-row: 3 !important;
+        --ytd-rich-grid-posts-per-row: 3 !important;
+        --ytd-rich-grid-slim-items-per-row: 3 !important;
+        max-width: 1440px !important; margin: 0 auto !important;
     }
     ytd-rich-item-renderer {
-        width: calc(25% - var(--sp-5)) !important;
-        max-width: calc(25% - var(--sp-5)) !important;
+        width: calc(100%/3 - var(--sp-4)) !important;
+        max-width: calc(100%/3 - var(--sp-4)) !important;
+    }
+}
+
+/* Desktop — contextual labelled dock. */
+@media (pointer: fine) and (min-width: 1201px) {
+    :root { --sidebar-w: 0px; }
+
+    ytd-page-manager,
+    ytd-app[guide-persistent-and-visible] #page-manager.ytd-app {
+        margin-left: 0 !important;
+        margin-bottom: 7.6rem !important;
+    }
+    #mindful-sidebar {
+        box-sizing: border-box !important;
+        top: auto !important;
+        right: auto !important;
+        bottom: 1.2rem !important;
+        left: 50% !important;
+        width: auto !important;
+        max-width: calc(100vw - 2.4rem) !important;
+        height: 6.4rem !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 0.2rem !important;
+        padding: 0.6rem !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        transform: translateX(-50%);
+        border: 1px solid var(--border) !important;
+        border-radius: 0.8rem !important;
+        background: var(--surface) !important;
+    }
+    #mindful-sidebar button {
+        width: auto !important;
+        min-width: 5.6rem !important;
+        height: 5.2rem !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        gap: 0.3rem !important;
+        padding: 0.5rem 0.8rem !important;
+    }
+    #mindful-sidebar button::after {
+        position: static !important;
+        transform: none !important;
+        opacity: 1 !important;
+        padding: 0 !important;
+        background: transparent !important;
+        color: inherit !important;
+        border: 0 !important;
+        font-size: 1.1rem !important;
+        z-index: auto !important;
+    }
+    #mindful-sidebar .sep {
+        width: 1px !important;
+        height: 3.2rem !important;
+        margin: 0 0.4rem !important;
+    }
+    #mindful-sidebar button.active::before,
+    #mindful-sidebar button.active[data-warm="ready"]::before {
+        top: -0.6rem !important;
+        right: 20% !important;
+        bottom: auto !important;
+        left: 20% !important;
+        width: auto !important;
+        height: 2px !important;
+    }
+    #mindful-library {
+        left: var(--mindful-library-left, 50%) !important;
+        bottom: var(--mindful-library-bottom, 8.2rem) !important;
+        transform: translateX(-50%);
+    }
+    #mindful-channel-bar { bottom: 8.2rem !important; }
+
+    ytd-watch-flexy #player-wide-container.ytd-watch-flexy,
+    ytd-watch-flexy #player-theater-container.ytd-watch-flexy,
+    ytd-watch-flexy #player-container-outer.ytd-watch-flexy {
+        height: calc(100vh - 8rem) !important;
+        max-height: calc(100vh - 8rem) !important;
+    }
+    #movie_player { max-height: calc(100vh - 8rem) !important; }
+}
+
+/* Tablet on the desktop site — labelled navigation and 44px touch targets. */
+@media (pointer: coarse) and (min-width: 701px) and (max-width: 1200px) {
+    :root { --sidebar-w: 12rem; }
+
+    #mindful-sidebar {
+        box-sizing: border-box !important;
+        width: var(--sidebar-w) !important;
+        align-items: stretch !important;
+        gap: 0.2rem !important;
+        padding: 0.8rem !important;
+    }
+    #mindful-sidebar button {
+        width: 100% !important;
+        min-height: 4.4rem !important;
+        height: 4.4rem !important;
+        justify-content: flex-start !important;
+        gap: 1.2rem !important;
+        padding: 0 1.2rem !important;
+    }
+    #mindful-sidebar button::after {
+        position: static !important;
+        transform: none !important;
+        opacity: 1 !important;
+        background: transparent !important;
+        color: inherit !important;
+        border: 0 !important;
+        padding: 0 !important;
+        font-size: 1.2rem !important;
+        z-index: auto !important;
+    }
+    #mindful-sidebar button.active::before {
+        left: -0.8rem !important;
+    }
+    #mindful-sidebar .sep {
+        width: 100% !important;
+        margin: 0.4rem 0 !important;
+    }
+    #mindful-library {
+        left: calc(var(--sidebar-w) + 0.8rem) !important;
+        bottom: 1.2rem !important;
     }
 }
 
@@ -1028,7 +1246,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         searchInput.value = items[idx].dataset.q;
     }
 
-    function openSearch() { if (state.panelOpen) closePanel(); searchEl.classList.add("open"); searchInput.value = ""; searchInput.focus(); }
+    function openSearch() { closeLibrary(); if (state.panelOpen) closePanel(); searchEl.classList.add("open"); searchInput.value = ""; searchInput.focus(); }
     function closeSearch() { searchEl.classList.remove("open"); searchInput.blur(); while(suggestEl.firstChild) suggestEl.removeChild(suggestEl.firstChild); suggestEl.style.display = "none"; }
 
     // ── Settings ──
@@ -1126,6 +1344,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     }
 
     function openSettings() {
+        closeLibrary();
         if (state.panelOpen) closePanel();
         settingsEl.querySelector("[data-s=panelMode]").value = prefs.panelMode;
         settingsEl.querySelector("[data-s=panelWidth]").value = prefs.panelWidth;
@@ -1139,6 +1358,90 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     // ── Sidebar ──
     let sidebar;
     const sidebarBtns = {};
+    let libraryEl;
+
+    function navigateHome() {
+        const target = new URL("/", location.origin);
+        if (location.pathname === target.pathname && !location.search) {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            return;
+        }
+
+        const before = location.href;
+        const nativeHome = [...document.querySelectorAll("a[href]")].find(link => {
+            const href = new URL(link.href, location.origin);
+            return href.origin === target.origin && href.pathname === target.pathname && !href.search;
+        });
+
+        if (nativeHome) nativeHome.click();
+        else location.assign(target.href);
+
+        window.setTimeout(() => {
+            if (location.href === before) location.assign(target.href);
+        }, 600);
+    }
+
+    function closeLibrary() {
+        if (!libraryEl) return;
+        libraryEl.classList.remove("open");
+        sidebarBtns.library?.setAttribute("aria-expanded", "false");
+    }
+
+    function positionLibrary() {
+        const trigger = sidebarBtns.library;
+        const desktopDock = window.innerWidth > 1200 && (window.matchMedia?.("(pointer: fine)").matches ?? false);
+        if (!trigger || !desktopDock) {
+            libraryEl?.style.removeProperty("--mindful-library-left");
+            libraryEl?.style.removeProperty("--mindful-library-bottom");
+            return;
+        }
+
+        const rect = trigger.getBoundingClientRect();
+        libraryEl.style.setProperty("--mindful-library-left", `${rect.left + rect.width / 2}px`);
+        libraryEl.style.setProperty("--mindful-library-bottom", `${window.innerHeight - rect.top + 8}px`);
+    }
+
+    function toggleLibrary() {
+        if (!libraryEl) return;
+        const opening = !libraryEl.classList.contains("open");
+        closeLibrary();
+        if (!opening) return;
+        positionLibrary();
+        libraryEl.classList.add("open");
+        sidebarBtns.library?.setAttribute("aria-expanded", "true");
+        libraryEl.querySelector("button")?.focus();
+    }
+
+    function buildLibraryMenu() {
+        libraryEl = document.createElement("div");
+        libraryEl.id = "mindful-library";
+        libraryEl.setAttribute("role", "menu");
+        libraryEl.setAttribute("aria-label", "Library");
+
+        [
+            ["Subscriptions", "subs", "/feed/subscriptions"],
+            ["History", "history", "/feed/history"],
+            ["Watch Later", "watchlater", "/playlist?list=WL"],
+            ["Playlists", "playlist", "/feed/playlists"],
+        ].forEach(([label, icon, path]) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.setAttribute("role", "menuitem");
+            button.append(ico(ICONS[icon], 18), document.createTextNode(label));
+            button.addEventListener("click", () => {
+                closeLibrary();
+                location.assign(path);
+            });
+            libraryEl.appendChild(button);
+        });
+
+        document.body.appendChild(libraryEl);
+        document.addEventListener("click", event => {
+            if (!libraryEl.classList.contains("open")) return;
+            if (libraryEl.contains(event.target) || sidebarBtns.library?.contains(event.target)) return;
+            closeLibrary();
+        });
+    }
 
     // SVG icon helper
     const ico = (d, size=20) => {
@@ -1163,6 +1466,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         history: "M13 3a9 9 0 00-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7a6.98 6.98 0 01-4.95-2.05l-1.41 1.41A8.96 8.96 0 0013 21a9 9 0 000-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z",
         watchlater:"M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z",
         playlist:"M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zm11.5-4.33v5.66l5-2.83-5-2.83z",
+        library: "M10 4H2v16h20V6H12l-2-2zm10 14H4V6h5.17l2 2H20v10z",
         bell:    "M12 22c1.1 0 2-.9 2-2h-4a2 2 0 002 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z",
         person:  "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2a7.2 7.2 0 01-6-3.22c.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08a7.2 7.2 0 01-6 3.22z",
     };
@@ -1170,19 +1474,16 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     function buildSidebar() {
         sidebar = document.createElement("div"); sidebar.id = "mindful-sidebar";
         const items = [
-            { id:"home",   icon:"home",   label:"Home",    action: () => { if (location.pathname !== "/") { const l = document.querySelector("a#logo,a[href='/']"); l ? l.click() : (location.href="/"); } }},
+            { id:"home",   icon:"home",   label:"Home",    action: navigateHome },
             { id:"search", icon:"search", label:"Search",  action: openSearch },
             { id:"back",   icon:"back",   label:"Back",    action: () => history.back() },
             "sep",
             { id:"details",  icon:"details",  label:"Details",         action: () => isWatch() && togglePanel("details") },
-            { id:"recs",     icon:"recs",     label:"Recommendations", action: () => isWatch() && togglePanel("recs") },
+            { id:"recs",     icon:"recs",     label:"Related",         action: () => isWatch() && togglePanel("recs") },
             { id:"comments", icon:"comments", label:"Comments",        action: () => isWatch() && togglePanel("comments") },
             { id:"chat",     icon:"chat",     label:"Live Chat",       action: () => isWatch() && isLive() && togglePanel("chat") },
             "sep",
-            { id:"subs",      icon:"subs",      label:"Subscriptions", action: () => location.href="/feed/subscriptions" },
-            { id:"history",   icon:"history",    label:"History",       action: () => location.href="/feed/history" },
-            { id:"watchlater",icon:"watchlater", label:"Watch Later",   action: () => location.href="/playlist?list=WL" },
-            { id:"playlist",  icon:"playlist",   label:"Playlists",     action: () => location.href="/feed/playlists" },
+            { id:"library", icon:"library", label:"Library", action: toggleLibrary },
             "sep",
             { id:"settings", icon:"settings", label:"Settings",        action: openSettings },
         ];
@@ -1190,12 +1491,17 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
             if (item === "sep") { const s = document.createElement("div"); s.className = "sep"; sidebar.appendChild(s); return; }
             const b = document.createElement("button");
             b.setAttribute("aria-label", item.label);
+            if (item.id === "library") {
+                b.setAttribute("aria-haspopup", "menu");
+                b.setAttribute("aria-expanded", "false");
+            }
             b.appendChild(ico(ICONS[item.icon]));
             b.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); item.action(); });
             sidebar.appendChild(b);
             sidebarBtns[item.id] = b;
         });
         document.body.appendChild(sidebar);
+        buildLibraryMenu();
         updateSidebar();
 
         // Add notification + profile proxy buttons after a delay
@@ -1250,19 +1556,26 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     function updateSidebar() {
         const w = isWatch();
         const phone = window.innerWidth <= 700;
+        const desktopDock = window.innerWidth > 1200 && (window.matchMedia?.("(pointer: fine)").matches ?? false);
         ["details","recs","comments"].forEach(id => {
             sidebarBtns[id].disabled = !w;
             // aria-hidden dot marks prewarmed panels — content is already loaded
             sidebarBtns[id].dataset.warm = (w && isWarm(id)) ? "ready" : "";
         });
         sidebarBtns.chat.disabled = !w || !isLive();
+        ["details", "recs", "comments"].forEach(id => {
+            sidebarBtns[id].style.display = desktopDock && !w ? "none" : "";
+        });
+        sidebarBtns.chat.style.display = desktopDock && (!w || !isLive()) ? "none" : "";
+        const separators = sidebar.querySelectorAll(".sep");
+        if (separators[1]) separators[1].style.display = desktopDock && !w ? "none" : "";
         PANELS.forEach(id => {
             const on = state.panelOpen === id;
             sidebarBtns[id].classList.toggle("active", on);
             sidebarBtns[id].setAttribute("aria-pressed", String(on));
         });
         // On phone, only show essential buttons in bottom bar
-        const phoneHide = ["back","subs","history","watchlater","playlist"];
+        const phoneHide = ["back"];
         phoneHide.forEach(id => { if (sidebarBtns[id]) sidebarBtns[id].style.display = phone ? "none" : ""; });
     }
 
@@ -1270,6 +1583,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     function onKey(e) {
         if (isTyping()) return;
         if (e.key === "Escape") {
+            if (libraryEl?.classList.contains("open")) { closeLibrary(); return; }
             if (settingsEl.style.display === "flex") { closeSettings(); return; }
             if (searchEl.classList.contains("open")) { closeSearch(); return; }
             if (state.panelOpen) { closePanel(); return; }
@@ -1319,6 +1633,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
 
     // ── SPA nav ──
     function onNav() {
+        closeLibrary();
         if (state.panelOpen) closePanel();
         if (searchEl?.classList.contains("open")) closeSearch();
         clearWarm();
@@ -1337,19 +1652,28 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         document.body.style.overscrollBehavior = "none";
 
         if ("ontouchstart" in window) {
-            let lastNav = 0;
+            let lastNav = { href: "", at: 0 };
             document.addEventListener("click", e => {
                 const link = e.target.closest("a[href]");
                 if (!link) return;
                 const now = Date.now();
-                if (now - lastNav < 400) { e.preventDefault(); e.stopImmediatePropagation(); return; }
-                lastNav = now;
+                const href = link.href;
+                if (href === lastNav.href && now - lastNav.at < 400) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                    return;
+                }
+                lastNav = { href, at: now };
             }, true);
         }
 
         window.addEventListener("keydown", onKey, true);
         document.addEventListener("keydown", onKey, true);
         window.addEventListener("yt-navigate-finish", onNav);
+        window.addEventListener("resize", () => {
+            closeLibrary();
+            updateSidebar();
+        });
         document.addEventListener("fullscreenchange", () => {
             if (sidebar) sidebar.style.display = document.fullscreenElement ? "none" : "";
         });
