@@ -1806,6 +1806,23 @@ html:has(:-webkit-full-screen) #movie_player,
         scheduleWarm();
     }
 
-    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
-    else init();
+    let initRan = false;
+    function initOnce() {
+        if (initRan) return;
+        initRan = true;
+        init();
+    }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initOnce);
+    else initOnce();
+
+    // bfcache / prerender restores do not re-fire DOMContentLoaded, so a
+    // tablet or desktop browser that restores the watch page from cache
+    // never re-ran init() — scheduleWarm() then never fires and comments/
+    // recs stay cold until a manual click. pageshow fires on every
+    // restore, including the very first load; re-arming warm timers is
+    // cheap and scheduleWarm/warmPanel already guard against re-warming.
+    window.addEventListener("pageshow", () => {
+        initOnce();
+        if (document.body) scheduleWarm();
+    });
 })();

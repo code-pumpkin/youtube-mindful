@@ -618,7 +618,15 @@ html[darker-dark-theme] c3-toast { background: var(--surface) !important; color:
     if (document.head) injectCSS();
     else document.addEventListener("DOMContentLoaded", injectCSS, { once: true });
 
-    const ready = fn => document.body ? fn() : document.addEventListener("DOMContentLoaded", fn, { once: true });
+    const ready = fn => {
+        let ran = false;
+        const run = () => { if (ran) return; ran = true; fn(); };
+        if (document.body) run();
+        else document.addEventListener("DOMContentLoaded", run, { once: true });
+        // bfcache / prerender restores do not re-fire DOMContentLoaded —
+        // pageshow does, on every restore including the very first load.
+        window.addEventListener("pageshow", run);
+    };
 
     ready(() => {
         const isWatch = () => location.pathname === "/watch";
@@ -763,9 +771,18 @@ html[darker-dark-theme] c3-toast { background: var(--surface) !important; color:
         // Current mobile metadata, actions, Comments, and Related stay native.
         // The custom bottom navigation does not relocate YouTube components.
 
+        // ── Keep bar/search attached — YouTube's mobile shell can replace
+        // document.body's subtree on some cold loads of "/", detaching
+        // elements that were appended once at ready() time. ──
+        function ensureAttached() {
+            if (!document.body.contains(bar)) document.body.appendChild(bar);
+            if (!document.body.contains(searchEl)) document.body.appendChild(searchEl);
+        }
+
         // ── SPA nav ──
         let lastUrl = location.href;
         new MutationObserver(() => {
+            ensureAttached();
             if (location.href !== lastUrl) {
                 lastUrl = location.href;
                 if (searchEl.classList.contains("open")) closeSearch();
