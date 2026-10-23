@@ -378,6 +378,7 @@ ytd-watch-flexy #comments, ytd-watch-flexy ytd-comments#comments {
     visibility: hidden !important; pointer-events: none !important;
 }
 ytd-watch-flexy #secondary, ytd-watch-flexy #secondary-inner,
+ytd-watch-flexy #related,
 ytd-watch-flexy ytd-watch-next-secondary-results-renderer {
     position: fixed !important; left: -200vw !important;
     width: 0 !important; height: 0 !important; overflow: hidden !important;
@@ -400,10 +401,13 @@ body.mindful-warm-comments ytd-watch-flexy ytd-comments#comments,
 body.mindful-panel-comments ytd-watch-flexy #comments,
 body.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
 body.mindful-warm-recs ytd-watch-flexy #secondary,
+body.mindful-warm-recs ytd-watch-flexy #related,
 body.mindful-panel-recs ytd-watch-flexy #secondary,
+body.mindful-panel-recs ytd-watch-flexy #related,
 body.mindful-warm-details ytd-watch-flexy #above-the-fold,
 body.mindful-panel-details ytd-watch-flexy #above-the-fold,
 body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
+    box-sizing: border-box !important;
     position: fixed !important;
     top: 0 !important; right: 0 !important; bottom: 0 !important; left: auto !important;
     width: var(--mindful-panel-w) !important;
@@ -420,6 +424,12 @@ body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
 }
 body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat { padding: 0 !important; }
 
+/* Details is hidden in the closed state, so warm/open must restore its box. */
+body.mindful-warm-details ytd-watch-flexy #above-the-fold,
+body.mindful-panel-details ytd-watch-flexy #above-the-fold {
+    display: block !important;
+}
+
 /* Recs inner containers need un-hiding in both states */
 body.mindful-warm-recs ytd-watch-flexy #secondary-inner,
 body.mindful-panel-recs ytd-watch-flexy #secondary-inner,
@@ -431,50 +441,46 @@ body.mindful-panel-recs ytd-watch-flexy ytd-watch-next-secondary-results-rendere
     opacity: 1 !important; visibility: visible !important; pointer-events: auto !important;
 }
 
-/* Details panel needs its hidden children restored in both states */
+/* Details keeps only the required ancestors; injected content provides the stable UI. */
 body.mindful-warm-details ytd-watch-flexy #below,
-body.mindful-panel-details ytd-watch-flexy #below { height: auto !important; overflow: visible !important; }
-body.mindful-warm-details ytd-watch-flexy ytd-watch-metadata,
-body.mindful-panel-details ytd-watch-flexy ytd-watch-metadata,
-body.mindful-warm-details ytd-watch-flexy #top-row,
-body.mindful-panel-details ytd-watch-flexy #top-row,
-body.mindful-warm-details ytd-watch-flexy #bottom-row,
-body.mindful-panel-details ytd-watch-flexy #bottom-row,
-body.mindful-warm-details ytd-watch-flexy #description,
-body.mindful-panel-details ytd-watch-flexy #description,
-body.mindful-warm-details ytd-watch-flexy #description-inner,
-body.mindful-panel-details ytd-watch-flexy #description-inner,
-body.mindful-warm-details ytd-watch-flexy ytd-text-inline-expander,
-body.mindful-panel-details ytd-watch-flexy ytd-text-inline-expander,
-body.mindful-warm-details ytd-watch-flexy #snippet,
-body.mindful-panel-details ytd-watch-flexy #snippet,
-body.mindful-warm-details ytd-watch-flexy #plain-snippet-text,
-body.mindful-panel-details ytd-watch-flexy #plain-snippet-text,
-body.mindful-warm-details ytd-watch-flexy ytd-structured-description-content-renderer,
-body.mindful-panel-details ytd-watch-flexy ytd-structured-description-content-renderer,
-body.mindful-warm-details ytd-watch-flexy #attributed-snippet-text,
-body.mindful-panel-details ytd-watch-flexy #attributed-snippet-text {
-    display: block !important; visibility: visible !important;
-    position: static !important; left: auto !important; top: auto !important;
-    max-height: none !important; overflow: visible !important; height: auto !important;
+body.mindful-panel-details ytd-watch-flexy #below {
+    height: auto !important;
+    overflow: visible !important;
 }
-body.mindful-warm-details ytd-watch-flexy #top-row,
-body.mindful-panel-details ytd-watch-flexy #top-row { display: flex !important; flex-wrap: wrap !important; }
-body.mindful-panel-details ytd-watch-flexy #bottom-row > *:not(#description) { display: none !important; }
-body.mindful-warm-details ytd-watch-flexy #expand,
-body.mindful-panel-details ytd-watch-flexy #expand,
-body.mindful-warm-details ytd-watch-flexy #collapse,
-body.mindful-panel-details ytd-watch-flexy #collapse,
-body.mindful-panel-details ytd-watch-flexy [slot="expand-button"],
-body.mindful-panel-details ytd-watch-flexy [slot="collapse-button"] { display: none !important; }
+body.mindful-warm-details ytd-watch-flexy ytd-watch-metadata,
+body.mindful-panel-details ytd-watch-flexy ytd-watch-metadata {
+    display: block !important;
+    visibility: visible !important;
+    position: static !important;
+    max-height: none !important;
+    overflow: visible !important;
+    height: auto !important;
+}
+body.mindful-panel-details ytd-watch-flexy #title-row,
+body.mindful-panel-details ytd-watch-flexy #top-row,
+body.mindful-panel-details ytd-watch-flexy #middle-row,
+body.mindful-panel-details ytd-watch-flexy #bottom-row {
+    display: none !important;
+}
+#mindful-description-inject {
+    color: var(--fg-muted);
+    font-family: var(--sans);
+    font-size: 1.4rem;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
 body.mindful-panel-details ytd-watch-flexy #above-the-fold {
-    font-family: var(--sans) !important; font-size: var(--fs-base) !important; color: var(--fg) !important;
+    font-family: var(--sans) !important;
+    font-size: var(--fs-base) !important;
+    color: var(--fg) !important;
 }
 
 /* ── WARM-ONLY OVERRIDE — invisible, inert, painted behind the page ── */
 body.mindful-warm-comments:not(.mindful-panel-comments) ytd-watch-flexy #comments,
 body.mindful-warm-comments:not(.mindful-panel-comments) ytd-watch-flexy ytd-comments#comments,
 body.mindful-warm-recs:not(.mindful-panel-recs) ytd-watch-flexy #secondary,
+body.mindful-warm-recs:not(.mindful-panel-recs) ytd-watch-flexy #related,
 body.mindful-warm-details:not(.mindful-panel-details) ytd-watch-flexy #above-the-fold {
     opacity: 0 !important;
     pointer-events: none !important;
@@ -490,6 +496,7 @@ body.mindful-warm-details:not(.mindful-panel-details) ytd-watch-flexy #above-the
 body.mindful-panel-comments ytd-watch-flexy #comments,
 body.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
 body.mindful-panel-recs ytd-watch-flexy #secondary,
+body.mindful-panel-recs ytd-watch-flexy #related,
 body.mindful-panel-details ytd-watch-flexy #above-the-fold,
 body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
     animation: panel-in var(--dur) var(--ease) !important;
@@ -506,32 +513,54 @@ body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat iframe {
 /* ── Panel internals ── */
 ytd-watch-flexy #comments ytd-comment-thread-renderer {
     border-bottom: 1px solid var(--border) !important;
-    padding-bottom: var(--sp-3) !important; margin-bottom: var(--sp-3) !important;
+    padding-bottom: 1.2rem !important; margin-bottom: 1.2rem !important;
 }
 ytd-watch-flexy #comments #content-text {
-    font-family: var(--sans) !important; font-size: var(--fs-sm) !important;
-    line-height: 1.5 !important; color: var(--fg) !important;
+    font-family: var(--sans) !important; font-size: 1.4rem !important;
+    line-height: 1.6 !important; color: var(--fg) !important;
 }
 ytd-watch-flexy #comments #author-text {
-    font-family: var(--sans) !important; font-size: var(--fs-xs) !important;
-    color: var(--fg-muted) !important;
+    font-family: var(--sans) !important; font-size: 1.25rem !important;
+    line-height: 1.4 !important; color: var(--fg-muted) !important;
 }
 ytd-watch-flexy #comments #vote-count-middle,
 ytd-watch-flexy #comments .published-time-text {
-    font-family: var(--mono) !important; font-size: var(--fs-xs) !important; color: var(--fg-subtle) !important;
+    font-family: var(--mono) !important; font-size: 1.2rem !important; color: var(--fg-subtle) !important;
 }
 
 /* Stats injected by JS */
 #mindful-stats {
-    display: flex !important; gap: var(--sp-3) !important; flex-wrap: wrap !important;
+    display: flex !important; gap: 0.8rem !important; flex-wrap: wrap !important;
     align-items: center !important;
-    padding: 0 0 var(--sp-3) 0 !important; margin-bottom: var(--sp-3) !important;
+    padding: 0 0 1.2rem 0 !important; margin-bottom: 1.2rem !important;
     border-bottom: 1px solid var(--border) !important;
-    font-family: var(--mono) !important; font-size: var(--fs-xs) !important;
+    font-family: var(--mono) !important; font-size: 1.3rem !important;
+    line-height: 1.5 !important;
 }
 #mindful-title-inject {
-    margin-bottom: var(--sp-3) !important; padding-bottom: var(--sp-3) !important;
+    margin-bottom: 1.2rem !important; padding-bottom: 1.2rem !important;
     border-bottom: 1px solid var(--border) !important;
+}
+#mindful-title-inject .mindful-channel-link {
+    display: inline-flex;
+    margin-top: 0.8rem;
+    color: var(--info) !important;
+    font-family: var(--sans);
+    font-size: 1.4rem;
+    line-height: 1.4;
+    text-decoration: none;
+}
+#mindful-title-inject .mindful-channel-link:hover {
+    color: var(--fg) !important;
+    text-decoration: underline;
+}
+#mindful-title-inject .mindful-subscriber-count {
+    display: block;
+    margin-top: 0.4rem;
+    color: var(--fg-muted);
+    font-family: var(--mono);
+    font-size: 1.2rem;
+    line-height: 1.4;
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -743,13 +772,25 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
 }
 
 /* Desktop — contextual labelled dock. */
-@media (pointer: fine) and (min-width: 1201px) {
+@media (pointer: fine) and (min-width: 701px) {
     :root { --sidebar-w: 0px; }
 
     ytd-page-manager,
     ytd-app[guide-persistent-and-visible] #page-manager.ytd-app {
         margin-left: 0 !important;
         margin-bottom: 7.6rem !important;
+    }
+    html.mindful-watch-page,
+    html.mindful-watch-page body,
+    html.mindful-watch-page ytd-app,
+    html.mindful-watch-page ytd-page-manager,
+    html.mindful-watch-page ytd-watch-flexy {
+        height: 100vh !important;
+        max-height: 100vh !important;
+        overflow: hidden !important;
+    }
+    html.mindful-watch-page ytd-page-manager {
+        margin-bottom: 0 !important;
     }
     #mindful-sidebar {
         box-sizing: border-box !important;
@@ -814,11 +855,30 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
 
     ytd-watch-flexy #player-wide-container.ytd-watch-flexy,
     ytd-watch-flexy #player-theater-container.ytd-watch-flexy,
-    ytd-watch-flexy #player-container-outer.ytd-watch-flexy {
+    ytd-watch-flexy #player-container-outer.ytd-watch-flexy,
+    ytd-watch-flexy #full-bleed-container.ytd-watch-flexy,
+    ytd-watch-flexy #player-full-bleed-container.ytd-watch-flexy,
+    ytd-watch-flexy #player-container.ytd-watch-flexy,
+    ytd-watch-flexy ytd-player#ytd-player,
+    ytd-watch-flexy ytd-player#ytd-player > #container {
         height: calc(100vh - 8rem) !important;
         max-height: calc(100vh - 8rem) !important;
     }
-    #movie_player { max-height: calc(100vh - 8rem) !important; }
+    #movie_player {
+        height: calc(100vh - 8rem) !important;
+        max-height: calc(100vh - 8rem) !important;
+    }
+
+    body.mindful-panel-comments ytd-watch-flexy #comments,
+    body.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
+    body.mindful-panel-recs ytd-watch-flexy #secondary,
+    body.mindful-panel-recs ytd-watch-flexy #related,
+    body.mindful-panel-details ytd-watch-flexy #above-the-fold,
+    body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
+        bottom: 8.6rem !important;
+        height: calc(100vh - 8.6rem) !important;
+        max-height: calc(100vh - 8.6rem) !important;
+    }
 }
 
 /* Tablet on the desktop site — labelled navigation and 44px touch targets. */
@@ -920,7 +980,9 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     body.mindful-panel-comments ytd-watch-flexy #comments,
     body.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
     body.mindful-warm-recs ytd-watch-flexy #secondary,
+    body.mindful-warm-recs ytd-watch-flexy #related,
     body.mindful-panel-recs ytd-watch-flexy #secondary,
+    body.mindful-panel-recs ytd-watch-flexy #related,
     body.mindful-warm-details ytd-watch-flexy #above-the-fold,
     body.mindful-panel-details ytd-watch-flexy #above-the-fold,
     body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
@@ -932,6 +994,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     body.mindful-panel-comments ytd-watch-flexy #comments,
     body.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
     body.mindful-panel-recs ytd-watch-flexy #secondary,
+    body.mindful-panel-recs ytd-watch-flexy #related,
     body.mindful-panel-details ytd-watch-flexy #above-the-fold,
     body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
         animation: sheet-in var(--dur) var(--ease) !important;
@@ -955,6 +1018,27 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
 @media (max-width: 360px) {
     #mindful-sidebar button { width: 2.5rem; height: 2.5rem; }
     ytd-page-manager { overflow-x: hidden !important; }
+}
+
+/* Fullscreen wins over every responsive dock reservation above. */
+html:has(:fullscreen) #mindful-sidebar,
+html:has(:-webkit-full-screen) #mindful-sidebar {
+    display: none !important;
+}
+html:has(:fullscreen) ytd-page-manager,
+html:has(:-webkit-full-screen) ytd-page-manager {
+    margin: 0 !important;
+}
+html:has(:fullscreen) ytd-watch-flexy #full-bleed-container,
+html:has(:fullscreen) ytd-watch-flexy #player-full-bleed-container,
+html:has(:fullscreen) ytd-watch-flexy #player-container,
+html:has(:fullscreen) ytd-watch-flexy ytd-player,
+html:has(:fullscreen) #movie_player,
+#movie_player:fullscreen,
+html:has(:-webkit-full-screen) #movie_player,
+#movie_player:-webkit-full-screen {
+    height: 100vh !important;
+    max-height: 100vh !important;
 }
 `;
 
@@ -1005,14 +1089,22 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     function injectStats() {
         document.getElementById("mindful-stats")?.remove();
         document.getElementById("mindful-title-inject")?.remove();
+        document.getElementById("mindful-description-inject")?.remove();
         const get = s => document.querySelector(s)?.textContent?.trim() || "";
         const title = get("ytd-watch-flexy h1.ytd-watch-metadata yt-formatted-string")
                    || get("ytd-watch-flexy #title h1 yt-formatted-string") || get("ytd-watch-flexy #title");
-        const channel = get("ytd-watch-flexy ytd-channel-name a") || get("ytd-watch-flexy #channel-name a");
+        const channelNode = document.querySelector("ytd-watch-flexy ytd-channel-name a, ytd-watch-flexy #channel-name a");
+        const channel = channelNode?.textContent?.trim() || "";
+        const channelUrl = channelNode?.href ? new URL(channelNode.href, location.origin) : null;
+        const channelHref = channelUrl?.origin === location.origin ? channelUrl.href : "";
+        const subscribers = get("ytd-watch-flexy #owner-sub-count")
+                         || get("ytd-watch-flexy #subscriber-count");
         const info = get("ytd-watch-flexy #info-container yt-formatted-string#info");
         let likes = "";
         const lb = document.querySelector("ytd-watch-flexy like-button-view-model button, ytd-watch-flexy button[aria-label*='like' i]");
         if (lb) { const m = (lb.getAttribute("aria-label") || "").match(/([\d,]+)/); likes = m ? m[1] : ""; }
+        const description = get("ytd-watch-flexy #attributed-snippet-text")
+                         || get("ytd-watch-flexy #plain-snippet-text");
 
         const container = document.querySelector("ytd-watch-flexy #above-the-fold");
         if (!container) return;
@@ -1022,7 +1114,22 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
             Object.assign(t.style, { fontSize:"14px", fontWeight:"bold", color:C.fg, marginBottom:"4px" });
             t.textContent = title;
             el.appendChild(t);
-            if (channel) { const ch = document.createElement("div"); Object.assign(ch.style, { fontSize:"11px", color:C.cyan }); ch.textContent = channel; el.appendChild(ch); }
+            if (channel) {
+                const ch = document.createElement(channelHref ? "a" : "span");
+                ch.className = "mindful-channel-link";
+                ch.textContent = channel;
+                if (channelHref) {
+                    ch.href = channelHref;
+                    ch.setAttribute("aria-label", `View ${channel} channel`);
+                }
+                el.appendChild(ch);
+                if (subscribers) {
+                    const subCount = document.createElement("span");
+                    subCount.className = "mindful-subscriber-count";
+                    subCount.textContent = subscribers;
+                    el.appendChild(subCount);
+                }
+            }
             container.insertBefore(el, container.firstChild);
         }
         const bar = document.createElement("div"); bar.id = "mindful-stats";
@@ -1033,6 +1140,12 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         if (!info && !likes) addStat("stats unavailable", C.fgDim);
         const ref = document.getElementById("mindful-title-inject");
         if (ref) ref.after(bar); else container.insertBefore(bar, container.firstChild);
+        if (description) {
+            const desc = document.createElement("div");
+            desc.id = "mindful-description-inject";
+            desc.textContent = description;
+            bar.after(desc);
+        }
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -1052,10 +1165,14 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     // ══════════════════════════════════════════════════════════════
     const WARM_DELAYS = { details: 900, recs: 1600, comments: 2400 };
     const WARM_ROOTS = {
-        details:  "ytd-watch-flexy #above-the-fold",
-        recs:     "ytd-watch-flexy #secondary",
-        comments: "ytd-watch-flexy ytd-comments#comments",
+        details:  ["ytd-watch-flexy #above-the-fold"],
+        recs:     ["ytd-watch-flexy #secondary", "ytd-watch-flexy #related"],
+        comments: ["ytd-watch-flexy ytd-comments#comments"],
     };
+
+    function getWarmRoot(name) {
+        return WARM_ROOTS[name]?.map(selector => document.querySelector(selector)).find(Boolean) || null;
+    }
 
     function isWarm(name) { return !!state.warmed[name]; }
 
@@ -1063,7 +1180,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     // lazy-loaded images inside still fetch. opacity:0 alone would leave
     // links tabbable and comment boxes focusable.
     function setInert(name, on) {
-        const el = document.querySelector(WARM_ROOTS[name]);
+        const el = getWarmRoot(name);
         if (!el) return;
         if (on) el.setAttribute("inert", "");
         else el.removeAttribute("inert");
@@ -1128,6 +1245,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         if (name === "details") {
             document.getElementById("mindful-stats")?.remove();
             document.getElementById("mindful-title-inject")?.remove();
+            document.getElementById("mindful-description-inject")?.remove();
         }
         state.panelOpen = null;
         updateSidebar();
@@ -1389,7 +1507,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
 
     function positionLibrary() {
         const trigger = sidebarBtns.library;
-        const desktopDock = window.innerWidth > 1200 && (window.matchMedia?.("(pointer: fine)").matches ?? false);
+        const desktopDock = window.innerWidth > 700 && (window.matchMedia?.("(pointer: fine)").matches ?? false);
         if (!trigger || !desktopDock) {
             libraryEl?.style.removeProperty("--mindful-library-left");
             libraryEl?.style.removeProperty("--mindful-library-bottom");
@@ -1555,8 +1673,9 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
 
     function updateSidebar() {
         const w = isWatch();
+        document.documentElement.classList.toggle("mindful-watch-page", w);
         const phone = window.innerWidth <= 700;
-        const desktopDock = window.innerWidth > 1200 && (window.matchMedia?.("(pointer: fine)").matches ?? false);
+        const desktopDock = window.innerWidth > 700 && (window.matchMedia?.("(pointer: fine)").matches ?? false);
         ["details","recs","comments"].forEach(id => {
             sidebarBtns[id].disabled = !w;
             // aria-hidden dot marks prewarmed panels — content is already loaded
