@@ -735,7 +735,7 @@ body.mindful-mode-overlay.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame
    ══════════════════════════════════════════════════════════════════ */
 body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { display: none !important; }
 :fullscreen ytd-page-manager, :-webkit-full-screen ytd-page-manager { margin-left: 0 !important; }
-:fullscreen #movie_player, :-webkit-full-screen #movie_player { max-height: 100vh !important; height: 100vh !important; }
+:fullscreen #movie_player, :-webkit-full-screen #movie_player { max-height: 100vh !important; }
 
 /* ══════════════════════════════════════════════════════════════════
    BREAKPOINTS
@@ -855,17 +855,11 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
 
     ytd-watch-flexy #player-wide-container.ytd-watch-flexy,
     ytd-watch-flexy #player-theater-container.ytd-watch-flexy,
-    ytd-watch-flexy #player-container-outer.ytd-watch-flexy,
-    ytd-watch-flexy #full-bleed-container.ytd-watch-flexy,
-    ytd-watch-flexy #player-full-bleed-container.ytd-watch-flexy,
-    ytd-watch-flexy #player-container.ytd-watch-flexy,
-    ytd-watch-flexy ytd-player#ytd-player,
-    ytd-watch-flexy ytd-player#ytd-player > #container {
+    ytd-watch-flexy #player-container-outer.ytd-watch-flexy {
         height: calc(100vh - 8rem) !important;
         max-height: calc(100vh - 8rem) !important;
     }
     #movie_player {
-        height: calc(100vh - 8rem) !important;
         max-height: calc(100vh - 8rem) !important;
     }
 
@@ -1029,15 +1023,19 @@ html:has(:fullscreen) ytd-page-manager,
 html:has(:-webkit-full-screen) ytd-page-manager {
     margin: 0 !important;
 }
-html:has(:fullscreen) ytd-watch-flexy #full-bleed-container,
-html:has(:fullscreen) ytd-watch-flexy #player-full-bleed-container,
-html:has(:fullscreen) ytd-watch-flexy #player-container,
-html:has(:fullscreen) ytd-watch-flexy ytd-player,
+html:has(:fullscreen) ytd-watch-flexy #player-wide-container.ytd-watch-flexy,
+html:has(:fullscreen) ytd-watch-flexy #player-theater-container.ytd-watch-flexy,
+html:has(:fullscreen) ytd-watch-flexy #player-container-outer.ytd-watch-flexy,
+html:has(:-webkit-full-screen) ytd-watch-flexy #player-wide-container.ytd-watch-flexy,
+html:has(:-webkit-full-screen) ytd-watch-flexy #player-theater-container.ytd-watch-flexy,
+html:has(:-webkit-full-screen) ytd-watch-flexy #player-container-outer.ytd-watch-flexy {
+    height: 100vh !important;
+    max-height: 100vh !important;
+}
 html:has(:fullscreen) #movie_player,
 #movie_player:fullscreen,
 html:has(:-webkit-full-screen) #movie_player,
 #movie_player:-webkit-full-screen {
-    height: 100vh !important;
     max-height: 100vh !important;
 }
 `;

@@ -7,8 +7,8 @@ Pull the repository locally. Use Playwright with phone, tablet, and desktop surf
 Clone the repository, reproduce each defect against live YouTube, apply focused compatibility fixes first, and use mockups before broader visual changes.
 
 ## Delta
-None known.
+The initial repair retained obsolete fullscreen Details and Related overlays. The corrected direction keeps current `m.youtube.com` watch components native and adds only bottom navigation and theming.
 
 ## Verdict
 [ ] ✓ Aligned
-[ ] ✗ Off — correction:
+[x] ✗ Off — correction: derive the mobile design from an actual phone redirect and the current native DOM.

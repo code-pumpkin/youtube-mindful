@@ -64,20 +64,20 @@
     --cyan: var(--info); --magenta: var(--accent);
     --green: var(--success); --yellow: var(--warning);
 
-    --radius: 0.375rem; --radius-sm: 0.25rem; --radius-pill: 9999px;
+    --radius: 6px; --radius-sm: 4px; --radius-pill: 9999px;
 
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
     --mono: "JetBrains Mono", "SF Mono", monospace;
-    --fs-xs: 0.75rem; --fs-sm: 0.8125rem; --fs-base: 0.9375rem; --fs-lg: 1.0625rem;
+    --fs-xs: 12px; --fs-sm: 13px; --fs-base: 15px; --fs-lg: 17px;
 
-    --sp-1: 0.25rem; --sp-2: 0.5rem; --sp-3: 0.75rem;
-    --sp-4: 1rem; --sp-5: 1.25rem; --sp-6: 1.5rem;
+    --sp-1: 4px; --sp-2: 8px; --sp-3: 12px;
+    --sp-4: 16px; --sp-5: 20px; --sp-6: 24px;
 
     --dur: 160ms;
     --ease: cubic-bezier(0.2, 0, 0.2, 1);
 
     /* bar height incl. safe area — single source of truth */
-    --bar-h: 3.25rem;
+    --bar-h: 52px;
     --bar-total: calc(var(--bar-h) + env(safe-area-inset-bottom, 0px));
 
     --z-panel: 100000; --z-nav: 100000; --z-overlay: 100001; --z-modal: 100002;
@@ -204,16 +204,9 @@ ytm-thumbnail-overlay-time-status-renderer, .thumbnail-overlay-time-status-rende
 .watch-main-col { background: var(--bg) !important; padding: 0 !important; }
 ytm-single-column-watch-next-results-renderer { background: var(--bg) !important; }
 ytm-companion-slot { display: none !important; }
-ytm-continuation-item-renderer { height: 1px !important; overflow: hidden !important; opacity: 0 !important; }
-ytm-slim-video-action-bar-renderer { display: none !important; }
 ytm-related-chip-cloud-renderer { display: none !important; }
 
-/* ── COLD STATE — related sections collapsed ── */
-ytm-item-section-renderer.scwnr-content[section-identifier] {
-    height: 0 !important; overflow: hidden !important;
-    opacity: 0 !important; pointer-events: none !important;
-    padding: 0 !important; margin: 0 !important; border: none !important;
-}
+/* Current Related sections remain in native document flow. */
 
 /* ── Title + channel ── */
 ytm-slim-video-information-renderer {
@@ -233,7 +226,50 @@ ytm-slim-video-information-renderer {
     color: var(--fg-subtle) !important;
 }
 .slim-video-metadata-information-inline-badge { display: none !important; }
-.slim-video-information-show-more { display: none !important; }
+.slim-video-information-show-more {
+    display: inline-flex !important;
+    min-height: 44px !important;
+    align-items: center !important;
+    color: var(--accent) !important;
+    font-family: var(--sans) !important;
+    font-size: var(--fs-sm) !important;
+}
+
+/* Current mobile metadata ViewModel — preserve native interaction and hierarchy. */
+yt-video-metadata-view-model {
+    display: block !important;
+    background: var(--bg) !important;
+    color: var(--fg) !important;
+    padding: var(--sp-4) !important;
+}
+yt-video-metadata-view-model .ytAttributedStringHost {
+    color: var(--fg) !important;
+    font-family: var(--sans) !important;
+}
+yt-video-metadata-view-model .ytAttributedStringWhiteSpaceNoWrap,
+.slim-video-information-title > .ytAttributedStringHost {
+    display: -webkit-box !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    white-space: normal !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+}
+yt-video-metadata-view-model .ytVideoSubtitleViewModelSubstring {
+    font-size: var(--fs-sm) !important;
+}
+yt-video-metadata-view-model .ytVideoSubtitleViewModelSubstring:not(.ytVideoSubtitleViewModelBoldSubstring) {
+    color: var(--fg-muted) !important;
+}
+ytm-slim-video-action-bar-renderer {
+    display: flex !important;
+    align-items: center !important;
+    background: var(--bg) !important;
+    padding: 0 var(--sp-4) var(--sp-3) !important;
+}
+ytm-slim-video-action-bar-renderer .ytSpecButtonShapeNextHost {
+    color: var(--fg) !important;
+}
 
 ytm-slim-owner-renderer {
     background: var(--bg) !important; padding: var(--sp-3) var(--sp-4) !important;
@@ -243,7 +279,7 @@ ytm-slim-owner-renderer {
     display: flex !important; align-items: center !important;
     gap: var(--sp-3) !important; flex: 1 !important;
 }
-.slim-owner-profile-icon, .slim-owner-profile-icon img { width: 2rem !important; height: 2rem !important; }
+.slim-owner-profile-icon, .slim-owner-profile-icon img { width: 32px !important; height: 32px !important; }
 .slim-owner-channel-name {
     color: var(--fg) !important; font-family: var(--sans) !important;
     font-size: var(--fs-base) !important; font-weight: 500 !important; margin: 0 !important;
@@ -262,7 +298,7 @@ ytm-slim-owner-renderer {
     background: var(--bg);
 }
 #mindful-watch-btns button {
-    flex: 1; min-height: 2.75rem; padding: var(--sp-2) 0;
+    flex: 1; min-height: 44px; padding: var(--sp-2) 0;
     border: none; background: transparent;
     color: var(--fg-muted); font-family: var(--sans); font-size: var(--fs-xs);
     cursor: pointer; -webkit-tap-highlight-color: transparent;
@@ -294,13 +330,13 @@ ytm-slim-owner-renderer {
     padding: var(--sp-4); font-family: var(--sans); font-size: var(--fs-sm);
     color: var(--fg-muted); line-height: 1.6;
     white-space: pre-wrap; word-break: break-word;
-    max-width: 42rem;
+    max-width: 672px;
 }
 #mindful-watch-desc .chapter {
     display: block; padding: var(--sp-2) 0; color: var(--fg);
     font-family: var(--mono); font-size: var(--fs-sm);
     cursor: pointer; -webkit-tap-highlight-color: transparent;
-    min-height: 2.75rem; display: flex; align-items: center;
+    min-height: 44px; display: flex; align-items: center;
     transition: color var(--dur) var(--ease);
 }
 #mindful-watch-desc .chapter:hover { color: var(--accent); }
@@ -354,7 +390,7 @@ body.mindful-m-details ytm-slim-video-action-bar-renderer .slim-video-action-bar
 body.mindful-m-details .slim_video_action_bar_renderer_button button,
 body.mindful-m-details .ytSegmentedLikeDislikeButtonViewModelSegmentedButtonsWrapper button {
     color: var(--fg-muted) !important; background: var(--surface-2) !important;
-    min-height: 2.75rem !important;
+    min-height: 44px !important;
 }
 body.mindful-m-details .ytSegmentedLikeDislikeButtonViewModelSegmentedButtonsWrapper {
     background: var(--surface-2) !important;
@@ -401,7 +437,7 @@ yt-video-metadata-carousel-view-model { background: var(--bg) !important; }
     background: var(--surface); border: 1px solid var(--border);
     border-radius: var(--radius);
     color: var(--fg); font-size: var(--fs-base);
-    width: 2.75rem; height: 2.75rem;
+    width: 44px; height: 44px;
     cursor: pointer; font-family: var(--sans);
     -webkit-tap-highlight-color: transparent;
     transition: background var(--dur) var(--ease);
@@ -419,7 +455,27 @@ bottom-sheet-container,
     background: var(--surface) !important;
     color: var(--fg) !important;
 }
-.yt-spec-bottom-sheet-layout-content { background: var(--surface) !important; color: var(--fg) !important; }
+.yt-spec-bottom-sheet-layout-content {
+    background: var(--surface) !important;
+    color: var(--fg) !important;
+    padding-bottom: var(--bar-total) !important;
+}
+ytm-structured-description-content-renderer,
+ytm-video-description-header-renderer {
+    background: var(--surface) !important;
+    color: var(--fg) !important;
+}
+ytm-structured-description-content-renderer .ytAttributedStringHost,
+ytm-video-description-header-renderer .ytAttributedStringHost,
+ytm-structured-description-content-renderer .ytwFactoidRendererValue {
+    color: var(--fg) !important;
+}
+ytm-structured-description-content-renderer a .ytAttributedStringHost {
+    color: var(--info) !important;
+}
+ytm-structured-description-content-renderer .ytwFactoidRendererLabel {
+    color: var(--fg-muted) !important;
+}
 [panel-identifier="engagement-panel-comments-section"] {
     visibility: visible !important; opacity: 1 !important;
     height: auto !important; overflow: visible !important;
@@ -431,8 +487,17 @@ bottom-sheet-container,
     height: auto !important; display: block !important;
 }
 ytm-engagement-panel-section-list-renderer ytm-button-renderer.close-button {
-    width: 0 !important; height: 0 !important; overflow: hidden !important;
-    padding: 0 !important; margin: 0 !important; border: none !important;
+    display: block !important;
+    width: 44px !important;
+    height: 44px !important;
+    margin-left: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+}
+ytm-engagement-panel-section-list-renderer ytm-button-renderer.close-button button {
+    width: 44px !important;
+    height: 44px !important;
+    color: var(--fg) !important;
 }
 ytm-comment-thread-renderer {
     border-bottom: 1px solid var(--border) !important;
@@ -506,7 +571,7 @@ html[darker-dark-theme] c3-toast { background: var(--surface) !important; color:
     z-index: var(--z-nav);
 }
 #mindful-m-bar button {
-    flex: 1; max-width: 5rem; min-height: 2.75rem;
+    flex: 1; max-width: 80px; min-height: 44px;
     border: none; background: transparent;
     color: var(--fg-muted); cursor: pointer;
     border-radius: var(--radius-sm);
@@ -528,7 +593,7 @@ html[darker-dark-theme] c3-toast { background: var(--surface) !important; color:
    SCROLLBAR
    ══════════════════════════════════════════════════════════════════ */
 * { scrollbar-width: thin; scrollbar-color: var(--surface-2) transparent; }
-::-webkit-scrollbar { width: 0.25rem !important; }
+::-webkit-scrollbar { width: 4px !important; }
 ::-webkit-scrollbar-track { background: transparent !important; }
 ::-webkit-scrollbar-thumb { background: var(--surface-2) !important; border-radius: var(--radius-pill) !important; }
 
@@ -536,7 +601,7 @@ html[darker-dark-theme] c3-toast { background: var(--surface) !important; color:
    320px FLOOR
    ══════════════════════════════════════════════════════════════════ */
 @media (max-width: 360px) {
-    #mindful-m-bar button { font-size: 0.6875rem; }
+    #mindful-m-bar button { font-size: 11px; }
     ytm-media-item .details { padding: var(--sp-2) var(--sp-3) 0 !important; }
     #mindful-watch-desc { padding: var(--sp-3) !important; }
     body { overflow-x: hidden !important; }
@@ -695,224 +760,8 @@ html[darker-dark-theme] c3-toast { background: var(--surface) !important; color:
         buildSearch();
         updateBar();
 
-        // ── Panel close button ──
-        const panelClose = document.createElement("button");
-        panelClose.id = "mindful-panel-close";
-        panelClose.textContent = "✕";
-        panelClose.addEventListener("click", closePanel);
-        document.body.appendChild(panelClose);
-
-        const PANELS = ["mindful-m-details", "mindful-m-related"];
-
-        // ══════════════════════════════════════════════════════════
-        //  PREWARM
-        //  Related items sit in a collapsed section (height:0) so
-        //  YouTube's IntersectionObserver never fires and thumbnails
-        //  only fetch on tap. Warm classes give real geometry while
-        //  keeping the panel opacity:0 / z-index:-1 / inert.
-        //
-        //  Comments are different: they live in YouTube's native
-        //  engagement panel, which only mounts after a tap. We can't
-        //  fake that without opening it, so instead we prefetch the
-        //  thread by scrolling the teaser into view, which is what
-        //  YouTube itself watches.
-        // ══════════════════════════════════════════════════════════
-        const WARM_MAP = {
-            "mindful-m-details": "mindful-warm-details",
-            "mindful-m-related": "mindful-warm-related",
-        };
-        const WARM_DELAYS = { "mindful-m-details": 1000, "mindful-m-related": 1800 };
-        const WARM_ROOTS = {
-            "mindful-m-details": "ytm-slim-video-metadata-section-renderer",
-            "mindful-m-related": "ytm-item-section-renderer.scwnr-content[section-identifier=related-items]",
-        };
-        let warmed = {};
-        let warmTimers = [];
-
-        // `inert` blocks taps and focus without affecting rendering, so
-        // lazy thumbnails inside still load while the panel is invisible.
-        function setInert(cls, on) {
-            const el = document.querySelector(WARM_ROOTS[cls]);
-            if (!el) return;
-            if (on) el.setAttribute("inert", "");
-            else el.removeAttribute("inert");
-        }
-
-        function warmPanel(cls) {
-            if (!isWatch() || warmed[cls] || !WARM_MAP[cls]) return;
-            document.body.classList.add(WARM_MAP[cls]);
-            warmed[cls] = true;
-            setInert(cls, true);
-            updateWatchBtns();
-        }
-
-        function scheduleWarm() {
-            clearWarmTimers();
-            if (!isWatch()) return;
-            Object.keys(WARM_MAP).forEach(cls => {
-                warmTimers.push(setTimeout(() => warmPanel(cls), WARM_DELAYS[cls]));
-            });
-            // Nudge the comments teaser into view so YouTube starts its own fetch.
-            warmTimers.push(setTimeout(warmComments, 2600));
-        }
-
-        function clearWarmTimers() { warmTimers.forEach(clearTimeout); warmTimers = []; }
-
-        function clearWarm() {
-            clearWarmTimers();
-            Object.keys(WARM_MAP).forEach(cls => {
-                document.body.classList.remove(WARM_MAP[cls]);
-                setInert(cls, false);
-            });
-            warmed = {};
-        }
-
-        // Comments prefetch: briefly bring the teaser into the viewport.
-        // No tap, no panel — just enough for YouTube's observer to fire.
-        function warmComments() {
-            if (!isWatch() || warmed.comments) return;
-            const entry = document.querySelector(
-                "yt-video-metadata-carousel-view-model, comments-entry-point-teaser-view-model, ytm-comments-entry-point-header-renderer"
-            );
-            if (!entry) return;
-            const rect = entry.getBoundingClientRect();
-            // Only scroll if it's below the fold; never yank the page while
-            // the user is already reading something.
-            if (rect.top > window.innerHeight && window.scrollY < 8) {
-                entry.scrollIntoView({ block: "nearest", behavior: "auto" });
-                requestAnimationFrame(() => window.scrollTo(0, 0));
-            }
-            warmed.comments = true;
-            updateWatchBtns();
-        }
-
-        function closePanel() {
-            PANELS.forEach(c => {
-                document.body.classList.remove(c);
-                // Back to warm: invisible again, so re-block taps.
-                if (WARM_MAP[c] && warmed[c]) setInert(c, true);
-            });
-            if (document.body.classList.contains("mindful-m-comments-open")) closeComments();
-            updateWatchBtns();
-        }
-        function togglePanel(cls) {
-            const wasOpen = document.body.classList.contains(cls);
-            closePanel();
-            if (!wasOpen) {
-                warmPanel(cls);        // warm-on-demand if the timer hasn't fired
-                setInert(cls, false);  // opening must lift inert or taps are ignored
-                document.body.classList.add(cls);
-            }
-            updateWatchBtns();
-        }
-        let commentResumeInterval;
-        function openComments() {
-            const vid = document.querySelector("video");
-            const wasPlaying = vid && !vid.paused;
-            const entry = document.querySelector("yt-video-metadata-carousel-view-model, comments-entry-point-teaser-view-model, ytm-comments-entry-point-header-renderer");
-            if (entry) entry.click();
-            document.body.classList.add("mindful-m-comments-open");
-            if (wasPlaying && vid) {
-                clearInterval(commentResumeInterval);
-                commentResumeInterval = setInterval(() => {
-                    if (!document.body.classList.contains("mindful-m-comments-open")) {
-                        clearInterval(commentResumeInterval);
-                        return;
-                    }
-                    if (vid.paused) vid.play();
-                    if (vid.muted) vid.muted = false;
-                    // YouTube adds paused-mode to #movie_player — remove it
-                    const mp = document.getElementById("movie_player");
-                    if (mp) mp.classList.remove("paused-mode");
-                }, 500);
-            }
-        }
-        function closeComments() {
-            clearInterval(commentResumeInterval);
-            // Use the actual close button from the engagement panel header
-            const closeBtn = document.querySelector("ytm-engagement-panel-section-list-renderer.engagement-panel-comments-section ytm-button-renderer.close-button button");
-            if (closeBtn) closeBtn.click();
-            // Also try the scrim hidden button as fallback
-            else {
-                const scrim = document.querySelector("ytm-engagement-panel-section-list-renderer.engagement-panel-comments-section ytw-scrim button");
-                if (scrim) scrim.click();
-            }
-            document.body.classList.remove("mindful-m-comments-open");
-        }
-
-        let watchBtns = {};
-        function updateWatchBtns() {
-            Object.entries(watchBtns).forEach(([id, btn]) => {
-                const on = document.body.classList.contains(id);
-                btn.classList.toggle("active", on);
-                btn.setAttribute("aria-pressed", String(on));
-                const key = id === "mindful-m-comments" ? "comments" : id;
-                btn.dataset.warm = warmed[key] ? "ready" : "";
-            });
-        }
-
-        // ── Watch page button row + description ──
-        function setupWatchUI() {
-            if (location.pathname !== "/watch") return;
-            const meta = document.querySelector("ytm-slim-video-metadata-section-renderer");
-            if (!meta || document.getElementById("mindful-watch-btns")) return;
-
-            const row = document.createElement("div");
-            row.id = "mindful-watch-btns";
-            watchBtns = {};
-            const WATCH_ICONS = {
-                details: "M11 7h2v2h-2zm0 4h2v6h-2zm1-9C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z",
-                comments: "M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z",
-                related: "M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8 12.5v-9l6 4.5-6 4.5z",
-            };
-            [
-                { id:"mindful-m-details",  label:"Details",  icon:"details",  action: () => togglePanel("mindful-m-details") },
-                { id:"mindful-m-comments", label:"Comments", icon:"comments", action: openComments },
-                { id:"mindful-m-related",  label:"Related",  icon:"related",  action: () => togglePanel("mindful-m-related") },
-            ].forEach(item => {
-                const b = document.createElement("button");
-                b.setAttribute("aria-label", item.label);
-                b.setAttribute("aria-pressed", "false");
-                b.appendChild(ico(WATCH_ICONS[item.icon], 18));
-                const lbl = document.createElement("span");
-                lbl.textContent = item.label;
-                b.appendChild(lbl);
-                const dot = document.createElement("span");
-                dot.className = "warm-dot";
-                dot.setAttribute("aria-hidden", "true");
-                b.appendChild(dot);
-                b.addEventListener("click", item.action);
-                row.appendChild(b);
-                watchBtns[item.id] = b;
-            });
-            meta.after(row);
-            updateWatchBtns();
-
-            // Description / chapters below buttons
-            const desc = document.querySelector("ytm-crawler-description");
-            if (desc && !document.getElementById("mindful-watch-desc")) {
-                const box = document.createElement("div");
-                box.id = "mindful-watch-desc";
-                const text = desc.textContent || "";
-                text.split("\n").forEach(line => {
-                    const t = line.trim();
-                    if (!t) return;
-                    const ch = t.match(/^(\d+:\d+(?::\d+)?)\s+(.+)/);
-                    if (ch) {
-                        const span = document.createElement("span");
-                        span.className = "chapter";
-                        span.textContent = ch[1] + "  " + ch[2];
-                        box.appendChild(span);
-                    } else {
-                        const p = document.createElement("div");
-                        p.textContent = t;
-                        p.style.marginBottom = "4px";
-                        box.appendChild(p);
-                    }
-                });
-                row.after(box);
-            }
-        }
+        // Current mobile metadata, actions, Comments, and Related stay native.
+        // The custom bottom navigation does not relocate YouTube components.
 
         // ── SPA nav ──
         let lastUrl = location.href;
@@ -920,14 +769,8 @@ html[darker-dark-theme] c3-toast { background: var(--surface) !important; color:
             if (location.href !== lastUrl) {
                 lastUrl = location.href;
                 if (searchEl.classList.contains("open")) closeSearch();
-                closePanel();
-                clearWarm();
                 updateBar();
-                scheduleWarm();
             }
-            setupWatchUI();
         }).observe(document.body, { childList:true, subtree:true });
-        setupWatchUI();
-        scheduleWarm();
     });
 })();
