@@ -414,7 +414,11 @@ body.mindful-m-comments-open #mindful-panel-close { display: flex !important; }
 /* ══════════════════════════════════════════════════════════════════
    ENGAGEMENT PANELS (native comments)
    ══════════════════════════════════════════════════════════════════ */
-bottom-sheet-container { background: var(--surface) !important; }
+bottom-sheet-container,
+.engagement-panel-container {
+    background: var(--surface) !important;
+    color: var(--fg) !important;
+}
 .yt-spec-bottom-sheet-layout-content { background: var(--surface) !important; color: var(--fg) !important; }
 [panel-identifier="engagement-panel-comments-section"] {
     visibility: visible !important; opacity: 1 !important;
