@@ -6,3 +6,6 @@ personal/
 
 # Dirinfo
 .dirinfo
+
+# Local Kiro session state
+.kiro/
