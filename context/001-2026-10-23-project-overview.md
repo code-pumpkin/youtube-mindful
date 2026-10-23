@@ -5,7 +5,7 @@ YouTube Mindful is a userscript and userstyle that makes YouTube calmer without 
 It supports three surfaces:
 - Desktop on `www.youtube.com` with keyboard and pointer input.
 - Tablet on `www.youtube.com` with touch-first responsive behavior.
-- Phone on `m.youtube.com` with one-hand navigation and full-screen panels.
+- Phone on `m.youtube.com` with native watch components and a one-hand bottom navigation layer.
 
 The first milestone repairs the phone UI against YouTube's current components. Later work redesigns each surface and extracts shared behavior.
 

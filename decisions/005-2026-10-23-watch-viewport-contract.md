@@ -17,4 +17,4 @@ Track the active watch route with an HTML class. Lock watch layout to 100vh, sup
 Route state is more reliable than stale SPA elements. Ordered renderer fallbacks preserve phased YouTube rollouts. Late fullscreen rules prevent responsive dock reservations from winning the cascade.
 
 ## Consequences
-Pointer-based desktop windows use the labelled dock above 700px. Normal watch pages do not document-scroll. Fullscreen removes all dock reservations.
+Pointer-based desktop windows use the labelled dock above 700px. Normal watch pages do not document-scroll. Fullscreen removes dock reservations. YouTube retains control of `#movie_player` and current full-bleed internal heights.

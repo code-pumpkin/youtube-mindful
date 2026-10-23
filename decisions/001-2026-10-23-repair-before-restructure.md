@@ -17,4 +17,4 @@ Repair and verify the current phone implementation before extracting a new share
 Live repair reveals YouTube's actual component contracts. Restructuring broken selectors would preserve unknown defects. Grayjay remains a reference for recovery patterns, but YouTube's native player remains responsible for playback.
 
 ## Consequences
-Work starts on `feature/mobile-current-ui`. Visual redesign follows verified compatibility repairs. Playback-defense research remains in scope.
+Work started from live phone evidence. Mobile compatibility keeps current YouTube watch components in native document flow and limits custom UI to theming plus bottom navigation. Playback-defense research remains in scope.

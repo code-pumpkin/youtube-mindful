@@ -7,7 +7,7 @@
 - Screenshots: captured home, watch, Details, Comments, and Related.
 
 ## Reasoning
-The old script could not be repaired from static selectors alone. Live evidence showed that panels still mount, but the new comments container escaped the theme. I chose one focused compatibility fix before any redesign.
+The old script could not be repaired from static selectors alone. A real Pixel 7 session showed that current YouTube already provides usable native metadata, actions, Comments, and Related sections. Relocating those components caused the breakage, so the corrected design keeps them native.
 
 ## Outcome
-The repo is local on `feature/mobile-current-ui`, and the first reproduced mobile defect is patched.
+The Pixel profile redirects to `m.youtube.com`; obsolete overlays and duplicate description content are removed, while the bottom navigation and playback defenses remain.
