@@ -206,5 +206,35 @@ for (const f of ["desktop/youtube-mindful.user.js", "mobile/youtube-mindful-mobi
         `${f.split("/")[0]}: open path adds a panel class`);
 }
 
+console.log("\nDESKTOP Details rendering contract (static)");
+{
+    const css = fs.readFileSync(path.join(REPO, "desktop/youtube-mindful.user.css"), "utf8");
+    const js = fs.readFileSync(path.join(REPO, "desktop/youtube-mindful.user.js"), "utf8");
+    assert(/body\.mindful-panel-details ytd-watch-flexy #above-the-fold\s*\{\s*display:\s*block !important;/s.test(css),
+        "desktop: open Details root restores display:block");
+    assert(js.includes('id = "mindful-description-inject"') && js.includes("#attributed-snippet-text"),
+        "desktop: Details uses normalized attributed description text");
+    assert(js.includes('document.getElementById("mindful-description-inject")?.remove()'),
+        "desktop: normalized Details content is removed on close");
+}
+
+console.log("\nDESKTOP responsive watch contract (static)");
+{
+    const css = fs.readFileSync(path.join(REPO, "desktop/youtube-mindful.user.css"), "utf8");
+    const js = fs.readFileSync(path.join(REPO, "desktop/youtube-mindful.user.js"), "utf8");
+    assert(css.includes("font-size: 1.4rem !important") && css.includes("font-size: 1.25rem !important"),
+        "desktop: comment and author text use readable sizes");
+    assert(css.includes("ytd-watch-flexy #related") && js.includes('"ytd-watch-flexy #related"'),
+        "desktop: current related renderer has CSS and prewarm fallbacks");
+    assert(css.includes("html.mindful-watch-page") && js.includes('classList.toggle("mindful-watch-page", w)'),
+        "desktop: watch route locks layout to one viewport");
+    assert(css.indexOf("Fullscreen wins over every responsive dock reservation") > css.indexOf("Desktop — contextual labelled dock"),
+        "desktop: fullscreen reset follows dock rules");
+    assert(css.includes(".mindful-channel-link") && css.includes(".mindful-subscriber-count") &&
+           css.includes("font-size: 1.3rem !important") && js.includes("ch.href = channelHref") &&
+           js.includes("#owner-sub-count") && js.includes("View ${channel} channel"),
+        "desktop: Details exposes readable stats, subscriber count, and a channel link");
+}
+
 console.log(`\n${checks - failures}/${checks} passed`);
 process.exit(failures ? 1 : 0);
