@@ -824,6 +824,8 @@ html[darker-dark-theme] c3-toast { background: var(--surface) !important; color:
             if (existing) return;
             const el = document.createElement("div");
             el.id = "mindful-greeting";
+            el.setAttribute("role", "heading");
+            el.setAttribute("aria-level", "2");
             el.textContent = greetingText();
             const section = nudge.closest("ytm-rich-section-renderer") || nudge;
             section.parentNode.insertBefore(el, section);
