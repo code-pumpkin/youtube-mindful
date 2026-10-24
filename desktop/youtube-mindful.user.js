@@ -1227,6 +1227,11 @@ html:has(:-webkit-full-screen) #movie_player {
         if (existing) return;
         const el = document.createElement("div");
         el.id = "mindful-greeting";
+        // Plain div, not a real <h*> -- announce it as a heading landmark
+        // so a screen reader user can jump to it, instead of it reading as
+        // undifferentiated floating text ahead of the native empty-feed card.
+        el.setAttribute("role", "heading");
+        el.setAttribute("aria-level", "2");
         el.textContent = greetingText();
         nudge.parentNode.insertBefore(el, nudge);
     }
@@ -1467,6 +1472,7 @@ html:has(:-webkit-full-screen) #movie_player {
     }
 
     let settingsEl;
+    let settingsReturnFocus;
     function buildSettings() {
         settingsEl = document.createElement("div");
         settingsEl.id = "mindful-settings";
@@ -1476,39 +1482,65 @@ html:has(:-webkit-full-screen) #movie_player {
         const I = "width:80px;background:"+C.bgDark+";color:"+C.fg+";border:1px solid "+C.border+";font-family:\"JetBrains Mono\",monospace;font-size:11px;padding:4px 6px;text-align:center;cursor:pointer";
 
         const el = (tag, style, text) => { const e = document.createElement(tag); if (style) e.style.cssText = style; if (text) e.textContent = text; return e; };
+        // Label element bound to a control via `for`, so a screen reader
+        // announces the control's purpose instead of "unlabeled select"/
+        // "unlabeled checkbox" (the visible <span> text alone is not
+        // programmatically associated with its control).
+        let labelSeq = 0;
+        const labelFor = (control, text) => {
+            const id = "mindful-settings-f" + (++labelSeq);
+            control.id = id;
+            const lbl = document.createElement("label");
+            lbl.htmlFor = id;
+            lbl.textContent = text;
+            return lbl;
+        };
 
         const box = el("div", "background:"+C.bgFloat+";border:1px solid "+C.border+";padding:20px 24px;width:340px;max-width:90vw;font-family:\"JetBrains Mono\",monospace;font-size:12px;color:"+C.fg);
-        box.appendChild(el("div", "font-size:13px;color:"+C.accent+";border-bottom:1px solid "+C.border+";padding-bottom:8px;margin-bottom:16px;font-weight:bold", "⚙ Mindful Settings"));
+        box.setAttribute("role", "dialog");
+        box.setAttribute("aria-modal", "true");
+        box.setAttribute("aria-labelledby", "mindful-settings-title");
+        box.tabIndex = -1; // focusable as the dialog's initial focus target, not part of the tab order
+        const titleEl = el("div", "font-size:13px;color:"+C.accent+";border-bottom:1px solid "+C.border+";padding-bottom:8px;margin-bottom:16px;font-weight:bold", "⚙ Mindful Settings");
+        titleEl.id = "mindful-settings-title";
+        box.appendChild(titleEl);
 
         // Panel mode
-        const modeRow = el("div", R); modeRow.appendChild(el("span", null, "Panel mode"));
+        const modeRow = el("div", R);
         const modeSelect = el("select", "background:"+C.bgDark+";color:"+C.fg+";border:1px solid "+C.border+";font-family:inherit;font-size:11px;padding:4px 6px");
         const o1 = el("option", null, "Side panel"); o1.value = "side";
         const o2 = el("option", null, "Overlay"); o2.value = "overlay";
         modeSelect.append(o1, o2); modeSelect.dataset.s = "panelMode";
+        modeRow.appendChild(labelFor(modeSelect, "Panel mode"));
         modeRow.appendChild(modeSelect); box.appendChild(modeRow);
 
         // Panel width
-        const widthRow = el("div", R); widthRow.appendChild(el("span", null, "Panel width"));
+        const widthRow = el("div", R);
         const ww = el("span", "display:flex;align-items:center;gap:8px");
         const widthRange = document.createElement("input"); widthRange.type = "range"; widthRange.min = "280"; widthRange.max = "600"; widthRange.step = "10";
         widthRange.style.cssText = "width:100px;accent-color:"+C.accent; widthRange.dataset.s = "panelWidth";
+        widthRange.setAttribute("aria-valuetext", widthRange.value + "px");
         const widthVal = el("span", "color:"+C.accent+";min-width:45px;text-align:right;font-size:11px"); widthVal.dataset.s = "panelWidthVal";
-        ww.append(widthRange, widthVal); widthRow.appendChild(ww); box.appendChild(widthRow);
+        widthVal.setAttribute("aria-hidden", "true"); // decorative echo of the range's own aria-valuetext
+        ww.append(widthRange, widthVal);
+        widthRow.appendChild(labelFor(widthRange, "Panel width"));
+        widthRow.appendChild(ww); box.appendChild(widthRow);
 
         // Panel height
-        const heightRow = el("div", R); heightRow.appendChild(el("span", null, "Panel height"));
+        const heightRow = el("div", R);
         const heightSelect = el("select", "background:"+C.bgDark+";color:"+C.fg+";border:1px solid "+C.border+";font-family:inherit;font-size:11px;padding:4px 6px");
         const h1 = el("option", null, "Up to video"); h1.value = "video";
         const h2 = el("option", null, "Full screen"); h2.value = "full";
         heightSelect.append(h1, h2); heightSelect.dataset.s = "panelHeight";
+        heightRow.appendChild(labelFor(heightSelect, "Panel height"));
         heightRow.appendChild(heightSelect); box.appendChild(heightRow);
 
         // Prewarm toggle
-        const warmRow = el("div", R); warmRow.appendChild(el("span", null, "Preload panels"));
+        const warmRow = el("div", R);
         const warmCheck = document.createElement("input"); warmCheck.type = "checkbox";
         warmCheck.style.cssText = "accent-color:"+C.accent+";width:14px;height:14px;cursor:pointer";
         warmCheck.dataset.s = "prewarm";
+        warmRow.appendChild(labelFor(warmCheck, "Preload panels"));
         warmRow.appendChild(warmCheck); box.appendChild(warmRow);
         box.appendChild(el("div", "font-size:11px;color:"+C.fgDim+";margin:-6px 0 14px 0;line-height:1.5;opacity:0.8",
             "Loads comments and recommendations in the background so panels open instantly."));
@@ -1518,8 +1550,9 @@ html:has(:-webkit-full-screen) #movie_player {
         ks.appendChild(el("div", "font-size:11px;color:"+C.accent+";margin-bottom:10px", "Keybindings — click field, press key (Esc to clear)"));
         ["Comments:keyComments", "Recommendations:keyRecs", "Details:keyDetails"].forEach(pair => {
             const [label, key] = pair.split(":");
-            const row = el("div", R); row.appendChild(el("span", null, label));
+            const row = el("div", R);
             const inp = document.createElement("input"); inp.readOnly = true; inp.style.cssText = I; inp.dataset.key = key;
+            row.appendChild(labelFor(inp, label));
             row.appendChild(inp); ks.appendChild(row);
         });
         box.appendChild(ks);
@@ -1532,6 +1565,20 @@ html:has(:-webkit-full-screen) #movie_player {
         // Events
         settingsEl.addEventListener("click", e => { if (e.target === settingsEl) closeSettings(); });
         closeBtn.addEventListener("click", closeSettings);
+        // Keep the range's announced value in sync, since aria-valuetext
+        // does not update itself from the slider's live `value`.
+        widthRange.addEventListener("input", () => widthRange.setAttribute("aria-valuetext", widthRange.value + "px"));
+        // Trap Tab/Shift+Tab inside the dialog while open, per the WAI-ARIA
+        // dialog pattern (a modal must not leak focus to the page behind it).
+        box.addEventListener("keydown", e => {
+            if (e.key !== "Tab") return;
+            const focusable = Array.from(box.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'))
+                .filter(node => !node.disabled && node.offsetParent !== null);
+            if (!focusable.length) return;
+            const first = focusable[0], last = focusable[focusable.length - 1];
+            if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+            else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        });
         modeSelect.addEventListener("change", function() { prefs.panelMode = this.value; savePrefs(); });
         widthRange.addEventListener("input", function() { prefs.panelWidth = +this.value; widthVal.textContent = this.value + "px"; savePrefs(); });
         heightSelect.addEventListener("change", function() { prefs.panelHeight = this.value; savePrefs(); });
@@ -1561,12 +1608,23 @@ html:has(:-webkit-full-screen) #movie_player {
         settingsEl.querySelector("[data-s=panelMode]").value = prefs.panelMode;
         settingsEl.querySelector("[data-s=panelWidth]").value = prefs.panelWidth;
         settingsEl.querySelector("[data-s=panelWidthVal]").textContent = prefs.panelWidth + "px";
+        const widthInput = settingsEl.querySelector("[data-s=panelWidth]");
+        widthInput.setAttribute("aria-valuetext", prefs.panelWidth + "px");
         settingsEl.querySelector("[data-s=panelHeight]").value = prefs.panelHeight;
         settingsEl.querySelector("[data-s=prewarm]").checked = !!prefs.prewarm;
         settingsEl.querySelectorAll("[data-key]").forEach(inp => { inp.value = prefs[inp.dataset.key] || "(none)"; });
         settingsEl.style.display = "flex";
+        // Remember what had focus so Escape/Close can return it there
+        // (a modal that steals focus and never gives it back strands
+        // keyboard users on a page they can no longer navigate).
+        settingsReturnFocus = document.activeElement;
+        settingsEl.querySelector('[role="dialog"]').focus();
     }
-    function closeSettings() { settingsEl.style.display = "none"; }
+    function closeSettings() {
+        settingsEl.style.display = "none";
+        if (settingsReturnFocus && document.body.contains(settingsReturnFocus)) settingsReturnFocus.focus();
+        settingsReturnFocus = null;
+    }
 
     // ── Sidebar ──
     let sidebar;
