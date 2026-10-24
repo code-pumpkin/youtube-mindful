@@ -257,7 +257,7 @@ ytd-browse[page-subtype="home"] .ytContentMetadataViewModelLeadingIcon + .ytCont
 /* ══════════════════════════════════════════════════════════════════
    HIDE SHORTS + JUNK
    ══════════════════════════════════════════════════════════════════ */
-ytd-rich-section-renderer, ytd-reel-shelf-renderer, [is-shorts],
+ytd-reel-shelf-renderer, [is-shorts],
 ytd-rich-shelf-renderer[is-shorts],
 ytd-mini-guide-entry-renderer[aria-label="Shorts"],
 ytd-guide-entry-renderer:has(a[title="Shorts"]),
@@ -270,12 +270,27 @@ ytd-video-renderer:has(a[href*="/shorts/"]),
 ytd-compact-video-renderer:has(a[href*="/shorts/"]),
 yt-tab-shape[tab-title="Shorts"],
 ytd-post-renderer, ytd-backstage-post-thread-renderer,
-ytd-rich-shelf-renderer, ytd-compact-video-renderer[is-shorts],
+ytd-compact-video-renderer[is-shorts],
 ytd-movie-offering-module-renderer, ytd-compact-movie-renderer,
 ytd-merch-shelf-renderer, ytd-ticket-shelf-renderer { display: none !important; }
+/* NOTE: ytd-rich-section-renderer is NOT in the kill-list above — it also
+   wraps YouTube's empty-feed "search to get started" nudge for accounts
+   with no watch history, which is legitimate and restyled below. Shorts
+   shelves are fully covered by the specific selectors above. */
 
 /* ══════════════════════════════════════════════════════════════════
-   SEARCH PAGE
+   EMPTY-FEED NUDGE — YouTube's own empty-history state, restyled to
+   match the dark theme instead of its default light card.
+   ══════════════════════════════════════════════════════════════════ */
+ytd-rich-section-renderer {
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius) !important;
+    color: var(--fg) !important;
+}
+ytd-rich-section-renderer a, ytd-rich-section-renderer yt-formatted-string {
+    color: var(--fg-muted) !important;
+}
    ══════════════════════════════════════════════════════════════════ */
 ytd-search #page-manager, ytd-search ytd-two-column-search-results-renderer,
 ytd-search ytd-section-list-renderer {
@@ -286,6 +301,10 @@ ytd-search ytd-item-section-renderer #contents {
     display: grid !important;
     grid-template-columns: repeat(auto-fill, minmax(clamp(260px, 30vw, 340px), 1fr)) !important;
     gap: var(--sp-6) !important; max-width: 100% !important; align-items: start !important;
+}
+ytd-search #secondary.ytd-two-column-search-results-renderer {
+    max-width: 24rem !important; padding: var(--sp-4) var(--sp-4) var(--sp-4) 0 !important;
+    background: transparent !important;
 }
 ytd-search ytd-video-renderer {
     display: flex !important; flex-direction: column !important;
@@ -301,8 +320,10 @@ ytd-search ytd-video-renderer ytd-thumbnail img { width: 100% !important; height
 ytd-search ytd-video-renderer .text-wrapper { display: flex !important; flex-direction: column !important; width: 100% !important; padding: var(--sp-3) var(--sp-2) !important; }
 ytd-search ytd-video-renderer #channel-thumbnail,
 ytd-search ytd-video-renderer #avatar-link { display: none !important; }
-ytd-search ytd-secondary-search-container-renderer,
-ytd-search #secondary.ytd-two-column-search-results-renderer { display: none !important; }
+ytd-search ytd-secondary-search-container-renderer ytd-promoted-sparkles-web-renderer,
+ytd-search ytd-secondary-search-container-renderer ytd-ad-slot-renderer,
+ytd-search ytd-secondary-search-container-renderer ytd-promoted-video-renderer,
+ytd-search ytd-secondary-search-container-renderer ytd-companion-slot-renderer { display: none !important; }
 ytd-search ytd-video-renderer #video-title, ytd-search ytd-video-renderer h3.title-and-badge {
     font-family: var(--sans) !important; font-size: var(--fs-base) !important;
     font-weight: 500 !important; color: var(--fg) !important;
@@ -311,7 +332,7 @@ ytd-search ytd-video-renderer #video-title, ytd-search ytd-video-renderer h3.tit
 ytd-search ytd-video-renderer ytd-channel-name {
     font-family: var(--sans) !important; font-size: var(--fs-sm) !important; color: var(--fg-muted) !important;
 }
-ytd-search ytd-promoted-sparkles-web-renderer, ytd-search ytd-shelf-renderer,
+ytd-search ytd-promoted-sparkles-web-renderer,
 ytd-search ytd-ad-slot-renderer, ytd-search ytd-promoted-video-renderer { display: none !important; }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -546,18 +567,19 @@ ytd-watch-flexy #comments .published-time-text {
     padding: var(--sp-2) 0; gap: var(--sp-1); z-index: var(--z-nav);
     font-family: var(--sans); overflow-y: auto; overflow-x: hidden;
 }
-#mindful-sidebar button {
+#mindful-sidebar button, #mindful-sidebar a {
     width: 2.25rem; height: 2.25rem; border: none; background: transparent;
     color: var(--fg-muted); cursor: pointer; border-radius: var(--radius-sm);
     display: flex; align-items: center; justify-content: center;
     transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
     position: relative;
+    text-decoration: none;
 }
-#mindful-sidebar button svg { pointer-events: none; }
-#mindful-sidebar button:hover { background: var(--surface-2) !important; color: var(--fg) !important; }
-#mindful-sidebar button:active { transform: scale(0.96); }
-#mindful-sidebar button.active { color: var(--accent) !important; background: var(--surface-2) !important; }
-#mindful-sidebar button.active::before {
+#mindful-sidebar button svg, #mindful-sidebar a svg { pointer-events: none; }
+#mindful-sidebar button:hover, #mindful-sidebar a:hover { background: var(--surface-2) !important; color: var(--fg) !important; }
+#mindful-sidebar button:active, #mindful-sidebar a:active { transform: scale(0.96); }
+#mindful-sidebar button.active, #mindful-sidebar a.active { color: var(--accent) !important; background: var(--surface-2) !important; }
+#mindful-sidebar button.active::before, #mindful-sidebar a.active::before {
     content: ""; position: absolute; left: -0.5rem; top: 20%; bottom: 20%;
     width: 2px; background: var(--accent); border-radius: var(--radius-pill);
 }
@@ -572,7 +594,7 @@ ytd-watch-flexy #comments .published-time-text {
     border-radius: var(--radius-pill); opacity: 1;
 }
 #mindful-sidebar .sep { width: 1.25rem; height: 1px; background: var(--border); margin: var(--sp-2) 0; }
-#mindful-sidebar button::after {
+#mindful-sidebar button::after, #mindful-sidebar a::after {
     content: attr(aria-label); position: absolute; left: 3.25rem; top: 50%;
     transform: translateY(-50%); background: var(--surface); color: var(--fg);
     font-family: var(--sans); font-size: var(--fs-xs); padding: var(--sp-1) var(--sp-2);
@@ -580,8 +602,8 @@ ytd-watch-flexy #comments .published-time-text {
     white-space: nowrap; pointer-events: none; opacity: 0;
     transition: opacity var(--dur) var(--ease); z-index: var(--z-overlay);
 }
-#mindful-sidebar button:hover::after,
-#mindful-sidebar button:focus-visible::after { opacity: 1; }
+#mindful-sidebar button:hover::after, #mindful-sidebar a:hover::after,
+#mindful-sidebar button:focus-visible::after, #mindful-sidebar a:focus-visible::after { opacity: 1; }
 
 /* Library menu — secondary destinations stay off the primary navigation. */
 #mindful-library {
@@ -600,7 +622,7 @@ ytd-watch-flexy #comments .published-time-text {
     border-radius: var(--radius);
 }
 #mindful-library.open { display: flex !important; }
-#mindful-library button {
+#mindful-library button, #mindful-library a {
     min-height: 4.4rem;
     display: flex;
     align-items: center;
@@ -613,14 +635,15 @@ ytd-watch-flexy #comments .published-time-text {
     font-family: var(--sans);
     font-size: 1.3rem;
     text-align: left;
+    text-decoration: none;
     cursor: pointer;
 }
-#mindful-library button:hover,
-#mindful-library button:focus-visible {
+#mindful-library button:hover, #mindful-library a:hover,
+#mindful-library button:focus-visible, #mindful-library a:focus-visible {
     background: var(--surface-2);
     color: var(--fg);
 }
-#mindful-library button svg { flex: 0 0 auto; pointer-events: none; }
+#mindful-library button svg, #mindful-library a svg { flex: 0 0 auto; pointer-events: none; }
 
 /* ══════════════════════════════════════════════════════════════════
    SEARCH OVERLAY
@@ -784,7 +807,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         border-radius: 0.8rem !important;
         background: var(--surface) !important;
     }
-    #mindful-sidebar button {
+    #mindful-sidebar button, #mindful-sidebar a {
         width: auto !important;
         min-width: 5.6rem !important;
         height: 5.2rem !important;
@@ -793,7 +816,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         gap: 0.3rem !important;
         padding: 0.5rem 0.8rem !important;
     }
-    #mindful-sidebar button::after {
+    #mindful-sidebar button::after, #mindful-sidebar a::after {
         position: static !important;
         transform: none !important;
         opacity: 1 !important;
@@ -809,7 +832,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         height: 3.2rem !important;
         margin: 0 0.4rem !important;
     }
-    #mindful-sidebar button.active::before,
+    #mindful-sidebar button.active::before, #mindful-sidebar a.active::before,
     #mindful-sidebar button.active[data-warm="ready"]::before {
         top: -0.6rem !important;
         right: 20% !important;
@@ -841,9 +864,10 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     body.mindful-panel-recs ytd-watch-flexy #related,
     body.mindful-panel-details ytd-watch-flexy #above-the-fold,
     body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
-        bottom: 8.6rem !important;
-        height: calc(100vh - 8.6rem) !important;
-        max-height: calc(100vh - 8.6rem) !important;
+        bottom: 0 !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        padding-bottom: calc(var(--sp-5) + 8.6rem) !important;
     }
 }
 
@@ -858,7 +882,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         gap: 0.2rem !important;
         padding: 0.8rem !important;
     }
-    #mindful-sidebar button {
+    #mindful-sidebar button, #mindful-sidebar a {
         width: 100% !important;
         min-height: 4.4rem !important;
         height: 4.4rem !important;
@@ -866,7 +890,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         gap: 1.2rem !important;
         padding: 0 1.2rem !important;
     }
-    #mindful-sidebar button::after {
+    #mindful-sidebar button::after, #mindful-sidebar a::after {
         position: static !important;
         transform: none !important;
         opacity: 1 !important;
@@ -877,7 +901,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         font-size: 1.2rem !important;
         z-index: auto !important;
     }
-    #mindful-sidebar button.active::before {
+    #mindful-sidebar button.active::before, #mindful-sidebar a.active::before {
         left: -0.8rem !important;
     }
     #mindful-sidebar .sep {
@@ -905,9 +929,9 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         border-right: none !important; border-top: 1px solid var(--border) !important;
     }
     #mindful-sidebar .sep { display: none !important; }
-    #mindful-sidebar button { width: 2.75rem; height: 2.75rem; }
-    #mindful-sidebar button::after { display: none !important; }
-    #mindful-sidebar button.active::before {
+    #mindful-sidebar button, #mindful-sidebar a { width: 2.75rem; height: 2.75rem; }
+    #mindful-sidebar button::after, #mindful-sidebar a::after { display: none !important; }
+    #mindful-sidebar button.active::before, #mindful-sidebar a.active::before {
         left: 20%; right: 20%; top: auto; bottom: 0;
         width: auto; height: 2px;
     }
@@ -982,7 +1006,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
 
 /* 320px floor — nothing may overflow horizontally */
 @media (max-width: 360px) {
-    #mindful-sidebar button { width: 2.5rem; height: 2.5rem; }
+    #mindful-sidebar button, #mindful-sidebar a { width: 2.5rem; height: 2.5rem; }
     ytd-page-manager { overflow-x: hidden !important; }
 }
 
