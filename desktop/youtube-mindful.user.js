@@ -285,7 +285,7 @@ ytd-browse[page-subtype="home"] .ytContentMetadataViewModelLeadingIcon + .ytCont
 /* ══════════════════════════════════════════════════════════════════
    HIDE SHORTS + JUNK
    ══════════════════════════════════════════════════════════════════ */
-ytd-rich-section-renderer, ytd-reel-shelf-renderer, [is-shorts],
+ytd-reel-shelf-renderer, [is-shorts],
 ytd-rich-shelf-renderer[is-shorts],
 ytd-mini-guide-entry-renderer[aria-label="Shorts"],
 ytd-guide-entry-renderer:has(a[title="Shorts"]),
@@ -301,6 +301,24 @@ ytd-post-renderer, ytd-backstage-post-thread-renderer,
 ytd-rich-shelf-renderer, ytd-compact-video-renderer[is-shorts],
 ytd-movie-offering-module-renderer, ytd-compact-movie-renderer,
 ytd-merch-shelf-renderer, ytd-ticket-shelf-renderer { display: none !important; }
+/* NOTE: ytd-rich-section-renderer is NOT in the kill-list above — it also
+   wraps YouTube's empty-feed "search to get started" nudge for accounts
+   with no watch history, which is legitimate and restyled below. Shorts
+   shelves are fully covered by the specific selectors above. */
+
+/* ══════════════════════════════════════════════════════════════════
+   EMPTY-FEED NUDGE — YouTube's own empty-history state, restyled to
+   match the dark theme instead of its default light card.
+   ══════════════════════════════════════════════════════════════════ */
+ytd-rich-section-renderer {
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius) !important;
+    color: var(--fg) !important;
+}
+ytd-rich-section-renderer a, ytd-rich-section-renderer yt-formatted-string {
+    color: var(--fg-muted) !important;
+}
 
 /* ══════════════════════════════════════════════════════════════════
    SEARCH PAGE
@@ -1540,11 +1558,15 @@ html:has(:-webkit-full-screen) #movie_player,
             ["Watch Later", "watchlater", "/playlist?list=WL"],
             ["Playlists", "playlist", "/feed/playlists"],
         ].forEach(([label, icon, path]) => {
-            const button = document.createElement("button");
-            button.type = "button";
+            // Real <a href> so a middle-click or ctrl/cmd-click opens the
+            // destination in a new tab, like Home above.
+            const button = document.createElement("a");
+            button.href = path;
             button.setAttribute("role", "menuitem");
             button.append(ico(ICONS[icon], 18), document.createTextNode(label));
-            button.addEventListener("click", () => {
+            button.addEventListener("click", e => {
+                if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+                e.preventDefault();
                 closeLibrary();
                 location.assign(path);
             });
@@ -1590,7 +1612,7 @@ html:has(:-webkit-full-screen) #movie_player,
     function buildSidebar() {
         sidebar = document.createElement("div"); sidebar.id = "mindful-sidebar";
         const items = [
-            { id:"home",   icon:"home",   label:"Home",    action: navigateHome },
+            { id:"home",   icon:"home",   label:"Home",    href:"/",  action: navigateHome },
             { id:"search", icon:"search", label:"Search",  action: openSearch },
             { id:"back",   icon:"back",   label:"Back",    action: () => history.back() },
             "sep",
@@ -1605,14 +1627,22 @@ html:has(:-webkit-full-screen) #movie_player,
         ];
         items.forEach(item => {
             if (item === "sep") { const s = document.createElement("div"); s.className = "sep"; sidebar.appendChild(s); return; }
-            const b = document.createElement("button");
+            // href-bearing items render as a real <a> so a middle-click or
+            // ctrl/cmd-click opens the destination in a new tab natively,
+            // like any ordinary link. A plain left click is still caught
+            // and routed through the SPA navigation helper below.
+            const b = document.createElement(item.href ? "a" : "button");
+            if (item.href) b.href = item.href;
             b.setAttribute("aria-label", item.label);
             if (item.id === "library") {
                 b.setAttribute("aria-haspopup", "menu");
                 b.setAttribute("aria-expanded", "false");
             }
             b.appendChild(ico(ICONS[item.icon]));
-            b.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); item.action(); });
+            b.addEventListener("click", e => {
+                if (item.href && (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)) return;
+                e.preventDefault(); e.stopPropagation(); item.action();
+            });
             sidebar.appendChild(b);
             sidebarBtns[item.id] = b;
         });
@@ -1793,6 +1823,22 @@ html:has(:-webkit-full-screen) #movie_player,
         });
         document.addEventListener("fullscreenchange", () => {
             if (sidebar) sidebar.style.display = document.fullscreenElement ? "none" : "";
+            // Our CSS resizes the outer player container immediately, but
+            // YouTube's own player measures its internal canvas against
+            // window size at the moment fullscreen fires — before the CSS
+            // reflow lands. Nudge it to re-measure once the new geometry
+            // is actually in the layout tree, or the video stays sized to
+            // the old (dock-reserved) height and the reclaimed space shows
+            // as dead black area instead of more video.
+            const player = document.getElementById("movie_player");
+            const nudge = () => {
+                window.dispatchEvent(new Event("resize"));
+                if (player && typeof player.getPlayerSize === "function") {
+                    try { player.setInternalSize?.(); } catch (_) {}
+                }
+            };
+            requestAnimationFrame(() => requestAnimationFrame(nudge));
+            setTimeout(nudge, 150);
         });
 
         let lastUrl = location.href;

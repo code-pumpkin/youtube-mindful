@@ -159,7 +159,24 @@ ad-slot-renderer, ytm-promoted-video-renderer,
 ytm-promoted-sparkles-web-renderer, ytm-companion-ad-renderer,
 ytm-statement-banner-renderer, ytm-backstage-post-thread-renderer,
 ytm-backstage-post-renderer, .reel-shelf-header, .pivot-shorts,
-a[href*="/shorts/"], ytm-rich-section-renderer { display: none !important; }
+a[href*="/shorts/"] { display: none !important; }
+/* NOTE: do not hide ytm-rich-section-renderer wholesale — it also wraps the
+   search-bar entry point and the empty-feed nudge ("Search to get started"),
+   both legitimate. Shorts shelves are already killed above by their own
+   specific tags (ytm-reel-shelf-renderer, ytm-shorts-lockup-view-model, etc). */
+
+/* ══════════════════════════════════════════════════════════════════
+   EMPTY-FEED NUDGE — YouTube's own "search to get started" state,
+   restyled to match the dark theme instead of its default light card.
+   ══════════════════════════════════════════════════════════════════ */
+.feed-nudge-content-wrapper {
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+}
+.feed-nudge-title { color: var(--fg) !important; }
+.feed-nudge-subtitle { color: var(--fg-muted) !important; }
+.search-bar-entry-point-button { background: var(--surface-2) !important; }
+.search-bar-entry-point-icon, .search-bar-entry-point-text { color: var(--fg-muted) !important; }
 
 /* ══════════════════════════════════════════════════════════════════
    HOME FEED — calm single column with breathing room
