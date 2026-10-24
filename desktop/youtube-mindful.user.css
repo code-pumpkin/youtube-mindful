@@ -730,7 +730,7 @@ body.mindful-mode-overlay.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame
    ══════════════════════════════════════════════════════════════════ */
 body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { display: none !important; }
 :fullscreen ytd-page-manager, :-webkit-full-screen ytd-page-manager { margin-left: 0 !important; }
-:fullscreen #movie_player, :-webkit-full-screen #movie_player { max-height: 100vh !important; }
+:fullscreen #movie_player, :-webkit-full-screen #movie_player { height: 100vh !important; max-height: 100vh !important; }
 
 /* ══════════════════════════════════════════════════════════════════
    BREAKPOINTS
@@ -858,16 +858,28 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         max-height: calc(100vh - 8rem) !important;
     }
 
-    body.mindful-panel-comments ytd-watch-flexy #comments,
-    body.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
-    body.mindful-panel-recs ytd-watch-flexy #secondary,
-    body.mindful-panel-recs ytd-watch-flexy #related,
-    body.mindful-panel-details ytd-watch-flexy #above-the-fold,
-    body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
+    body.mindful-panel-height-full.mindful-panel-comments ytd-watch-flexy #comments,
+    body.mindful-panel-height-full.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
+    body.mindful-panel-height-full.mindful-panel-recs ytd-watch-flexy #secondary,
+    body.mindful-panel-height-full.mindful-panel-recs ytd-watch-flexy #related,
+    body.mindful-panel-height-full.mindful-panel-details ytd-watch-flexy #above-the-fold,
+    body.mindful-panel-height-full.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
         bottom: 0 !important;
         height: 100vh !important;
         max-height: 100vh !important;
         padding-bottom: calc(var(--sp-5) + 8.6rem) !important;
+    }
+
+    /* "Up to video" option — panel stops where the dock begins, like before. */
+    body.mindful-panel-height-video.mindful-panel-comments ytd-watch-flexy #comments,
+    body.mindful-panel-height-video.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
+    body.mindful-panel-height-video.mindful-panel-recs ytd-watch-flexy #secondary,
+    body.mindful-panel-height-video.mindful-panel-recs ytd-watch-flexy #related,
+    body.mindful-panel-height-video.mindful-panel-details ytd-watch-flexy #above-the-fold,
+    body.mindful-panel-height-video.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
+        bottom: 8.6rem !important;
+        height: calc(100vh - 8.6rem) !important;
+        max-height: calc(100vh - 8.6rem) !important;
     }
 }
 
@@ -1032,7 +1044,22 @@ html:has(:fullscreen) #movie_player,
 #movie_player:fullscreen,
 html:has(:-webkit-full-screen) #movie_player,
 #movie_player:-webkit-full-screen {
+    height: 100vh !important;
     max-height: 100vh !important;
+}
+/* Non-16:9 video in a 16:9-taller fullscreen box always letterboxes —
+   YouTube's own player does this natively too. The "black bottom gap"
+   isn't dead space we can reclaim; it's letterboxing that mismatches
+   our theme's --bg (#121110 charcoal) against YouTube's native pure
+   black fullscreen chrome. Match native black so it reads as intended
+   letterboxing instead of a visible seam. */
+html:has(:fullscreen) ytd-watch-flexy,
+html:has(:-webkit-full-screen) ytd-watch-flexy,
+html:has(:fullscreen) #full-bleed-container,
+html:has(:-webkit-full-screen) #full-bleed-container,
+html:has(:fullscreen) #movie_player,
+html:has(:-webkit-full-screen) #movie_player {
+    background: #000 !important;
 }
 
 } /* end @-moz-document */

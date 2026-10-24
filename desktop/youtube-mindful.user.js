@@ -37,6 +37,7 @@
     let state = { panelOpen: null, warmed: {}, warmTimers: [] };
 
     const MINDFUL_CSS = `
+
 /* ══════════════════════════════════════════════════════════════════
    DESIGN TOKENS
    Contrast verified against --bg (#121110):
@@ -298,7 +299,7 @@ ytd-video-renderer:has(a[href*="/shorts/"]),
 ytd-compact-video-renderer:has(a[href*="/shorts/"]),
 yt-tab-shape[tab-title="Shorts"],
 ytd-post-renderer, ytd-backstage-post-thread-renderer,
-ytd-rich-shelf-renderer, ytd-compact-video-renderer[is-shorts],
+ytd-compact-video-renderer[is-shorts],
 ytd-movie-offering-module-renderer, ytd-compact-movie-renderer,
 ytd-merch-shelf-renderer, ytd-ticket-shelf-renderer { display: none !important; }
 /* NOTE: ytd-rich-section-renderer is NOT in the kill-list above — it also
@@ -319,9 +320,6 @@ ytd-rich-section-renderer {
 ytd-rich-section-renderer a, ytd-rich-section-renderer yt-formatted-string {
     color: var(--fg-muted) !important;
 }
-
-/* ══════════════════════════════════════════════════════════════════
-   SEARCH PAGE
    ══════════════════════════════════════════════════════════════════ */
 ytd-search #page-manager, ytd-search ytd-two-column-search-results-renderer,
 ytd-search ytd-section-list-renderer {
@@ -332,6 +330,10 @@ ytd-search ytd-item-section-renderer #contents {
     display: grid !important;
     grid-template-columns: repeat(auto-fill, minmax(clamp(260px, 30vw, 340px), 1fr)) !important;
     gap: var(--sp-6) !important; max-width: 100% !important; align-items: start !important;
+}
+ytd-search #secondary.ytd-two-column-search-results-renderer {
+    max-width: 24rem !important; padding: var(--sp-4) var(--sp-4) var(--sp-4) 0 !important;
+    background: transparent !important;
 }
 ytd-search ytd-video-renderer {
     display: flex !important; flex-direction: column !important;
@@ -347,8 +349,10 @@ ytd-search ytd-video-renderer ytd-thumbnail img { width: 100% !important; height
 ytd-search ytd-video-renderer .text-wrapper { display: flex !important; flex-direction: column !important; width: 100% !important; padding: var(--sp-3) var(--sp-2) !important; }
 ytd-search ytd-video-renderer #channel-thumbnail,
 ytd-search ytd-video-renderer #avatar-link { display: none !important; }
-ytd-search ytd-secondary-search-container-renderer,
-ytd-search #secondary.ytd-two-column-search-results-renderer { display: none !important; }
+ytd-search ytd-secondary-search-container-renderer ytd-promoted-sparkles-web-renderer,
+ytd-search ytd-secondary-search-container-renderer ytd-ad-slot-renderer,
+ytd-search ytd-secondary-search-container-renderer ytd-promoted-video-renderer,
+ytd-search ytd-secondary-search-container-renderer ytd-companion-slot-renderer { display: none !important; }
 ytd-search ytd-video-renderer #video-title, ytd-search ytd-video-renderer h3.title-and-badge {
     font-family: var(--sans) !important; font-size: var(--fs-base) !important;
     font-weight: 500 !important; color: var(--fg) !important;
@@ -357,7 +361,7 @@ ytd-search ytd-video-renderer #video-title, ytd-search ytd-video-renderer h3.tit
 ytd-search ytd-video-renderer ytd-channel-name {
     font-family: var(--sans) !important; font-size: var(--fs-sm) !important; color: var(--fg-muted) !important;
 }
-ytd-search ytd-promoted-sparkles-web-renderer, ytd-search ytd-shelf-renderer,
+ytd-search ytd-promoted-sparkles-web-renderer,
 ytd-search ytd-ad-slot-renderer, ytd-search ytd-promoted-video-renderer { display: none !important; }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -592,18 +596,19 @@ ytd-watch-flexy #comments .published-time-text {
     padding: var(--sp-2) 0; gap: var(--sp-1); z-index: var(--z-nav);
     font-family: var(--sans); overflow-y: auto; overflow-x: hidden;
 }
-#mindful-sidebar button {
+#mindful-sidebar button, #mindful-sidebar a {
     width: 2.25rem; height: 2.25rem; border: none; background: transparent;
     color: var(--fg-muted); cursor: pointer; border-radius: var(--radius-sm);
     display: flex; align-items: center; justify-content: center;
     transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
     position: relative;
+    text-decoration: none;
 }
-#mindful-sidebar button svg { pointer-events: none; }
-#mindful-sidebar button:hover { background: var(--surface-2) !important; color: var(--fg) !important; }
-#mindful-sidebar button:active { transform: scale(0.96); }
-#mindful-sidebar button.active { color: var(--accent) !important; background: var(--surface-2) !important; }
-#mindful-sidebar button.active::before {
+#mindful-sidebar button svg, #mindful-sidebar a svg { pointer-events: none; }
+#mindful-sidebar button:hover, #mindful-sidebar a:hover { background: var(--surface-2) !important; color: var(--fg) !important; }
+#mindful-sidebar button:active, #mindful-sidebar a:active { transform: scale(0.96); }
+#mindful-sidebar button.active, #mindful-sidebar a.active { color: var(--accent) !important; background: var(--surface-2) !important; }
+#mindful-sidebar button.active::before, #mindful-sidebar a.active::before {
     content: ""; position: absolute; left: -0.5rem; top: 20%; bottom: 20%;
     width: 2px; background: var(--accent); border-radius: var(--radius-pill);
 }
@@ -618,7 +623,7 @@ ytd-watch-flexy #comments .published-time-text {
     border-radius: var(--radius-pill); opacity: 1;
 }
 #mindful-sidebar .sep { width: 1.25rem; height: 1px; background: var(--border); margin: var(--sp-2) 0; }
-#mindful-sidebar button::after {
+#mindful-sidebar button::after, #mindful-sidebar a::after {
     content: attr(aria-label); position: absolute; left: 3.25rem; top: 50%;
     transform: translateY(-50%); background: var(--surface); color: var(--fg);
     font-family: var(--sans); font-size: var(--fs-xs); padding: var(--sp-1) var(--sp-2);
@@ -626,8 +631,8 @@ ytd-watch-flexy #comments .published-time-text {
     white-space: nowrap; pointer-events: none; opacity: 0;
     transition: opacity var(--dur) var(--ease); z-index: var(--z-overlay);
 }
-#mindful-sidebar button:hover::after,
-#mindful-sidebar button:focus-visible::after { opacity: 1; }
+#mindful-sidebar button:hover::after, #mindful-sidebar a:hover::after,
+#mindful-sidebar button:focus-visible::after, #mindful-sidebar a:focus-visible::after { opacity: 1; }
 
 /* Library menu — secondary destinations stay off the primary navigation. */
 #mindful-library {
@@ -646,7 +651,7 @@ ytd-watch-flexy #comments .published-time-text {
     border-radius: var(--radius);
 }
 #mindful-library.open { display: flex !important; }
-#mindful-library button {
+#mindful-library button, #mindful-library a {
     min-height: 4.4rem;
     display: flex;
     align-items: center;
@@ -659,14 +664,15 @@ ytd-watch-flexy #comments .published-time-text {
     font-family: var(--sans);
     font-size: 1.3rem;
     text-align: left;
+    text-decoration: none;
     cursor: pointer;
 }
-#mindful-library button:hover,
-#mindful-library button:focus-visible {
+#mindful-library button:hover, #mindful-library a:hover,
+#mindful-library button:focus-visible, #mindful-library a:focus-visible {
     background: var(--surface-2);
     color: var(--fg);
 }
-#mindful-library button svg { flex: 0 0 auto; pointer-events: none; }
+#mindful-library button svg, #mindful-library a svg { flex: 0 0 auto; pointer-events: none; }
 
 /* ══════════════════════════════════════════════════════════════════
    SEARCH OVERLAY
@@ -753,7 +759,7 @@ body.mindful-mode-overlay.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame
    ══════════════════════════════════════════════════════════════════ */
 body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { display: none !important; }
 :fullscreen ytd-page-manager, :-webkit-full-screen ytd-page-manager { margin-left: 0 !important; }
-:fullscreen #movie_player, :-webkit-full-screen #movie_player { max-height: 100vh !important; }
+:fullscreen #movie_player, :-webkit-full-screen #movie_player { height: 100vh !important; max-height: 100vh !important; }
 
 /* ══════════════════════════════════════════════════════════════════
    BREAKPOINTS
@@ -830,7 +836,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         border-radius: 0.8rem !important;
         background: var(--surface) !important;
     }
-    #mindful-sidebar button {
+    #mindful-sidebar button, #mindful-sidebar a {
         width: auto !important;
         min-width: 5.6rem !important;
         height: 5.2rem !important;
@@ -839,7 +845,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         gap: 0.3rem !important;
         padding: 0.5rem 0.8rem !important;
     }
-    #mindful-sidebar button::after {
+    #mindful-sidebar button::after, #mindful-sidebar a::after {
         position: static !important;
         transform: none !important;
         opacity: 1 !important;
@@ -855,7 +861,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         height: 3.2rem !important;
         margin: 0 0.4rem !important;
     }
-    #mindful-sidebar button.active::before,
+    #mindful-sidebar button.active::before, #mindful-sidebar a.active::before,
     #mindful-sidebar button.active[data-warm="ready"]::before {
         top: -0.6rem !important;
         right: 20% !important;
@@ -881,12 +887,25 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         max-height: calc(100vh - 8rem) !important;
     }
 
-    body.mindful-panel-comments ytd-watch-flexy #comments,
-    body.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
-    body.mindful-panel-recs ytd-watch-flexy #secondary,
-    body.mindful-panel-recs ytd-watch-flexy #related,
-    body.mindful-panel-details ytd-watch-flexy #above-the-fold,
-    body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
+    body.mindful-panel-height-full.mindful-panel-comments ytd-watch-flexy #comments,
+    body.mindful-panel-height-full.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
+    body.mindful-panel-height-full.mindful-panel-recs ytd-watch-flexy #secondary,
+    body.mindful-panel-height-full.mindful-panel-recs ytd-watch-flexy #related,
+    body.mindful-panel-height-full.mindful-panel-details ytd-watch-flexy #above-the-fold,
+    body.mindful-panel-height-full.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
+        bottom: 0 !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        padding-bottom: calc(var(--sp-5) + 8.6rem) !important;
+    }
+
+    /* "Up to video" option — panel stops where the dock begins, like before. */
+    body.mindful-panel-height-video.mindful-panel-comments ytd-watch-flexy #comments,
+    body.mindful-panel-height-video.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
+    body.mindful-panel-height-video.mindful-panel-recs ytd-watch-flexy #secondary,
+    body.mindful-panel-height-video.mindful-panel-recs ytd-watch-flexy #related,
+    body.mindful-panel-height-video.mindful-panel-details ytd-watch-flexy #above-the-fold,
+    body.mindful-panel-height-video.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
         bottom: 8.6rem !important;
         height: calc(100vh - 8.6rem) !important;
         max-height: calc(100vh - 8.6rem) !important;
@@ -904,7 +923,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         gap: 0.2rem !important;
         padding: 0.8rem !important;
     }
-    #mindful-sidebar button {
+    #mindful-sidebar button, #mindful-sidebar a {
         width: 100% !important;
         min-height: 4.4rem !important;
         height: 4.4rem !important;
@@ -912,7 +931,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         gap: 1.2rem !important;
         padding: 0 1.2rem !important;
     }
-    #mindful-sidebar button::after {
+    #mindful-sidebar button::after, #mindful-sidebar a::after {
         position: static !important;
         transform: none !important;
         opacity: 1 !important;
@@ -923,7 +942,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         font-size: 1.2rem !important;
         z-index: auto !important;
     }
-    #mindful-sidebar button.active::before {
+    #mindful-sidebar button.active::before, #mindful-sidebar a.active::before {
         left: -0.8rem !important;
     }
     #mindful-sidebar .sep {
@@ -951,9 +970,9 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         border-right: none !important; border-top: 1px solid var(--border) !important;
     }
     #mindful-sidebar .sep { display: none !important; }
-    #mindful-sidebar button { width: 2.75rem; height: 2.75rem; }
-    #mindful-sidebar button::after { display: none !important; }
-    #mindful-sidebar button.active::before {
+    #mindful-sidebar button, #mindful-sidebar a { width: 2.75rem; height: 2.75rem; }
+    #mindful-sidebar button::after, #mindful-sidebar a::after { display: none !important; }
+    #mindful-sidebar button.active::before, #mindful-sidebar a.active::before {
         left: 20%; right: 20%; top: auto; bottom: 0;
         width: auto; height: 2px;
     }
@@ -1028,7 +1047,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
 
 /* 320px floor — nothing may overflow horizontally */
 @media (max-width: 360px) {
-    #mindful-sidebar button { width: 2.5rem; height: 2.5rem; }
+    #mindful-sidebar button, #mindful-sidebar a { width: 2.5rem; height: 2.5rem; }
     ytd-page-manager { overflow-x: hidden !important; }
 }
 
@@ -1054,7 +1073,22 @@ html:has(:fullscreen) #movie_player,
 #movie_player:fullscreen,
 html:has(:-webkit-full-screen) #movie_player,
 #movie_player:-webkit-full-screen {
+    height: 100vh !important;
     max-height: 100vh !important;
+}
+/* Non-16:9 video in a 16:9-taller fullscreen box always letterboxes —
+   YouTube's own player does this natively too. The "black bottom gap"
+   isn't dead space we can reclaim; it's letterboxing that mismatches
+   our theme's --bg (#121110 charcoal) against YouTube's native pure
+   black fullscreen chrome. Match native black so it reads as intended
+   letterboxing instead of a visible seam. */
+html:has(:fullscreen) ytd-watch-flexy,
+html:has(:-webkit-full-screen) ytd-watch-flexy,
+html:has(:fullscreen) #full-bleed-container,
+html:has(:-webkit-full-screen) #full-bleed-container,
+html:has(:fullscreen) #movie_player,
+html:has(:-webkit-full-screen) #movie_player {
+    background: #000 !important;
 }
 `;
 
@@ -1384,7 +1418,7 @@ html:has(:-webkit-full-screen) #movie_player,
     function closeSearch() { searchEl.classList.remove("open"); searchInput.blur(); while(suggestEl.firstChild) suggestEl.removeChild(suggestEl.firstChild); suggestEl.style.display = "none"; }
 
     // ── Settings ──
-    const DEFAULTS = { panelMode: "side", panelWidth: 380, prewarm: true, keyComments: "x", keyRecs: "z", keyDetails: "q" };
+    const DEFAULTS = { panelMode: "side", panelWidth: 380, panelHeight: "full", prewarm: true, keyComments: "x", keyRecs: "z", keyDetails: "q" };
     let prefs = { ...DEFAULTS };
 
     function loadPrefs() {
@@ -1394,6 +1428,8 @@ html:has(:-webkit-full-screen) #movie_player,
     function savePrefs() { localStorage.setItem("mindful-prefs", JSON.stringify(prefs)); applyPrefs(); }
     function applyPrefs() {
         document.body.classList.toggle("mindful-mode-overlay", prefs.panelMode === "overlay");
+        document.body.classList.toggle("mindful-panel-height-full", prefs.panelHeight === "full");
+        document.body.classList.toggle("mindful-panel-height-video", prefs.panelHeight === "video");
         document.documentElement.style.setProperty("--mindful-panel-w", prefs.panelWidth + "px");
     }
 
@@ -1427,6 +1463,14 @@ html:has(:-webkit-full-screen) #movie_player,
         const widthVal = el("span", "color:"+C.accent+";min-width:45px;text-align:right;font-size:11px"); widthVal.dataset.s = "panelWidthVal";
         ww.append(widthRange, widthVal); widthRow.appendChild(ww); box.appendChild(widthRow);
 
+        // Panel height
+        const heightRow = el("div", R); heightRow.appendChild(el("span", null, "Panel height"));
+        const heightSelect = el("select", "background:"+C.bgDark+";color:"+C.fg+";border:1px solid "+C.border+";font-family:inherit;font-size:11px;padding:4px 6px");
+        const h1 = el("option", null, "Up to video"); h1.value = "video";
+        const h2 = el("option", null, "Full screen"); h2.value = "full";
+        heightSelect.append(h1, h2); heightSelect.dataset.s = "panelHeight";
+        heightRow.appendChild(heightSelect); box.appendChild(heightRow);
+
         // Prewarm toggle
         const warmRow = el("div", R); warmRow.appendChild(el("span", null, "Preload panels"));
         const warmCheck = document.createElement("input"); warmCheck.type = "checkbox";
@@ -1457,6 +1501,7 @@ html:has(:-webkit-full-screen) #movie_player,
         closeBtn.addEventListener("click", closeSettings);
         modeSelect.addEventListener("change", function() { prefs.panelMode = this.value; savePrefs(); });
         widthRange.addEventListener("input", function() { prefs.panelWidth = +this.value; widthVal.textContent = this.value + "px"; savePrefs(); });
+        heightSelect.addEventListener("change", function() { prefs.panelHeight = this.value; savePrefs(); });
         warmCheck.addEventListener("change", function() {
             prefs.prewarm = this.checked;
             savePrefs();
@@ -1483,6 +1528,7 @@ html:has(:-webkit-full-screen) #movie_player,
         settingsEl.querySelector("[data-s=panelMode]").value = prefs.panelMode;
         settingsEl.querySelector("[data-s=panelWidth]").value = prefs.panelWidth;
         settingsEl.querySelector("[data-s=panelWidthVal]").textContent = prefs.panelWidth + "px";
+        settingsEl.querySelector("[data-s=panelHeight]").value = prefs.panelHeight;
         settingsEl.querySelector("[data-s=prewarm]").checked = !!prefs.prewarm;
         settingsEl.querySelectorAll("[data-key]").forEach(inp => { inp.value = prefs[inp.dataset.key] || "(none)"; });
         settingsEl.style.display = "flex";
@@ -1823,22 +1869,6 @@ html:has(:-webkit-full-screen) #movie_player,
         });
         document.addEventListener("fullscreenchange", () => {
             if (sidebar) sidebar.style.display = document.fullscreenElement ? "none" : "";
-            // Our CSS resizes the outer player container immediately, but
-            // YouTube's own player measures its internal canvas against
-            // window size at the moment fullscreen fires — before the CSS
-            // reflow lands. Nudge it to re-measure once the new geometry
-            // is actually in the layout tree, or the video stays sized to
-            // the old (dock-reserved) height and the reclaimed space shows
-            // as dead black area instead of more video.
-            const player = document.getElementById("movie_player");
-            const nudge = () => {
-                window.dispatchEvent(new Event("resize"));
-                if (player && typeof player.getPlayerSize === "function") {
-                    try { player.setInternalSize?.(); } catch (_) {}
-                }
-            };
-            requestAnimationFrame(() => requestAnimationFrame(nudge));
-            setTimeout(nudge, 150);
         });
 
         let lastUrl = location.href;
