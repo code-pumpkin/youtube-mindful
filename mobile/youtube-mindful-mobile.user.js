@@ -166,6 +166,17 @@ a[href*="/shorts/"] { display: none !important; }
    specific tags (ytm-reel-shelf-renderer, ytm-shorts-lockup-view-model, etc). */
 
 /* ══════════════════════════════════════════════════════════════════
+   EMPTY-HOME GREETING — time-of-day heading above YouTube's own
+   empty-feed nudge. First thing shown on an empty home screen.
+   ══════════════════════════════════════════════════════════════════ */
+#mindful-greeting {
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--fg);
+    margin: 12px 16px 8px 16px;
+}
+
+/* ══════════════════════════════════════════════════════════════════
    EMPTY-FEED NUDGE — YouTube's own "search to get started" state,
    restyled to match the dark theme instead of its default light card.
    ══════════════════════════════════════════════════════════════════ */
@@ -796,10 +807,33 @@ html[darker-dark-theme] c3-toast { background: var(--surface) !important; color:
             if (!document.body.contains(searchEl)) document.body.appendChild(searchEl);
         }
 
+        // ── Empty-home greeting ──
+        // ytm-feed-nudge-renderer ("Search to get started") only renders for
+        // an account with zero watch history — that's the real empty signal.
+        // We add a time-of-day heading above it, as a first-thing touch.
+        function greetingText() {
+            const h = new Date().getHours();
+            if (h < 12) return "Good morning";
+            if (h < 18) return "Good afternoon";
+            return "Good evening";
+        }
+        function ensureGreeting() {
+            const nudge = document.querySelector("ytm-feed-nudge-renderer");
+            const existing = document.getElementById("mindful-greeting");
+            if (!nudge) { existing?.remove(); return; }
+            if (existing) return;
+            const el = document.createElement("div");
+            el.id = "mindful-greeting";
+            el.textContent = greetingText();
+            const section = nudge.closest("ytm-rich-section-renderer") || nudge;
+            section.parentNode.insertBefore(el, section);
+        }
+
         // ── SPA nav ──
         let lastUrl = location.href;
         new MutationObserver(() => {
             ensureAttached();
+            ensureGreeting();
             if (location.href !== lastUrl) {
                 lastUrl = location.href;
                 if (searchEl.classList.contains("open")) closeSearch();

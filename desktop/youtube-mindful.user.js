@@ -37,7 +37,6 @@
     let state = { panelOpen: null, warmed: {}, warmTimers: [] };
 
     const MINDFUL_CSS = `
-
 /* ══════════════════════════════════════════════════════════════════
    DESIGN TOKENS
    Contrast verified against --bg (#121110):
@@ -306,6 +305,17 @@ ytd-merch-shelf-renderer, ytd-ticket-shelf-renderer { display: none !important; 
    wraps YouTube's empty-feed "search to get started" nudge for accounts
    with no watch history, which is legitimate and restyled below. Shorts
    shelves are fully covered by the specific selectors above. */
+
+/* ══════════════════════════════════════════════════════════════════
+   EMPTY-HOME GREETING — time-of-day heading above YouTube's own
+   empty-feed nudge. First thing shown on an empty home screen.
+   ══════════════════════════════════════════════════════════════════ */
+#mindful-greeting {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--fg);
+    margin: 0 0 0.75rem 0;
+}
 
 /* ══════════════════════════════════════════════════════════════════
    EMPTY-FEED NUDGE — YouTube's own empty-history state, restyled to
@@ -1198,6 +1208,29 @@ html:has(:-webkit-full-screen) #movie_player {
         }
     }
 
+    // ── Empty-home greeting ──
+    // YouTube's own empty-feed nudge (ytd-rich-section-renderer, "search to
+    // get started") only renders for an account with zero watch history.
+    // We don't invent the empty state — we just add a time-of-day heading
+    // above the nudge YouTube already shows, as a first-thing touch.
+    function greetingText() {
+        const h = new Date().getHours();
+        if (h < 12) return "Good morning";
+        if (h < 18) return "Good afternoon";
+        return "Good evening";
+    }
+    function injectGreeting() {
+        const onHome = document.querySelector('ytd-browse[page-subtype="home"]');
+        const nudge = document.querySelector('ytd-browse[page-subtype="home"] ytd-rich-section-renderer');
+        const existing = document.getElementById("mindful-greeting");
+        if (!onHome || !nudge) { existing?.remove(); return; }
+        if (existing) return;
+        const el = document.createElement("div");
+        el.id = "mindful-greeting";
+        el.textContent = greetingText();
+        nudge.parentNode.insertBefore(el, nudge);
+    }
+
     // ══════════════════════════════════════════════════════════════
     //  PREWARM
     //  YouTube lazy-loads comments and recommendations behind an
@@ -1833,6 +1866,9 @@ html:has(:-webkit-full-screen) #movie_player {
         updateSidebar();
         buildChannelBar();
         scheduleWarm();
+        injectGreeting();
+        setTimeout(injectGreeting, 600);
+        setTimeout(injectGreeting, 1500);
     }
 
     // ── Init ──

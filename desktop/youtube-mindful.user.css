@@ -279,6 +279,17 @@ ytd-merch-shelf-renderer, ytd-ticket-shelf-renderer { display: none !important; 
    shelves are fully covered by the specific selectors above. */
 
 /* ══════════════════════════════════════════════════════════════════
+   EMPTY-HOME GREETING — time-of-day heading above YouTube's own
+   empty-feed nudge. First thing shown on an empty home screen.
+   ══════════════════════════════════════════════════════════════════ */
+#mindful-greeting {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--fg);
+    margin: 0 0 0.75rem 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════
    EMPTY-FEED NUDGE — YouTube's own empty-history state, restyled to
    match the dark theme instead of its default light card.
    ══════════════════════════════════════════════════════════════════ */
