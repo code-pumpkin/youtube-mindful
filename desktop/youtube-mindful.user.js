@@ -819,19 +819,60 @@ body.mindful-read-mode ytd-watch-flexy #above-the-fold {
 body.mindful-read-mode ytd-watch-flexy #title-row h1,
 body.mindful-read-mode ytd-watch-flexy h1.ytd-watch-metadata {
     font-family: var(--serif) !important;
-    font-size: 1.375rem !important; font-weight: 600 !important;
+    /* YouTube sets html{font-size:10px} site-wide, so every --fs-*/
+    /* rem token here renders at 62.5% of its usual size -- explicit */
+    /* px, not the shared rem tokens, for Read mode's own typography. */
+    font-size: 22px !important; font-weight: 600 !important;
     line-height: 1.2 !important; color: var(--fg) !important;
+    margin: 0 0 var(--sp-2) 0 !important;
 }
-body.mindful-read-mode ytd-watch-flexy #top-row,
+/* #top-row carries the channel name + subscribe button + the native
+   sort/notification bell cluster. Show only the channel name -- the
+   subscribe pill and bell are YouTube chrome the wireframe never
+   shows at all, and left unstyled they render in the page's own
+   locale (the "poopy" Arabic subscribe pill this was built to fix). */
+body.mindful-read-mode ytd-watch-flexy #top-row {
+    display: block !important;
+    margin-bottom: var(--sp-3) !important;
+}
+body.mindful-read-mode ytd-watch-flexy #top-row #subscribe-button,
+body.mindful-read-mode ytd-watch-flexy ytd-subscribe-button-renderer,
+body.mindful-read-mode ytd-watch-flexy #owner-sub-count,
+body.mindful-read-mode ytd-watch-flexy #sub-count,
+body.mindful-read-mode ytd-watch-flexy ytd-video-owner-renderer yt-icon-button,
 body.mindful-read-mode ytd-watch-flexy #middle-row,
+body.mindful-read-mode ytd-watch-flexy ytd-sentiment-bar-renderer,
+body.mindful-read-mode ytd-watch-flexy ytd-menu-renderer,
+body.mindful-read-mode ytd-watch-flexy #info-container {
+    display: none !important;
+}
+body.mindful-read-mode ytd-watch-flexy ytd-video-owner-renderer #channel-name,
+body.mindful-read-mode ytd-watch-flexy ytd-video-owner-renderer ytd-channel-name {
+    font-family: var(--sans) !important;
+    font-size: 14px !important;
+    color: var(--accent) !important;
+}
+body.mindful-read-mode ytd-watch-flexy ytd-video-owner-renderer #avatar,
+body.mindful-read-mode ytd-watch-flexy ytd-video-owner-renderer yt-img-shadow {
+    width: 1.75rem !important; height: 1.75rem !important;
+}
+/* #bottom-row carries view-count/date (keep, restyled as one mono
+   line like the wireframe's "1.2M views · Oct 2 · 12:40") and the
+   description text (keep, restyled below). */
 body.mindful-read-mode ytd-watch-flexy #bottom-row {
     display: block !important;
+}
+body.mindful-read-mode ytd-watch-flexy #info-text,
+body.mindful-read-mode ytd-watch-flexy yt-formatted-string#info {
+    font-family: var(--mono) !important; font-size: 12px !important;
+    color: var(--fg-muted) !important;
 }
 body.mindful-read-mode ytd-watch-flexy #description,
 body.mindful-read-mode ytd-watch-flexy #description-inner {
     display: block !important;
-    font-family: var(--sans) !important; font-size: var(--fs-sm) !important;
+    font-family: var(--sans) !important; font-size: 14px !important;
     color: var(--fg-muted) !important; line-height: 1.6 !important;
+    margin-top: var(--sp-3) !important;
 }
 
 /* Main column: native comments, scrolling vertically, nothing else.
@@ -848,6 +889,62 @@ body.mindful-read-mode ytd-watch-flexy ytd-comments#comments {
     clip: auto !important; clip-path: none !important; opacity: 1 !important;
     min-height: 0 !important;
     margin-bottom: 14rem !important;
+}
+/* Comments header: keep the count, drop the sort-by control and the
+   "create comment" composer row -- the wireframe's header is just
+   "Comments 1,284", nothing else. */
+body.mindful-read-mode ytd-watch-flexy ytd-comments-header-renderer {
+    display: flex !important; align-items: baseline !important; gap: var(--sp-2) !important;
+    padding-bottom: var(--sp-2) !important; margin-bottom: var(--sp-3) !important;
+    border-bottom: 1px solid var(--border) !important;
+    font-family: var(--serif) !important;
+}
+body.mindful-read-mode ytd-watch-flexy ytd-comments-header-renderer #count {
+    font-family: var(--serif) !important; font-size: 17px !important;
+    font-weight: 600 !important; color: var(--fg) !important;
+}
+body.mindful-read-mode ytd-watch-flexy ytd-comments-header-renderer yt-sort-filter-sub-menu-renderer,
+body.mindful-read-mode ytd-watch-flexy ytd-comments-header-renderer #sort-menu,
+body.mindful-read-mode ytd-watch-flexy ytd-comments-header-renderer #simple-box,
+body.mindful-read-mode ytd-watch-flexy ytd-comments-header-renderer #red-commenting-div,
+body.mindful-read-mode ytd-watch-flexy ytd-comments-header-renderer #alert,
+body.mindful-read-mode ytd-watch-flexy ytd-comments-header-renderer #paused-comments-message,
+body.mindful-read-mode ytd-watch-flexy ytd-comments-header-renderer #backstage-post-dialog,
+body.mindful-read-mode ytd-watch-flexy ytd-comments-header-renderer #post-stream-filter,
+body.mindful-read-mode ytd-watch-flexy ytd-comments-header-renderer #zero-state-message,
+body.mindful-read-mode ytd-watch-flexy ytd-comments-header-renderer #scheduling-zero-state-message {
+    display: none !important;
+}
+/* Each comment: author name + text, nothing else -- no avatar, no
+   like/dislike icon row, no pinned/hearted badges. The wireframe's
+   list is "username  text", one line of metadata, full stop. */
+body.mindful-read-mode ytd-watch-flexy ytd-comment-thread-renderer {
+    display: block !important;
+    padding: var(--sp-3) 0 !important;
+    border-bottom: 1px solid var(--border) !important;
+}
+body.mindful-read-mode ytd-watch-flexy #author-thumbnail,
+body.mindful-read-mode ytd-watch-flexy #pinned-comment-badge,
+body.mindful-read-mode ytd-watch-flexy #linked-comment-badge,
+body.mindful-read-mode ytd-watch-flexy ytd-comment-engagement-bar,
+body.mindful-read-mode ytd-watch-flexy #action-buttons,
+body.mindful-read-mode ytd-watch-flexy #vote-count-middle,
+body.mindful-read-mode ytd-watch-flexy #creator-heart,
+body.mindful-read-mode ytd-watch-flexy #reply-button-end {
+    display: none !important;
+}
+body.mindful-read-mode ytd-watch-flexy #header-author {
+    display: inline-flex !important; gap: var(--sp-2) !important;
+    font-family: var(--sans) !important; font-size: 14px !important;
+}
+body.mindful-read-mode ytd-watch-flexy #author-text {
+    color: var(--accent) !important; font-weight: 500 !important;
+}
+body.mindful-read-mode ytd-watch-flexy #content-text,
+body.mindful-read-mode ytd-watch-flexy #expander-contents {
+    font-family: var(--sans) !important; font-size: 14px !important;
+    color: var(--fg-muted) !important; line-height: 1.6 !important;
+    margin-top: var(--sp-1) !important;
 }
 
 /* Bottom strip: native related. #secondary/#related is NOT a descendant
@@ -876,11 +973,30 @@ body.mindful-read-mode ytd-watch-flexy ytd-watch-next-secondary-results-renderer
     z-index: var(--z-panel) !important;
     scroll-snap-type: x proximity !important;
 }
-body.mindful-read-mode ytd-watch-flexy #related ytd-compact-video-renderer,
-body.mindful-read-mode ytd-watch-flexy #related ytd-compact-radio-renderer {
+/* Related cards render as yt-lockup-view-model (the same ViewModel
+   migration already handled for home-feed cards elsewhere in this
+   file) -- not ytd-compact-video-renderer, which no longer exists
+   in current markup and left these cards completely unstyled. */
+body.mindful-read-mode ytd-watch-flexy #related yt-lockup-view-model {
     flex: 0 0 auto !important;
     width: 11rem !important;
     scroll-snap-align: start !important;
+}
+body.mindful-read-mode ytd-watch-flexy #related .ytLockupMetadataViewModelAvatar,
+body.mindful-read-mode ytd-watch-flexy #related .ytThumbnailOverlayBadgeViewModelHost,
+body.mindful-read-mode ytd-watch-flexy #related ytd-menu-renderer {
+    display: none !important;
+}
+body.mindful-read-mode ytd-watch-flexy #related .ytLockupMetadataViewModelTitle {
+    font-family: var(--serif) !important; font-size: 13px !important;
+    font-weight: 500 !important; color: var(--fg) !important;
+    line-height: 1.3 !important;
+    display: -webkit-box !important; -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important; overflow: hidden !important;
+}
+body.mindful-read-mode ytd-watch-flexy #related .ytContentMetadataViewModelMetadataText {
+    font-family: var(--mono) !important; font-size: 11px !important;
+    color: var(--fg-subtle) !important;
 }
 
 /* The toggle button on the sidebar, matching the existing icon style */
