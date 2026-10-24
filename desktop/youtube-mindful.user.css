@@ -57,6 +57,9 @@
     /* type */
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
     --mono: "JetBrains Mono", "Fira Code", "SF Mono", Consolas, monospace;
+    /* Read mode only -- titles/headings there use a serif for a calmer,
+       editorial feel than the rest of the chrome-restyling system. */
+    --serif: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
     --fs-xs:   0.75rem;
     --fs-sm:   0.8125rem;
     --fs-base: 0.9375rem;
@@ -710,5 +713,149 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     #mindful-sidebar button { width: 2.5rem; height: 2.5rem; }
     ytd-page-manager { overflow-x: hidden !important; }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   READ MODE — a second, independent watch-page mode. Sits entirely
+   outside the existing .mindful-panel-* / warm-* system: it has its
+   own body class, its own sidebar button, and does not touch
+   openPanel/closePanel/prewarm. Toggled off, the watch page behaves
+   exactly as it did before this mode existed.
+
+   Layout: player docks to a small fixed box top-left (CSS transition
+   on position, not a reflow), left column gets title/meta/description,
+   native #comments scrolls down in the main column, native #secondary
+   (related) is laid out as a horizontal strip at the bottom. Real
+   YouTube elements, just repositioned -- same principle as the
+   existing warm/panel system, not a rebuilt comment/related renderer.
+   ══════════════════════════════════════════════════════════════════ */
+body.mindful-read-mode ytd-watch-flexy #player-container-outer.ytd-watch-flexy,
+body.mindful-read-mode ytd-watch-flexy #player-wide-container.ytd-watch-flexy,
+body.mindful-read-mode ytd-watch-flexy #player-theater-container.ytd-watch-flexy {
+    position: fixed !important;
+    top: var(--sp-5) !important; left: calc(var(--sidebar-w) + var(--sp-6)) !important;
+    width: 21.5rem !important; height: 12.5rem !important;
+    max-width: 21.5rem !important; max-height: 12.5rem !important;
+    border-radius: var(--radius) !important;
+    border: 1px solid var(--border) !important;
+    overflow: hidden !important;
+    z-index: var(--z-nav) !important; /* above #below's --z-panel, so the player always paints on top */
+    transition: top var(--dur) var(--ease), left var(--dur) var(--ease),
+                width var(--dur) var(--ease), height var(--dur) var(--ease) !important;
+}
+body.mindful-read-mode #movie_player { border-radius: var(--radius) !important; }
+
+body.mindful-read-mode ytd-watch-flexy #below {
+    height: auto !important;
+    overflow: visible !important;
+    display: grid !important;
+    /* Read mode's own fixed layout, independent of the page's text
+       direction -- a right-to-left locale (YouTube sets body[dir=rtl]
+       for e.g. Arabic UI/comments) otherwise mirrors which side is
+       "column 1", moving metadata to the right and comments to the
+       left. This mode has one deliberate layout, not a localized one. */
+    direction: ltr !important;
+    grid-template-columns: 21.5rem minmax(0, 1fr) !important;
+    grid-template-rows: minmax(0, 1fr) auto !important;
+    gap: var(--sp-3) var(--sp-8) !important;
+    padding: calc(12.5rem + var(--sp-6)) var(--sp-6) var(--sp-4) calc(var(--sidebar-w) + var(--sp-6)) !important;
+    position: fixed !important; inset: 0 !important;
+    max-width: 100% !important;
+    z-index: var(--z-panel) !important;
+    background: var(--bg) !important;
+}
+/* #below's direct children are YouTube's own generic ".box" wrappers
+   (no stable id), one per section (metadata / comments / related).
+   display:contents removes the wrapper from layout so the grid
+   actually sees ytd-watch-metadata / #comments / #secondary as the
+   grid items -- without this, grid-area on those elements is ignored
+   because they are not direct children of the grid container. */
+body.mindful-read-mode ytd-watch-flexy #below > .box {
+    display: contents !important;
+}
+
+/* Left column: title / channel / description, fixed in place */
+body.mindful-read-mode ytd-watch-flexy ytd-watch-metadata {
+    grid-area: 1 / 1 !important;
+    display: block !important; visibility: visible !important;
+    position: static !important; height: auto !important;
+    max-height: none !important; overflow: visible !important;
+    font-family: var(--sans) !important;
+}
+/* The real title/description live inside #above-the-fold, one level
+   deeper than ytd-watch-metadata itself -- the base stylesheet's cold
+   state sets display:none on it (same element the existing Details
+   panel already has to re-show); Read mode needs the same override. */
+body.mindful-read-mode ytd-watch-flexy #above-the-fold {
+    display: block !important;
+}
+body.mindful-read-mode ytd-watch-flexy #title-row h1,
+body.mindful-read-mode ytd-watch-flexy h1.ytd-watch-metadata {
+    font-family: var(--serif) !important;
+    font-size: 1.375rem !important; font-weight: 600 !important;
+    line-height: 1.2 !important; color: var(--fg) !important;
+}
+body.mindful-read-mode ytd-watch-flexy #top-row,
+body.mindful-read-mode ytd-watch-flexy #middle-row,
+body.mindful-read-mode ytd-watch-flexy #bottom-row {
+    display: block !important;
+}
+body.mindful-read-mode ytd-watch-flexy #description,
+body.mindful-read-mode ytd-watch-flexy #description-inner {
+    display: block !important;
+    font-family: var(--sans) !important; font-size: var(--fs-sm) !important;
+    color: var(--fg-muted) !important; line-height: 1.6 !important;
+}
+
+/* Main column: native comments, scrolling vertically, nothing else.
+   Bottom margin reserves room for the fixed related-strip below it
+   (related lives in a sibling container, not inside #below -- see
+   next rule -- so this column cannot grid-area its way around it). */
+body.mindful-read-mode ytd-watch-flexy #comments,
+body.mindful-read-mode ytd-watch-flexy ytd-comments#comments {
+    grid-area: 1 / 2 !important;
+    position: static !important; left: auto !important;
+    width: 100% !important; height: 100% !important;
+    overflow-y: auto !important; overflow-x: hidden !important;
+    visibility: visible !important; pointer-events: auto !important;
+    clip: auto !important; clip-path: none !important; opacity: 1 !important;
+    min-height: 0 !important;
+    margin-bottom: 14rem !important;
+}
+
+/* Bottom strip: native related. #secondary/#related is NOT a descendant
+   of #below (it lives under the page's own #columns -> #secondary
+   sibling tree), so it cannot participate in #below's grid -- it gets
+   its own fixed position instead, the same strategy already used for
+   the player box above. */
+body.mindful-read-mode ytd-watch-flexy #secondary,
+body.mindful-read-mode ytd-watch-flexy #secondary-inner,
+body.mindful-read-mode ytd-watch-flexy #related,
+body.mindful-read-mode ytd-watch-flexy ytd-watch-next-secondary-results-renderer {
+    position: fixed !important;
+    left: calc(var(--sidebar-w) + var(--sp-6)) !important;
+    right: var(--sp-6) !important;
+    bottom: var(--sp-4) !important;
+    top: auto !important;
+    width: auto !important; height: 12rem !important; max-height: 12rem !important;
+    overflow-y: hidden !important; overflow-x: auto !important;
+    visibility: visible !important; pointer-events: auto !important;
+    clip: auto !important; clip-path: none !important; opacity: 1 !important;
+    display: flex !important; flex-wrap: nowrap !important;
+    gap: var(--sp-4) !important;
+    border-top: 1px solid var(--border) !important;
+    padding-top: var(--sp-3) !important;
+    background: var(--bg) !important;
+    z-index: var(--z-panel) !important;
+    scroll-snap-type: x proximity !important;
+}
+body.mindful-read-mode ytd-watch-flexy #related ytd-compact-video-renderer,
+body.mindful-read-mode ytd-watch-flexy #related ytd-compact-radio-renderer {
+    flex: 0 0 auto !important;
+    width: 11rem !important;
+    scroll-snap-align: start !important;
+}
+
+/* The toggle button on the sidebar, matching the existing icon style */
+#mindful-sidebar button[aria-label="Read"].active { color: var(--accent) !important; }
 
 } /* end @-moz-document */

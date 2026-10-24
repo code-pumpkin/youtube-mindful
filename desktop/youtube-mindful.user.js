@@ -85,6 +85,9 @@
     /* type */
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
     --mono: "JetBrains Mono", "Fira Code", "SF Mono", Consolas, monospace;
+    /* Read mode only -- titles/headings there use a serif for a calmer,
+       editorial feel than the rest of the chrome-restyling system. */
+    --serif: "Iowan Old Style", "Palatino Linotype", Georgia, serif;
     --fs-xs:   0.75rem;
     --fs-sm:   0.8125rem;
     --fs-base: 0.9375rem;
@@ -738,6 +741,150 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     #mindful-sidebar button { width: 2.5rem; height: 2.5rem; }
     ytd-page-manager { overflow-x: hidden !important; }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   READ MODE — a second, independent watch-page mode. Sits entirely
+   outside the existing .mindful-panel-* / warm-* system: it has its
+   own body class, its own sidebar button, and does not touch
+   openPanel/closePanel/prewarm. Toggled off, the watch page behaves
+   exactly as it did before this mode existed.
+
+   Layout: player docks to a small fixed box top-left (CSS transition
+   on position, not a reflow), left column gets title/meta/description,
+   native #comments scrolls down in the main column, native #secondary
+   (related) is laid out as a horizontal strip at the bottom. Real
+   YouTube elements, just repositioned -- same principle as the
+   existing warm/panel system, not a rebuilt comment/related renderer.
+   ══════════════════════════════════════════════════════════════════ */
+body.mindful-read-mode ytd-watch-flexy #player-container-outer.ytd-watch-flexy,
+body.mindful-read-mode ytd-watch-flexy #player-wide-container.ytd-watch-flexy,
+body.mindful-read-mode ytd-watch-flexy #player-theater-container.ytd-watch-flexy {
+    position: fixed !important;
+    top: var(--sp-5) !important; left: calc(var(--sidebar-w) + var(--sp-6)) !important;
+    width: 21.5rem !important; height: 12.5rem !important;
+    max-width: 21.5rem !important; max-height: 12.5rem !important;
+    border-radius: var(--radius) !important;
+    border: 1px solid var(--border) !important;
+    overflow: hidden !important;
+    z-index: var(--z-nav) !important; /* above #below's --z-panel, so the player always paints on top */
+    transition: top var(--dur) var(--ease), left var(--dur) var(--ease),
+                width var(--dur) var(--ease), height var(--dur) var(--ease) !important;
+}
+body.mindful-read-mode #movie_player { border-radius: var(--radius) !important; }
+
+body.mindful-read-mode ytd-watch-flexy #below {
+    height: auto !important;
+    overflow: visible !important;
+    display: grid !important;
+    /* Read mode's own fixed layout, independent of the page's text
+       direction -- a right-to-left locale (YouTube sets body[dir=rtl]
+       for e.g. Arabic UI/comments) otherwise mirrors which side is
+       "column 1", moving metadata to the right and comments to the
+       left. This mode has one deliberate layout, not a localized one. */
+    direction: ltr !important;
+    grid-template-columns: 21.5rem minmax(0, 1fr) !important;
+    grid-template-rows: minmax(0, 1fr) auto !important;
+    gap: var(--sp-3) var(--sp-8) !important;
+    padding: calc(12.5rem + var(--sp-6)) var(--sp-6) var(--sp-4) calc(var(--sidebar-w) + var(--sp-6)) !important;
+    position: fixed !important; inset: 0 !important;
+    max-width: 100% !important;
+    z-index: var(--z-panel) !important;
+    background: var(--bg) !important;
+}
+/* #below's direct children are YouTube's own generic ".box" wrappers
+   (no stable id), one per section (metadata / comments / related).
+   display:contents removes the wrapper from layout so the grid
+   actually sees ytd-watch-metadata / #comments / #secondary as the
+   grid items -- without this, grid-area on those elements is ignored
+   because they are not direct children of the grid container. */
+body.mindful-read-mode ytd-watch-flexy #below > .box {
+    display: contents !important;
+}
+
+/* Left column: title / channel / description, fixed in place */
+body.mindful-read-mode ytd-watch-flexy ytd-watch-metadata {
+    grid-area: 1 / 1 !important;
+    display: block !important; visibility: visible !important;
+    position: static !important; height: auto !important;
+    max-height: none !important; overflow: visible !important;
+    font-family: var(--sans) !important;
+}
+/* The real title/description live inside #above-the-fold, one level
+   deeper than ytd-watch-metadata itself -- the base stylesheet's cold
+   state sets display:none on it (same element the existing Details
+   panel already has to re-show); Read mode needs the same override. */
+body.mindful-read-mode ytd-watch-flexy #above-the-fold {
+    display: block !important;
+}
+body.mindful-read-mode ytd-watch-flexy #title-row h1,
+body.mindful-read-mode ytd-watch-flexy h1.ytd-watch-metadata {
+    font-family: var(--serif) !important;
+    font-size: 1.375rem !important; font-weight: 600 !important;
+    line-height: 1.2 !important; color: var(--fg) !important;
+}
+body.mindful-read-mode ytd-watch-flexy #top-row,
+body.mindful-read-mode ytd-watch-flexy #middle-row,
+body.mindful-read-mode ytd-watch-flexy #bottom-row {
+    display: block !important;
+}
+body.mindful-read-mode ytd-watch-flexy #description,
+body.mindful-read-mode ytd-watch-flexy #description-inner {
+    display: block !important;
+    font-family: var(--sans) !important; font-size: var(--fs-sm) !important;
+    color: var(--fg-muted) !important; line-height: 1.6 !important;
+}
+
+/* Main column: native comments, scrolling vertically, nothing else.
+   Bottom margin reserves room for the fixed related-strip below it
+   (related lives in a sibling container, not inside #below -- see
+   next rule -- so this column cannot grid-area its way around it). */
+body.mindful-read-mode ytd-watch-flexy #comments,
+body.mindful-read-mode ytd-watch-flexy ytd-comments#comments {
+    grid-area: 1 / 2 !important;
+    position: static !important; left: auto !important;
+    width: 100% !important; height: 100% !important;
+    overflow-y: auto !important; overflow-x: hidden !important;
+    visibility: visible !important; pointer-events: auto !important;
+    clip: auto !important; clip-path: none !important; opacity: 1 !important;
+    min-height: 0 !important;
+    margin-bottom: 14rem !important;
+}
+
+/* Bottom strip: native related. #secondary/#related is NOT a descendant
+   of #below (it lives under the page's own #columns -> #secondary
+   sibling tree), so it cannot participate in #below's grid -- it gets
+   its own fixed position instead, the same strategy already used for
+   the player box above. */
+body.mindful-read-mode ytd-watch-flexy #secondary,
+body.mindful-read-mode ytd-watch-flexy #secondary-inner,
+body.mindful-read-mode ytd-watch-flexy #related,
+body.mindful-read-mode ytd-watch-flexy ytd-watch-next-secondary-results-renderer {
+    position: fixed !important;
+    left: calc(var(--sidebar-w) + var(--sp-6)) !important;
+    right: var(--sp-6) !important;
+    bottom: var(--sp-4) !important;
+    top: auto !important;
+    width: auto !important; height: 12rem !important; max-height: 12rem !important;
+    overflow-y: hidden !important; overflow-x: auto !important;
+    visibility: visible !important; pointer-events: auto !important;
+    clip: auto !important; clip-path: none !important; opacity: 1 !important;
+    display: flex !important; flex-wrap: nowrap !important;
+    gap: var(--sp-4) !important;
+    border-top: 1px solid var(--border) !important;
+    padding-top: var(--sp-3) !important;
+    background: var(--bg) !important;
+    z-index: var(--z-panel) !important;
+    scroll-snap-type: x proximity !important;
+}
+body.mindful-read-mode ytd-watch-flexy #related ytd-compact-video-renderer,
+body.mindful-read-mode ytd-watch-flexy #related ytd-compact-radio-renderer {
+    flex: 0 0 auto !important;
+    width: 11rem !important;
+    scroll-snap-align: start !important;
+}
+
+/* The toggle button on the sidebar, matching the existing icon style */
+#mindful-sidebar button[aria-label="Read"].active { color: var(--accent) !important; }
 `;
 
 
@@ -916,6 +1063,58 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     }
 
     function togglePanel(name) { state.panelOpen === name ? closePanel() : openPanel(name); }
+
+    // ── Read mode ──
+    // A second, independent watch-page mode (see the CSS block of the
+    // same name). Does not call openPanel/closePanel/prewarm, and does
+    // not read or write state.panelOpen -- the two systems are unaware
+    // of each other by design. Closing a prewarm panel first avoids the
+    // two layouts fighting over the same #comments/#secondary nodes.
+    //
+    // One real conflict does cross the boundary: if comments/recs/details
+    // are already WARM (prewarmed but not open), the warm CSS rule
+    // (`.mindful-warm-X:not(.mindful-panel-X)`) paints them at
+    // z-index:-1/opacity:0 -- and that selector wins over the read-mode
+    // rule's specificity regardless of source order. Read mode visually
+    // takes over those same elements, so it must suspend the warm-hidden
+    // classes (not the warm STATE, which stays true) and lift `inert`
+    // while open, restoring both on close.
+    let readModeOn = false;
+    let readModeSuspendedWarm = [];
+    function toggleReadMode() {
+        readModeOn = !readModeOn;
+        if (readModeOn && state.panelOpen) closePanel();
+        document.body.classList.toggle("mindful-read-mode", readModeOn);
+        sidebarBtns.read?.classList.toggle("active", readModeOn);
+        if (readModeOn) {
+            readModeSuspendedWarm = WARMABLE.filter(name => isWarm(name) && document.body.classList.contains(warmClasses[name]));
+            readModeSuspendedWarm.forEach(name => {
+                document.body.classList.remove(warmClasses[name]);
+                setInert(name, false);
+            });
+            // Comments/related are native YouTube elements repositioned by
+            // CSS; nudge related's internal measurement once it has the
+            // new geometry, same trick used for the existing recs panel.
+            setTimeout(() => window.dispatchEvent(new Event("resize")), 60);
+        } else {
+            readModeSuspendedWarm.forEach(name => {
+                document.body.classList.add(warmClasses[name]);
+                setInert(name, true);
+            });
+            readModeSuspendedWarm = [];
+        }
+    }
+    function closeReadMode() {
+        if (!readModeOn) return;
+        readModeOn = false;
+        document.body.classList.remove("mindful-read-mode");
+        sidebarBtns.read?.classList.remove("active");
+        readModeSuspendedWarm.forEach(name => {
+            document.body.classList.add(warmClasses[name]);
+            setInert(name, true);
+        });
+        readModeSuspendedWarm = [];
+    }
 
     // ── Search overlay ──
     let searchEl, searchInput, suggestEl, suggestTimer;
@@ -1159,6 +1358,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         recs:    "M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z",
         comments:"M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z",
         chat:    "M12 2C6.48 2 2 6.48 2 12c0 1.54.36 2.98.97 4.29L2 22l5.71-.97A9.96 9.96 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2z",
+        read:    "M12 6.5C10.3 5.2 7.9 4.5 5.5 4.5c-1 0-2 .1-3 .4v12.6c1-.3 2-.4 3-.4 2.4 0 4.8.7 6.5 2 1.7-1.3 4.1-2 6.5-2 1 0 2 .1 3 .4V4.9c-1-.3-2-.4-3-.4-2.4 0-4.8.7-6.5 2zm0 2.3v10.8",
         settings:"M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.6 3.6 0 0112 15.6z",
         history: "M13 3a9 9 0 00-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7a6.98 6.98 0 01-4.95-2.05l-1.41 1.41A8.96 8.96 0 0013 21a9 9 0 000-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z",
         watchlater:"M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z",
@@ -1178,6 +1378,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
             { id:"recs",     icon:"recs",     label:"Recommendations", action: () => isWatch() && togglePanel("recs") },
             { id:"comments", icon:"comments", label:"Comments",        action: () => isWatch() && togglePanel("comments") },
             { id:"chat",     icon:"chat",     label:"Live Chat",       action: () => isWatch() && isLive() && togglePanel("chat") },
+            { id:"read",     icon:"read",     label:"Read",            action: () => isWatch() && toggleReadMode() },
             "sep",
             { id:"subs",      icon:"subs",      label:"Subscriptions", action: () => location.href="/feed/subscriptions" },
             { id:"history",   icon:"history",    label:"History",       action: () => location.href="/feed/history" },
@@ -1256,6 +1457,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
             sidebarBtns[id].dataset.warm = (w && isWarm(id)) ? "ready" : "";
         });
         sidebarBtns.chat.disabled = !w || !isLive();
+        sidebarBtns.read.disabled = !w;
         PANELS.forEach(id => {
             const on = state.panelOpen === id;
             sidebarBtns[id].classList.toggle("active", on);
@@ -1272,6 +1474,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         if (e.key === "Escape") {
             if (settingsEl.style.display === "flex") { closeSettings(); return; }
             if (searchEl.classList.contains("open")) { closeSearch(); return; }
+            if (readModeOn) { closeReadMode(); return; }
             if (state.panelOpen) { closePanel(); return; }
         }
         if (e.ctrlKey || e.altKey || e.metaKey) return;
@@ -1321,6 +1524,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     function onNav() {
         if (state.panelOpen) closePanel();
         if (searchEl?.classList.contains("open")) closeSearch();
+        closeReadMode();
         clearWarm();
         updateSidebar();
         buildChannelBar();
