@@ -173,7 +173,7 @@ a[href*="/shorts/"] { display: none !important; }
     font-size: var(--fs-lg);
     font-weight: 600;
     color: var(--fg);
-    margin: 12px 16px 8px 16px;
+    margin: var(--sp-3) var(--sp-4) var(--sp-2) var(--sp-4);
 }
 
 /* ══════════════════════════════════════════════════════════════════
