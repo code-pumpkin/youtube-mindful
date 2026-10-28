@@ -411,7 +411,8 @@ ytd-watch-flexy #comments, ytd-watch-flexy ytd-comments#comments {
 }
 ytd-watch-flexy #secondary, ytd-watch-flexy #secondary-inner,
 ytd-watch-flexy #related,
-ytd-watch-flexy ytd-watch-next-secondary-results-renderer {
+ytd-watch-flexy ytd-watch-next-secondary-results-renderer,
+ytd-watch-flexy ytd-playlist-panel-renderer {
     position: fixed !important; left: -200vw !important;
     width: 0 !important; height: 0 !important; overflow: hidden !important;
     visibility: hidden !important; pointer-events: none !important;
@@ -471,6 +472,38 @@ body.mindful-panel-recs ytd-watch-flexy ytd-watch-next-secondary-results-rendere
     height: auto !important; left: auto !important;
     overflow: visible !important; clip: auto !important; clip-path: none !important;
     opacity: 1 !important; visibility: visible !important; pointer-events: auto !important;
+}
+
+/* Active-playlist panel (?list=) renders above the related list inside #secondary.
+   Normalize it into normal document flow and strip YouTube's native high internal
+   z-index so it no longer overlaps/underlaps the recs; stacking relies on document
+   order and the dock's own --z-panel context, not a magic number. */
+body.mindful-warm-recs ytd-watch-flexy ytd-playlist-panel-renderer,
+body.mindful-panel-recs ytd-watch-flexy ytd-playlist-panel-renderer {
+    position: static !important; width: 100% !important; max-width: 100% !important;
+    height: auto !important; max-height: none !important; left: auto !important;
+    overflow: visible !important; clip: auto !important; clip-path: none !important;
+    opacity: 1 !important; visibility: visible !important; pointer-events: auto !important;
+    z-index: auto !important;
+    margin: 0 0 var(--sp-4) 0 !important;
+    padding: 0 0 var(--sp-4) 0 !important;
+    border-bottom: 1px solid var(--border) !important;
+    background: var(--surface) !important;
+}
+/* The playlist panel's own sticky/absolute inner chrome must not float over the
+   related list; flatten it into flow within the normalized panel. */
+body.mindful-warm-recs ytd-watch-flexy ytd-playlist-panel-renderer #header,
+body.mindful-panel-recs ytd-watch-flexy ytd-playlist-panel-renderer #header,
+body.mindful-warm-recs ytd-watch-flexy ytd-playlist-panel-renderer #container,
+body.mindful-panel-recs ytd-watch-flexy ytd-playlist-panel-renderer #container,
+body.mindful-warm-recs ytd-watch-flexy ytd-playlist-panel-renderer #items,
+body.mindful-panel-recs ytd-watch-flexy ytd-playlist-panel-renderer #items,
+body.mindful-warm-recs ytd-watch-flexy ytd-playlist-panel-renderer #playlist-items,
+body.mindful-panel-recs ytd-watch-flexy ytd-playlist-panel-renderer #playlist-items {
+    position: static !important; width: 100% !important; max-width: 100% !important;
+    height: auto !important; max-height: none !important;
+    overflow: visible !important; z-index: auto !important;
+    background: transparent !important;
 }
 
 /* Details keeps only the required ancestors; injected content provides the stable UI. */
