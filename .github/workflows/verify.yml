@@ -1,0 +1,39 @@
+name: verify
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Check CSS sync contract
+        run: |
+          python3 tools/sync-css.py
+          git diff --exit-code
+
+      - name: Verify design system
+        run: python3 tools/verify-design.py
+
+      - name: Run prewarm tests
+        run: node tools/test-prewarm.js
+
+      - name: Syntax-check desktop userscript
+        run: node --check desktop/youtube-mindful.user.js
+
+      - name: Syntax-check mobile userscript
+        run: node --check mobile/youtube-mindful-mobile.user.js

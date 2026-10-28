@@ -160,7 +160,7 @@ ytd-rich-grid-renderer {
     --ytd-rich-grid-items-per-row: 2 !important;
     --ytd-rich-grid-posts-per-row: 2 !important;
     --ytd-rich-grid-slim-items-per-row: 2 !important;
-    max-width: 100% !important; width: 100% !important; padding: var(--sp-4) !important;
+    max-width: 100% !important; width: 100% !important; padding: var(--sp-6) !important;
 }
 ytd-rich-grid-renderer #contents.ytd-rich-grid-renderer { padding: 0 !important; }
 ytd-rich-grid-row { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
@@ -172,6 +172,30 @@ ytd-rich-item-renderer {
     min-width: 0 !important; margin: 0 !important; padding: 0 !important;
     background: transparent !important;
     transition: background var(--dur) var(--ease) !important;
+}
+
+/* Current Home renderer — YouTube migrated cards from rich-grid-media to ViewModel. */
+/* YouTube fixes the root at 10px, so Home recalibrates the 4px spacing scale locally. */
+ytd-browse[page-subtype="home"] {
+    --sp-1: 0.4rem;  --sp-2: 0.8rem;  --sp-3: 1.2rem;
+    --sp-4: 1.6rem;  --sp-5: 2rem;    --sp-6: 2.4rem;  --sp-8: 3.2rem;
+    --fs-xs: 1.2rem; --fs-sm: 1.3rem; --fs-base: 1.5rem;
+}
+ytd-browse[page-subtype="home"] ytd-rich-grid-renderer {
+    box-sizing: border-box !important;
+    max-width: 1440px !important; margin: 0 auto !important;
+}
+ytd-browse[page-subtype="home"] ytd-rich-grid-renderer > #contents.ytd-rich-grid-renderer {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    column-gap: var(--sp-6) !important;
+    row-gap: var(--sp-8) !important;
+}
+ytd-browse[page-subtype="home"] ytd-rich-item-renderer {
+    width: 100% !important; max-width: none !important;
+}
+ytd-browse[page-subtype="home"] ytd-continuation-item-renderer {
+    grid-column: 1 / -1 !important;
 }
 ytd-rich-item-renderer:hover { background: var(--surface) !important; }
 
@@ -195,6 +219,37 @@ ytd-rich-item-renderer ytd-channel-thumbnail-with-link-renderer { display: none 
 #details.ytd-rich-grid-media, #meta.ytd-rich-grid-media {
     padding: var(--sp-3) var(--sp-2) var(--sp-2) !important; margin: 0 !important;
 }
+/* ViewModel metadata: keep title, channel, age, and duration; remove avatar/icon noise. */
+ytd-browse[page-subtype="home"] .ytLockupViewModelMetadata {
+    gap: var(--sp-3) !important;
+    padding: var(--sp-3) var(--sp-2) 0 !important;
+}
+ytd-browse[page-subtype="home"] yt-decorated-avatar-view-model {
+    display: none !important;
+}
+ytd-browse[page-subtype="home"] yt-lockup-metadata-view-model {
+    width: 100% !important; min-width: 0 !important;
+}
+ytd-browse[page-subtype="home"] .ytLockupMetadataViewModelTitle {
+    color: var(--fg) !important;
+    font-family: var(--sans) !important;
+    font-size: var(--fs-base) !important;
+    font-weight: 500 !important;
+    line-height: 1.4 !important;
+}
+ytd-browse[page-subtype="home"] .ytLockupMetadataViewModelMetadata {
+    margin-top: var(--sp-1) !important;
+}
+ytd-browse[page-subtype="home"] .ytContentMetadataViewModelMetadataText {
+    color: var(--fg-subtle) !important;
+    font-family: var(--mono) !important;
+    font-size: var(--fs-xs) !important;
+}
+ytd-browse[page-subtype="home"] .ytContentMetadataViewModelLeadingIcon,
+ytd-browse[page-subtype="home"] .ytContentMetadataViewModelLeadingIcon + .ytContentMetadataViewModelMetadataText,
+ytd-browse[page-subtype="home"] .ytContentMetadataViewModelLeadingIcon + .ytContentMetadataViewModelMetadataText + .ytContentMetadataViewModelDelimiter {
+    display: none !important;
+}
 .ytp-videowall-still-info-title, ytd-thumbnail-overlay-time-status-renderer span {
     font-family: var(--mono) !important; font-size: var(--fs-xs) !important;
 }
@@ -202,7 +257,7 @@ ytd-rich-item-renderer ytd-channel-thumbnail-with-link-renderer { display: none 
 /* ══════════════════════════════════════════════════════════════════
    HIDE SHORTS + JUNK
    ══════════════════════════════════════════════════════════════════ */
-ytd-rich-section-renderer, ytd-reel-shelf-renderer, [is-shorts],
+ytd-reel-shelf-renderer, [is-shorts],
 ytd-rich-shelf-renderer[is-shorts],
 ytd-mini-guide-entry-renderer[aria-label="Shorts"],
 ytd-guide-entry-renderer:has(a[title="Shorts"]),
@@ -215,12 +270,38 @@ ytd-video-renderer:has(a[href*="/shorts/"]),
 ytd-compact-video-renderer:has(a[href*="/shorts/"]),
 yt-tab-shape[tab-title="Shorts"],
 ytd-post-renderer, ytd-backstage-post-thread-renderer,
-ytd-rich-shelf-renderer, ytd-compact-video-renderer[is-shorts],
+ytd-compact-video-renderer[is-shorts],
 ytd-movie-offering-module-renderer, ytd-compact-movie-renderer,
 ytd-merch-shelf-renderer, ytd-ticket-shelf-renderer { display: none !important; }
+/* NOTE: ytd-rich-section-renderer is NOT in the kill-list above — it also
+   wraps YouTube's empty-feed "search to get started" nudge for accounts
+   with no watch history, which is legitimate and restyled below. Shorts
+   shelves are fully covered by the specific selectors above. */
 
 /* ══════════════════════════════════════════════════════════════════
-   SEARCH PAGE
+   EMPTY-HOME GREETING — time-of-day heading above YouTube's own
+   empty-feed nudge. First thing shown on an empty home screen.
+   ══════════════════════════════════════════════════════════════════ */
+#mindful-greeting {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--fg);
+    margin: 0 0 0.75rem 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   EMPTY-FEED NUDGE — YouTube's own empty-history state, restyled to
+   match the dark theme instead of its default light card.
+   ══════════════════════════════════════════════════════════════════ */
+ytd-rich-section-renderer {
+    background: var(--surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius) !important;
+    color: var(--fg) !important;
+}
+ytd-rich-section-renderer a, ytd-rich-section-renderer yt-formatted-string {
+    color: var(--fg-muted) !important;
+}
    ══════════════════════════════════════════════════════════════════ */
 ytd-search #page-manager, ytd-search ytd-two-column-search-results-renderer,
 ytd-search ytd-section-list-renderer {
@@ -231,6 +312,10 @@ ytd-search ytd-item-section-renderer #contents {
     display: grid !important;
     grid-template-columns: repeat(auto-fill, minmax(clamp(260px, 30vw, 340px), 1fr)) !important;
     gap: var(--sp-6) !important; max-width: 100% !important; align-items: start !important;
+}
+ytd-search #secondary.ytd-two-column-search-results-renderer {
+    max-width: 24rem !important; padding: var(--sp-4) var(--sp-4) var(--sp-4) 0 !important;
+    background: transparent !important;
 }
 ytd-search ytd-video-renderer {
     display: flex !important; flex-direction: column !important;
@@ -246,8 +331,10 @@ ytd-search ytd-video-renderer ytd-thumbnail img { width: 100% !important; height
 ytd-search ytd-video-renderer .text-wrapper { display: flex !important; flex-direction: column !important; width: 100% !important; padding: var(--sp-3) var(--sp-2) !important; }
 ytd-search ytd-video-renderer #channel-thumbnail,
 ytd-search ytd-video-renderer #avatar-link { display: none !important; }
-ytd-search ytd-secondary-search-container-renderer,
-ytd-search #secondary.ytd-two-column-search-results-renderer { display: none !important; }
+ytd-search ytd-secondary-search-container-renderer ytd-promoted-sparkles-web-renderer,
+ytd-search ytd-secondary-search-container-renderer ytd-ad-slot-renderer,
+ytd-search ytd-secondary-search-container-renderer ytd-promoted-video-renderer,
+ytd-search ytd-secondary-search-container-renderer ytd-companion-slot-renderer { display: none !important; }
 ytd-search ytd-video-renderer #video-title, ytd-search ytd-video-renderer h3.title-and-badge {
     font-family: var(--sans) !important; font-size: var(--fs-base) !important;
     font-weight: 500 !important; color: var(--fg) !important;
@@ -256,7 +343,7 @@ ytd-search ytd-video-renderer #video-title, ytd-search ytd-video-renderer h3.tit
 ytd-search ytd-video-renderer ytd-channel-name {
     font-family: var(--sans) !important; font-size: var(--fs-sm) !important; color: var(--fg-muted) !important;
 }
-ytd-search ytd-promoted-sparkles-web-renderer, ytd-search ytd-shelf-renderer,
+ytd-search ytd-promoted-sparkles-web-renderer,
 ytd-search ytd-ad-slot-renderer, ytd-search ytd-promoted-video-renderer { display: none !important; }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -295,7 +382,9 @@ ytd-watch-flexy #comments, ytd-watch-flexy ytd-comments#comments {
     visibility: hidden !important; pointer-events: none !important;
 }
 ytd-watch-flexy #secondary, ytd-watch-flexy #secondary-inner,
-ytd-watch-flexy ytd-watch-next-secondary-results-renderer {
+ytd-watch-flexy #related,
+ytd-watch-flexy ytd-watch-next-secondary-results-renderer,
+ytd-watch-flexy ytd-playlist-panel-renderer {
     position: fixed !important; left: -200vw !important;
     width: 0 !important; height: 0 !important; overflow: hidden !important;
     visibility: hidden !important; pointer-events: none !important;
@@ -317,10 +406,13 @@ body.mindful-warm-comments ytd-watch-flexy ytd-comments#comments,
 body.mindful-panel-comments ytd-watch-flexy #comments,
 body.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
 body.mindful-warm-recs ytd-watch-flexy #secondary,
+body.mindful-warm-recs ytd-watch-flexy #related,
 body.mindful-panel-recs ytd-watch-flexy #secondary,
+body.mindful-panel-recs ytd-watch-flexy #related,
 body.mindful-warm-details ytd-watch-flexy #above-the-fold,
 body.mindful-panel-details ytd-watch-flexy #above-the-fold,
 body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
+    box-sizing: border-box !important;
     position: fixed !important;
     top: 0 !important; right: 0 !important; bottom: 0 !important; left: auto !important;
     width: var(--mindful-panel-w) !important;
@@ -337,6 +429,12 @@ body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
 }
 body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat { padding: 0 !important; }
 
+/* Details is hidden in the closed state, so warm/open must restore its box. */
+body.mindful-warm-details ytd-watch-flexy #above-the-fold,
+body.mindful-panel-details ytd-watch-flexy #above-the-fold {
+    display: block !important;
+}
+
 /* Recs inner containers need un-hiding in both states */
 body.mindful-warm-recs ytd-watch-flexy #secondary-inner,
 body.mindful-panel-recs ytd-watch-flexy #secondary-inner,
@@ -348,50 +446,78 @@ body.mindful-panel-recs ytd-watch-flexy ytd-watch-next-secondary-results-rendere
     opacity: 1 !important; visibility: visible !important; pointer-events: auto !important;
 }
 
-/* Details panel needs its hidden children restored in both states */
-body.mindful-warm-details ytd-watch-flexy #below,
-body.mindful-panel-details ytd-watch-flexy #below { height: auto !important; overflow: visible !important; }
-body.mindful-warm-details ytd-watch-flexy ytd-watch-metadata,
-body.mindful-panel-details ytd-watch-flexy ytd-watch-metadata,
-body.mindful-warm-details ytd-watch-flexy #top-row,
-body.mindful-panel-details ytd-watch-flexy #top-row,
-body.mindful-warm-details ytd-watch-flexy #bottom-row,
-body.mindful-panel-details ytd-watch-flexy #bottom-row,
-body.mindful-warm-details ytd-watch-flexy #description,
-body.mindful-panel-details ytd-watch-flexy #description,
-body.mindful-warm-details ytd-watch-flexy #description-inner,
-body.mindful-panel-details ytd-watch-flexy #description-inner,
-body.mindful-warm-details ytd-watch-flexy ytd-text-inline-expander,
-body.mindful-panel-details ytd-watch-flexy ytd-text-inline-expander,
-body.mindful-warm-details ytd-watch-flexy #snippet,
-body.mindful-panel-details ytd-watch-flexy #snippet,
-body.mindful-warm-details ytd-watch-flexy #plain-snippet-text,
-body.mindful-panel-details ytd-watch-flexy #plain-snippet-text,
-body.mindful-warm-details ytd-watch-flexy ytd-structured-description-content-renderer,
-body.mindful-panel-details ytd-watch-flexy ytd-structured-description-content-renderer,
-body.mindful-warm-details ytd-watch-flexy #attributed-snippet-text,
-body.mindful-panel-details ytd-watch-flexy #attributed-snippet-text {
-    display: block !important; visibility: visible !important;
-    position: static !important; left: auto !important; top: auto !important;
-    max-height: none !important; overflow: visible !important; height: auto !important;
+/* Active-playlist panel (?list=) renders above the related list inside #secondary.
+   Normalize it into normal document flow and strip YouTube's native high internal
+   z-index so it no longer overlaps/underlaps the recs; stacking relies on document
+   order and the dock's own --z-panel context, not a magic number. */
+body.mindful-warm-recs ytd-watch-flexy ytd-playlist-panel-renderer,
+body.mindful-panel-recs ytd-watch-flexy ytd-playlist-panel-renderer {
+    position: static !important; width: 100% !important; max-width: 100% !important;
+    height: auto !important; max-height: none !important; left: auto !important;
+    overflow: visible !important; clip: auto !important; clip-path: none !important;
+    opacity: 1 !important; visibility: visible !important; pointer-events: auto !important;
+    z-index: auto !important;
+    margin: 0 0 var(--sp-4) 0 !important;
+    padding: 0 0 var(--sp-4) 0 !important;
+    border-bottom: 1px solid var(--border) !important;
+    background: var(--surface) !important;
 }
-body.mindful-warm-details ytd-watch-flexy #top-row,
-body.mindful-panel-details ytd-watch-flexy #top-row { display: flex !important; flex-wrap: wrap !important; }
-body.mindful-panel-details ytd-watch-flexy #bottom-row > *:not(#description) { display: none !important; }
-body.mindful-warm-details ytd-watch-flexy #expand,
-body.mindful-panel-details ytd-watch-flexy #expand,
-body.mindful-warm-details ytd-watch-flexy #collapse,
-body.mindful-panel-details ytd-watch-flexy #collapse,
-body.mindful-panel-details ytd-watch-flexy [slot="expand-button"],
-body.mindful-panel-details ytd-watch-flexy [slot="collapse-button"] { display: none !important; }
+/* The playlist panel's own sticky/absolute inner chrome must not float over the
+   related list; flatten it into flow within the normalized panel. */
+body.mindful-warm-recs ytd-watch-flexy ytd-playlist-panel-renderer #header,
+body.mindful-panel-recs ytd-watch-flexy ytd-playlist-panel-renderer #header,
+body.mindful-warm-recs ytd-watch-flexy ytd-playlist-panel-renderer #container,
+body.mindful-panel-recs ytd-watch-flexy ytd-playlist-panel-renderer #container,
+body.mindful-warm-recs ytd-watch-flexy ytd-playlist-panel-renderer #items,
+body.mindful-panel-recs ytd-watch-flexy ytd-playlist-panel-renderer #items,
+body.mindful-warm-recs ytd-watch-flexy ytd-playlist-panel-renderer #playlist-items,
+body.mindful-panel-recs ytd-watch-flexy ytd-playlist-panel-renderer #playlist-items {
+    position: static !important; width: 100% !important; max-width: 100% !important;
+    height: auto !important; max-height: none !important;
+    overflow: visible !important; z-index: auto !important;
+    background: transparent !important;
+}
+
+/* Details keeps only the required ancestors; injected content provides the stable UI. */
+body.mindful-warm-details ytd-watch-flexy #below,
+body.mindful-panel-details ytd-watch-flexy #below {
+    height: auto !important;
+    overflow: visible !important;
+}
+body.mindful-warm-details ytd-watch-flexy ytd-watch-metadata,
+body.mindful-panel-details ytd-watch-flexy ytd-watch-metadata {
+    display: block !important;
+    visibility: visible !important;
+    position: static !important;
+    max-height: none !important;
+    overflow: visible !important;
+    height: auto !important;
+}
+body.mindful-panel-details ytd-watch-flexy #title-row,
+body.mindful-panel-details ytd-watch-flexy #top-row,
+body.mindful-panel-details ytd-watch-flexy #middle-row,
+body.mindful-panel-details ytd-watch-flexy #bottom-row {
+    display: none !important;
+}
+#mindful-description-inject {
+    color: var(--fg-muted);
+    font-family: var(--sans);
+    font-size: 1.4rem;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
 body.mindful-panel-details ytd-watch-flexy #above-the-fold {
-    font-family: var(--sans) !important; font-size: var(--fs-base) !important; color: var(--fg) !important;
+    font-family: var(--sans) !important;
+    font-size: var(--fs-base) !important;
+    color: var(--fg) !important;
 }
 
 /* ── WARM-ONLY OVERRIDE — invisible, inert, painted behind the page ── */
 body.mindful-warm-comments:not(.mindful-panel-comments) ytd-watch-flexy #comments,
 body.mindful-warm-comments:not(.mindful-panel-comments) ytd-watch-flexy ytd-comments#comments,
 body.mindful-warm-recs:not(.mindful-panel-recs) ytd-watch-flexy #secondary,
+body.mindful-warm-recs:not(.mindful-panel-recs) ytd-watch-flexy #related,
 body.mindful-warm-details:not(.mindful-panel-details) ytd-watch-flexy #above-the-fold {
     opacity: 0 !important;
     pointer-events: none !important;
@@ -407,6 +533,7 @@ body.mindful-warm-details:not(.mindful-panel-details) ytd-watch-flexy #above-the
 body.mindful-panel-comments ytd-watch-flexy #comments,
 body.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
 body.mindful-panel-recs ytd-watch-flexy #secondary,
+body.mindful-panel-recs ytd-watch-flexy #related,
 body.mindful-panel-details ytd-watch-flexy #above-the-fold,
 body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
     animation: panel-in var(--dur) var(--ease) !important;
@@ -423,32 +550,54 @@ body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat iframe {
 /* ── Panel internals ── */
 ytd-watch-flexy #comments ytd-comment-thread-renderer {
     border-bottom: 1px solid var(--border) !important;
-    padding-bottom: var(--sp-3) !important; margin-bottom: var(--sp-3) !important;
+    padding-bottom: 1.2rem !important; margin-bottom: 1.2rem !important;
 }
 ytd-watch-flexy #comments #content-text {
-    font-family: var(--sans) !important; font-size: var(--fs-sm) !important;
-    line-height: 1.5 !important; color: var(--fg) !important;
+    font-family: var(--sans) !important; font-size: 1.4rem !important;
+    line-height: 1.6 !important; color: var(--fg) !important;
 }
 ytd-watch-flexy #comments #author-text {
-    font-family: var(--sans) !important; font-size: var(--fs-xs) !important;
-    color: var(--fg-muted) !important;
+    font-family: var(--sans) !important; font-size: 1.25rem !important;
+    line-height: 1.4 !important; color: var(--fg-muted) !important;
 }
 ytd-watch-flexy #comments #vote-count-middle,
 ytd-watch-flexy #comments .published-time-text {
-    font-family: var(--mono) !important; font-size: var(--fs-xs) !important; color: var(--fg-subtle) !important;
+    font-family: var(--mono) !important; font-size: 1.2rem !important; color: var(--fg-subtle) !important;
 }
 
 /* Stats injected by JS */
 #mindful-stats {
-    display: flex !important; gap: var(--sp-3) !important; flex-wrap: wrap !important;
+    display: flex !important; gap: 0.8rem !important; flex-wrap: wrap !important;
     align-items: center !important;
-    padding: 0 0 var(--sp-3) 0 !important; margin-bottom: var(--sp-3) !important;
+    padding: 0 0 1.2rem 0 !important; margin-bottom: 1.2rem !important;
     border-bottom: 1px solid var(--border) !important;
-    font-family: var(--mono) !important; font-size: var(--fs-xs) !important;
+    font-family: var(--mono) !important; font-size: 1.3rem !important;
+    line-height: 1.5 !important;
 }
 #mindful-title-inject {
-    margin-bottom: var(--sp-3) !important; padding-bottom: var(--sp-3) !important;
+    margin-bottom: 1.2rem !important; padding-bottom: 1.2rem !important;
     border-bottom: 1px solid var(--border) !important;
+}
+#mindful-title-inject .mindful-channel-link {
+    display: inline-flex;
+    margin-top: 0.8rem;
+    color: var(--info) !important;
+    font-family: var(--sans);
+    font-size: 1.4rem;
+    line-height: 1.4;
+    text-decoration: none;
+}
+#mindful-title-inject .mindful-channel-link:hover {
+    color: var(--fg) !important;
+    text-decoration: underline;
+}
+#mindful-title-inject .mindful-subscriber-count {
+    display: block;
+    margin-top: 0.4rem;
+    color: var(--fg-muted);
+    font-family: var(--mono);
+    font-size: 1.2rem;
+    line-height: 1.4;
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -462,27 +611,26 @@ ytd-watch-flexy #comments .published-time-text {
     padding: var(--sp-2) 0; gap: var(--sp-1); z-index: var(--z-nav);
     font-family: var(--sans); overflow-y: auto; overflow-x: hidden;
 }
-#mindful-sidebar button {
+#mindful-sidebar button, #mindful-sidebar a {
     width: 2.25rem; height: 2.25rem; border: none; background: transparent;
     color: var(--fg-muted); cursor: pointer; border-radius: var(--radius-sm);
     display: flex; align-items: center; justify-content: center;
     transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
     position: relative;
+    text-decoration: none;
 }
-#mindful-sidebar button svg { pointer-events: none; }
-#mindful-sidebar button:hover { background: var(--surface-2) !important; color: var(--fg) !important; }
-#mindful-sidebar button:active { transform: scale(0.96); }
-#mindful-sidebar button.active { color: var(--accent) !important; background: var(--surface-2) !important; }
-#mindful-sidebar button.active::before {
+#mindful-sidebar button svg, #mindful-sidebar a svg { pointer-events: none; }
+#mindful-sidebar button:hover, #mindful-sidebar a:hover { background: var(--surface-2) !important; color: var(--fg) !important; }
+#mindful-sidebar button:active, #mindful-sidebar a:active { transform: scale(0.96); }
+#mindful-sidebar button.active, #mindful-sidebar a.active { color: var(--accent) !important; background: var(--surface-2) !important; }
+#mindful-sidebar button.active::before, #mindful-sidebar a.active::before {
     content: ""; position: absolute; left: -0.5rem; top: 20%; bottom: 20%;
     width: 2px; background: var(--accent); border-radius: var(--radius-pill);
 }
 #mindful-sidebar button[disabled] { opacity: 0.35 !important; pointer-events: none !important; }
-/* Prewarm indicator — content already fetched, panel opens instantly */
-#mindful-sidebar button[data-warm="ready"]::before {
-    content: ""; position: absolute; top: 0.3125rem; right: 0.3125rem;
-    width: 4px; height: 4px; border-radius: 50%;
-    background: var(--success); opacity: 0.7;
+/* Prewarming is internal state; only active panels need a visible indicator. */
+#mindful-sidebar button[data-warm="ready"]:not(.active)::before {
+    display: none !important;
 }
 #mindful-sidebar button.active[data-warm="ready"]::before {
     left: -0.5rem; right: auto; top: 20%; bottom: 20%;
@@ -490,7 +638,7 @@ ytd-watch-flexy #comments .published-time-text {
     border-radius: var(--radius-pill); opacity: 1;
 }
 #mindful-sidebar .sep { width: 1.25rem; height: 1px; background: var(--border); margin: var(--sp-2) 0; }
-#mindful-sidebar button::after {
+#mindful-sidebar button::after, #mindful-sidebar a::after {
     content: attr(aria-label); position: absolute; left: 3.25rem; top: 50%;
     transform: translateY(-50%); background: var(--surface); color: var(--fg);
     font-family: var(--sans); font-size: var(--fs-xs); padding: var(--sp-1) var(--sp-2);
@@ -498,8 +646,48 @@ ytd-watch-flexy #comments .published-time-text {
     white-space: nowrap; pointer-events: none; opacity: 0;
     transition: opacity var(--dur) var(--ease); z-index: var(--z-overlay);
 }
-#mindful-sidebar button:hover::after,
-#mindful-sidebar button:focus-visible::after { opacity: 1; }
+#mindful-sidebar button:hover::after, #mindful-sidebar a:hover::after,
+#mindful-sidebar button:focus-visible::after, #mindful-sidebar a:focus-visible::after { opacity: 1; }
+
+/* Library menu — secondary destinations stay off the primary navigation. */
+#mindful-library {
+    position: fixed;
+    left: var(--mindful-library-left, calc(var(--sidebar-w) + 0.8rem));
+    bottom: var(--mindful-library-bottom, 1.2rem);
+    z-index: var(--z-overlay);
+    display: none;
+    min-width: 18rem;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.8rem;
+    background: var(--surface);
+    color: var(--fg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+}
+#mindful-library.open { display: flex !important; }
+#mindful-library button, #mindful-library a {
+    min-height: 4.4rem;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    padding: 0 1.2rem;
+    background: transparent;
+    color: var(--fg-muted);
+    border: 0;
+    border-radius: var(--radius-sm);
+    font-family: var(--sans);
+    font-size: 1.3rem;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+}
+#mindful-library button:hover, #mindful-library a:hover,
+#mindful-library button:focus-visible, #mindful-library a:focus-visible {
+    background: var(--surface-2);
+    color: var(--fg);
+}
+#mindful-library button svg, #mindful-library a svg { flex: 0 0 auto; pointer-events: none; }
 
 /* ══════════════════════════════════════════════════════════════════
    SEARCH OVERLAY
@@ -546,7 +734,8 @@ ytd-watch-flexy #comments .published-time-text {
 /* ══════════════════════════════════════════════════════════════════
    MISC
    ══════════════════════════════════════════════════════════════════ */
-ytd-notification-topbar-button-renderer, #voice-search-button { display: none !important; }
+ytd-notification-topbar-button-renderer, #voice-search-button,
+ytd-mealbar-promo-renderer { display: none !important; }
 tp-yt-paper-dialog, ytd-popup-container, ytd-menu-popup-renderer {
     background: var(--surface) !important; color: var(--fg) !important;
     border: 1px solid var(--border) !important;
@@ -585,7 +774,7 @@ body.mindful-mode-overlay.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame
    ══════════════════════════════════════════════════════════════════ */
 body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { display: none !important; }
 :fullscreen ytd-page-manager, :-webkit-full-screen ytd-page-manager { margin-left: 0 !important; }
-:fullscreen #movie_player, :-webkit-full-screen #movie_player { max-height: 100vh !important; height: 100vh !important; }
+:fullscreen #movie_player, :-webkit-full-screen #movie_player { height: 100vh !important; max-height: 100vh !important; }
 
 /* ══════════════════════════════════════════════════════════════════
    BREAKPOINTS
@@ -598,23 +787,186 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         --ytd-rich-grid-slim-items-per-row: 3 !important;
         padding: var(--sp-6) !important;
     }
+    ytd-browse[page-subtype="home"] ytd-rich-grid-renderer > #contents.ytd-rich-grid-renderer {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
     ytd-rich-item-renderer {
         width: calc(100%/3 - var(--sp-4)) !important;
         max-width: calc(100%/3 - var(--sp-4)) !important;
     }
 }
 
-/* Wide — 4 columns, capped reading width */
+/* Wide — 3 columns, capped reading width */
 @media (min-width: 1600px) {
     ytd-rich-grid-renderer {
-        --ytd-rich-grid-items-per-row: 4 !important;
-        --ytd-rich-grid-posts-per-row: 4 !important;
-        --ytd-rich-grid-slim-items-per-row: 4 !important;
-        max-width: 1600px !important; margin: 0 auto !important;
+        --ytd-rich-grid-items-per-row: 3 !important;
+        --ytd-rich-grid-posts-per-row: 3 !important;
+        --ytd-rich-grid-slim-items-per-row: 3 !important;
+        max-width: 1440px !important; margin: 0 auto !important;
     }
     ytd-rich-item-renderer {
-        width: calc(25% - var(--sp-5)) !important;
-        max-width: calc(25% - var(--sp-5)) !important;
+        width: calc(100%/3 - var(--sp-4)) !important;
+        max-width: calc(100%/3 - var(--sp-4)) !important;
+    }
+}
+
+/* Desktop — contextual labelled dock. */
+@media (pointer: fine) and (min-width: 701px) {
+    :root { --sidebar-w: 0px; }
+
+    ytd-page-manager,
+    ytd-app[guide-persistent-and-visible] #page-manager.ytd-app {
+        margin-left: 0 !important;
+        margin-bottom: 7.6rem !important;
+    }
+    html.mindful-watch-page,
+    html.mindful-watch-page body,
+    html.mindful-watch-page ytd-app,
+    html.mindful-watch-page ytd-page-manager,
+    html.mindful-watch-page ytd-watch-flexy {
+        height: 100vh !important;
+        max-height: 100vh !important;
+        overflow: hidden !important;
+    }
+    html.mindful-watch-page ytd-page-manager {
+        margin-bottom: 0 !important;
+    }
+    #mindful-sidebar {
+        box-sizing: border-box !important;
+        top: auto !important;
+        right: auto !important;
+        bottom: 1.2rem !important;
+        left: 50% !important;
+        width: auto !important;
+        max-width: calc(100vw - 2.4rem) !important;
+        height: 6.4rem !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 0.2rem !important;
+        padding: 0.6rem !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        transform: translateX(-50%);
+        border: 1px solid var(--border) !important;
+        border-radius: 0.8rem !important;
+        background: var(--surface) !important;
+    }
+    #mindful-sidebar button, #mindful-sidebar a {
+        width: auto !important;
+        min-width: 5.6rem !important;
+        height: 5.2rem !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        gap: 0.3rem !important;
+        padding: 0.5rem 0.8rem !important;
+    }
+    #mindful-sidebar button::after, #mindful-sidebar a::after {
+        position: static !important;
+        transform: none !important;
+        opacity: 1 !important;
+        padding: 0 !important;
+        background: transparent !important;
+        color: inherit !important;
+        border: 0 !important;
+        font-size: 1.1rem !important;
+        z-index: auto !important;
+    }
+    #mindful-sidebar .sep {
+        width: 1px !important;
+        height: 3.2rem !important;
+        margin: 0 0.4rem !important;
+    }
+    #mindful-sidebar button.active::before, #mindful-sidebar a.active::before,
+    #mindful-sidebar button.active[data-warm="ready"]::before {
+        top: -0.6rem !important;
+        right: 20% !important;
+        bottom: auto !important;
+        left: 20% !important;
+        width: auto !important;
+        height: 2px !important;
+    }
+    #mindful-library {
+        left: var(--mindful-library-left, 50%) !important;
+        bottom: var(--mindful-library-bottom, 8.2rem) !important;
+        transform: translateX(-50%);
+    }
+    #mindful-channel-bar { bottom: 8.2rem !important; }
+
+    ytd-watch-flexy #player-wide-container.ytd-watch-flexy,
+    ytd-watch-flexy #player-theater-container.ytd-watch-flexy,
+    ytd-watch-flexy #player-container-outer.ytd-watch-flexy {
+        height: calc(100vh - 8rem) !important;
+        max-height: calc(100vh - 8rem) !important;
+    }
+    #movie_player {
+        max-height: calc(100vh - 8rem) !important;
+    }
+
+    body.mindful-panel-height-full.mindful-panel-comments ytd-watch-flexy #comments,
+    body.mindful-panel-height-full.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
+    body.mindful-panel-height-full.mindful-panel-recs ytd-watch-flexy #secondary,
+    body.mindful-panel-height-full.mindful-panel-recs ytd-watch-flexy #related,
+    body.mindful-panel-height-full.mindful-panel-details ytd-watch-flexy #above-the-fold,
+    body.mindful-panel-height-full.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
+        bottom: 0 !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        padding-bottom: calc(var(--sp-5) + 8.6rem) !important;
+    }
+
+    /* "Up to video" option — panel stops where the dock begins, like before. */
+    body.mindful-panel-height-video.mindful-panel-comments ytd-watch-flexy #comments,
+    body.mindful-panel-height-video.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
+    body.mindful-panel-height-video.mindful-panel-recs ytd-watch-flexy #secondary,
+    body.mindful-panel-height-video.mindful-panel-recs ytd-watch-flexy #related,
+    body.mindful-panel-height-video.mindful-panel-details ytd-watch-flexy #above-the-fold,
+    body.mindful-panel-height-video.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
+        bottom: 8.6rem !important;
+        height: calc(100vh - 8.6rem) !important;
+        max-height: calc(100vh - 8.6rem) !important;
+    }
+}
+
+/* Tablet on the desktop site — labelled navigation and 44px touch targets. */
+@media (pointer: coarse) and (min-width: 701px) and (max-width: 1200px) {
+    :root { --sidebar-w: 12rem; }
+
+    #mindful-sidebar {
+        box-sizing: border-box !important;
+        width: var(--sidebar-w) !important;
+        align-items: stretch !important;
+        gap: 0.2rem !important;
+        padding: 0.8rem !important;
+    }
+    #mindful-sidebar button, #mindful-sidebar a {
+        width: 100% !important;
+        min-height: 4.4rem !important;
+        height: 4.4rem !important;
+        justify-content: flex-start !important;
+        gap: 1.2rem !important;
+        padding: 0 1.2rem !important;
+    }
+    #mindful-sidebar button::after, #mindful-sidebar a::after {
+        position: static !important;
+        transform: none !important;
+        opacity: 1 !important;
+        background: transparent !important;
+        color: inherit !important;
+        border: 0 !important;
+        padding: 0 !important;
+        font-size: 1.2rem !important;
+        z-index: auto !important;
+    }
+    #mindful-sidebar button.active::before, #mindful-sidebar a.active::before {
+        left: -0.8rem !important;
+    }
+    #mindful-sidebar .sep {
+        width: 100% !important;
+        margin: 0.4rem 0 !important;
+    }
+    #mindful-library {
+        left: calc(var(--sidebar-w) + 0.8rem) !important;
+        bottom: 1.2rem !important;
     }
 }
 
@@ -633,9 +985,9 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         border-right: none !important; border-top: 1px solid var(--border) !important;
     }
     #mindful-sidebar .sep { display: none !important; }
-    #mindful-sidebar button { width: 2.75rem; height: 2.75rem; }
-    #mindful-sidebar button::after { display: none !important; }
-    #mindful-sidebar button.active::before {
+    #mindful-sidebar button, #mindful-sidebar a { width: 2.75rem; height: 2.75rem; }
+    #mindful-sidebar button::after, #mindful-sidebar a::after { display: none !important; }
+    #mindful-sidebar button.active::before, #mindful-sidebar a.active::before {
         left: 20%; right: 20%; top: auto; bottom: 0;
         width: auto; height: 2px;
     }
@@ -674,7 +1026,9 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     body.mindful-panel-comments ytd-watch-flexy #comments,
     body.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
     body.mindful-warm-recs ytd-watch-flexy #secondary,
+    body.mindful-warm-recs ytd-watch-flexy #related,
     body.mindful-panel-recs ytd-watch-flexy #secondary,
+    body.mindful-panel-recs ytd-watch-flexy #related,
     body.mindful-warm-details ytd-watch-flexy #above-the-fold,
     body.mindful-panel-details ytd-watch-flexy #above-the-fold,
     body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
@@ -686,6 +1040,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     body.mindful-panel-comments ytd-watch-flexy #comments,
     body.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
     body.mindful-panel-recs ytd-watch-flexy #secondary,
+    body.mindful-panel-recs ytd-watch-flexy #related,
     body.mindful-panel-details ytd-watch-flexy #above-the-fold,
     body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
         animation: sheet-in var(--dur) var(--ease) !important;
@@ -707,8 +1062,48 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
 
 /* 320px floor — nothing may overflow horizontally */
 @media (max-width: 360px) {
-    #mindful-sidebar button { width: 2.5rem; height: 2.5rem; }
+    #mindful-sidebar button, #mindful-sidebar a { width: 2.5rem; height: 2.5rem; }
     ytd-page-manager { overflow-x: hidden !important; }
+}
+
+/* Fullscreen wins over every responsive dock reservation above. */
+html:has(:fullscreen) #mindful-sidebar,
+html:has(:-webkit-full-screen) #mindful-sidebar {
+    display: none !important;
+}
+html:has(:fullscreen) ytd-page-manager,
+html:has(:-webkit-full-screen) ytd-page-manager {
+    margin: 0 !important;
+}
+html:has(:fullscreen) ytd-watch-flexy #player-wide-container.ytd-watch-flexy,
+html:has(:fullscreen) ytd-watch-flexy #player-theater-container.ytd-watch-flexy,
+html:has(:fullscreen) ytd-watch-flexy #player-container-outer.ytd-watch-flexy,
+html:has(:-webkit-full-screen) ytd-watch-flexy #player-wide-container.ytd-watch-flexy,
+html:has(:-webkit-full-screen) ytd-watch-flexy #player-theater-container.ytd-watch-flexy,
+html:has(:-webkit-full-screen) ytd-watch-flexy #player-container-outer.ytd-watch-flexy {
+    height: 100vh !important;
+    max-height: 100vh !important;
+}
+html:has(:fullscreen) #movie_player,
+#movie_player:fullscreen,
+html:has(:-webkit-full-screen) #movie_player,
+#movie_player:-webkit-full-screen {
+    height: 100vh !important;
+    max-height: 100vh !important;
+}
+/* Non-16:9 video in a 16:9-taller fullscreen box always letterboxes —
+   YouTube's own player does this natively too. The "black bottom gap"
+   isn't dead space we can reclaim; it's letterboxing that mismatches
+   our theme's --bg (#121110 charcoal) against YouTube's native pure
+   black fullscreen chrome. Match native black so it reads as intended
+   letterboxing instead of a visible seam. */
+html:has(:fullscreen) ytd-watch-flexy,
+html:has(:-webkit-full-screen) ytd-watch-flexy,
+html:has(:fullscreen) #full-bleed-container,
+html:has(:-webkit-full-screen) #full-bleed-container,
+html:has(:fullscreen) #movie_player,
+html:has(:-webkit-full-screen) #movie_player {
+    background: #000 !important;
 }
 
 } /* end @-moz-document */

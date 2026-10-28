@@ -171,39 +171,71 @@ console.log("\nDESKTOP nav resets warm state");
     assert(warmSet.length === 3, `consistent: all 3 warm classes present (${warmSet.length})`);
 }
 
-console.log("\nMOBILE prewarm state machine");
+console.log("\nMOBILE native component contract (static)");
 {
-    const win = setupDOM();
-    win.location = { pathname: "/watch", href: "https://m.youtube.com/watch?v=a", search: "?v=a" };
-    loadScript(win, "mobile/youtube-mindful-mobile.user.js");
-    const cls = win.document.body.classList;
-
-    runTimers(win, 3000);
-
-    assert(cls.contains("mindful-warm-details"), "warm: mobile details warmed");
-    assert(cls.contains("mindful-warm-related"), "warm: mobile related warmed");
-
-    const details = win._roots["ytm-slim-video-metadata-section-renderer"];
-    const related = win._roots["ytm-item-section-renderer.scwnr-content[section-identifier=related-items]"];
-    assert(details.hasAttribute("inert"), "warm: mobile details root inert");
-    assert(related.hasAttribute("inert"), "warm: mobile related root inert");
-
-    assert(!cls.contains("mindful-m-details"), "warm: mobile details not in open state");
-    assert(!cls.contains("mindful-m-related"), "warm: mobile related not in open state");
+    const css = fs.readFileSync(path.join(REPO, "mobile/youtube-mindful-mobile.user.css"), "utf8");
+    const js = fs.readFileSync(path.join(REPO, "mobile/youtube-mindful-mobile.user.js"), "utf8");
+    assert(!js.includes("setupWatchUI") && !js.includes('row.id = "mindful-watch-btns"'),
+        "mobile: no synthetic watch shortcut row is injected");
+    assert(!js.includes("function warmPanel") && !js.includes('id = "mindful-watch-desc"'),
+        "mobile: obsolete panel prewarm and duplicate description are removed");
+    assert(!css.includes("COLD STATE — related sections collapsed") &&
+           css.includes("Current Related sections remain in native document flow"),
+        "mobile: every native Related section remains in document flow");
+    assert(css.includes("yt-video-metadata-view-model") && css.includes("ytm-slim-video-action-bar-renderer"),
+        "mobile: current metadata and action components are themed, not replaced");
+    assert(/ytm-engagement-panel-section-list-renderer ytm-button-renderer\.close-button \{[\s\S]*?width: 44px !important;/.test(css),
+        "mobile: native Comments close control remains a 44px target");
+    assert(!/[0-9.]rem/.test(css),
+        "mobile: custom sizing is independent of YouTube's 10px root");
+    assert(js.includes("isInlinePlaybackNoAd") && js.includes('visibilityState", { get: () => "visible"'),
+        "mobile: playback defenses remain present");
 }
 
-// ── Static invariant: every setInert(x,false) on open has a matching
-//    setInert(x,true) on close. A visible-but-inert panel is the worst bug. ──
-console.log("\nInert lifecycle symmetry (static)");
-for (const f of ["desktop/youtube-mindful.user.js", "mobile/youtube-mindful-mobile.user.js"]) {
-    const src = fs.readFileSync(path.join(REPO, f), "utf8");
+// ── Static invariant: every desktop setInert(false) on open has a
+//    matching setInert(true) on close. Mobile now delegates to native panels. ──
+console.log("\nDESKTOP inert lifecycle symmetry (static)");
+{
+    const src = fs.readFileSync(path.join(REPO, "desktop/youtube-mindful.user.js"), "utf8");
     const lifts = (src.match(/setInert\([^,]+,\s*false\)/g) || []).length;
     const blocks = (src.match(/setInert\([^,]+,\s*true\)/g) || []).length;
     assert(lifts >= 2 && blocks >= 2,
-        `${f.split("/")[0]}: inert lifted ${lifts}x, re-blocked ${blocks}x (both >= 2)`);
-    assert(/classList\.add\(panelClasses|classList\.add\(cls\)/.test(src) === true ||
-           /document\.body\.classList\.add\(cls\)/.test(src),
-        `${f.split("/")[0]}: open path adds a panel class`);
+        `desktop: inert lifted ${lifts}x, re-blocked ${blocks}x (both >= 2)`);
+    assert(/classList\.add\(panelClasses/.test(src),
+        "desktop: open path adds a panel class");
+}
+
+console.log("\nDESKTOP Details rendering contract (static)");
+{
+    const css = fs.readFileSync(path.join(REPO, "desktop/youtube-mindful.user.css"), "utf8");
+    const js = fs.readFileSync(path.join(REPO, "desktop/youtube-mindful.user.js"), "utf8");
+    assert(/body\.mindful-panel-details ytd-watch-flexy #above-the-fold\s*\{\s*display:\s*block !important;/s.test(css),
+        "desktop: open Details root restores display:block");
+    assert(js.includes('id = "mindful-description-inject"') && js.includes("#attributed-snippet-text"),
+        "desktop: Details uses normalized attributed description text");
+    assert(js.includes('document.getElementById("mindful-description-inject")?.remove()'),
+        "desktop: normalized Details content is removed on close");
+}
+
+console.log("\nDESKTOP responsive watch contract (static)");
+{
+    const css = fs.readFileSync(path.join(REPO, "desktop/youtube-mindful.user.css"), "utf8");
+    const js = fs.readFileSync(path.join(REPO, "desktop/youtube-mindful.user.js"), "utf8");
+    assert(css.includes("font-size: 1.4rem !important") && css.includes("font-size: 1.25rem !important"),
+        "desktop: comment and author text use readable sizes");
+    assert(css.includes("ytd-watch-flexy #related") && js.includes('"ytd-watch-flexy #related"'),
+        "desktop: current related renderer has CSS and prewarm fallbacks");
+    assert(css.includes("html.mindful-watch-page") && js.includes('classList.toggle("mindful-watch-page", w)'),
+        "desktop: watch route locks layout to one viewport");
+    assert(css.indexOf("Fullscreen wins over every responsive dock reservation") > css.indexOf("Desktop — contextual labelled dock"),
+        "desktop: fullscreen reset follows dock rules");
+    assert(!css.includes("#player-full-bleed-container") &&
+           !/#movie_player\s*\{[^}]*\n\s*height:/s.test(css),
+        "desktop: player internals retain YouTube-controlled height");
+    assert(css.includes(".mindful-channel-link") && css.includes(".mindful-subscriber-count") &&
+           css.includes("font-size: 1.3rem !important") && js.includes("ch.href = channelHref") &&
+           js.includes("#owner-sub-count") && js.includes("View ${channel} channel"),
+        "desktop: Details exposes readable stats, subscriber count, and a channel link");
 }
 
 console.log(`\n${checks - failures}/${checks} passed`);
