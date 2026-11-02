@@ -254,7 +254,7 @@ console.log("\nDESKTOP playlist panel vs recommendations (static)");
         "desktop: playlist panel overrides YouTube's inline light theme");
     // One-column layout: playlist and #related share #below, so #below is the single drawer.
     const js = fs.readFileSync(path.join(REPO, "desktop/youtube-mindful.user.js"), "utf8");
-    const openPrimaryRelated = css.split("\n").filter(l => l.includes("mindful-panel-recs") && l.includes("#primary #related"));
+    const openPrimaryRelated = css.split("\n").filter(l => l.includes("mindful-panel-recs") && !l.includes(":not(.mindful-panel-recs)") && l.includes("#primary #related"));
     assert(openPrimaryRelated.every(l => l.includes("mindful-recs-inline")),
         "desktop: open #primary #related only flows inside the inline #below drawer");
     assert(/mindful-panel-recs\.mindful-recs-inline ytd-watch-flexy #below/.test(css) &&
