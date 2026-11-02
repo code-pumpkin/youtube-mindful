@@ -433,9 +433,9 @@ body.mindful-warm-comments ytd-watch-flexy ytd-comments#comments,
 body.mindful-panel-comments ytd-watch-flexy #comments,
 body.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
 body.mindful-warm-recs ytd-watch-flexy #secondary,
-body.mindful-warm-recs ytd-watch-flexy #primary #related,
+body.mindful-warm-recs:not(.mindful-panel-recs) ytd-watch-flexy #primary #related,
 body.mindful-panel-recs ytd-watch-flexy #secondary,
-body.mindful-panel-recs ytd-watch-flexy #primary #related,
+body.mindful-panel-recs.mindful-recs-inline ytd-watch-flexy #below,
 body.mindful-warm-details ytd-watch-flexy #above-the-fold,
 body.mindful-panel-details ytd-watch-flexy #above-the-fold,
 body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
@@ -466,12 +466,14 @@ body.mindful-panel-details ytd-watch-flexy #above-the-fold {
    In the two-column layout #related is a CHILD of #secondary-inner, so it must
    flow inside the single #secondary drawer, below the playlist panel. Giving it
    its own position:fixed drawer there paints it over ytd-playlist-panel-renderer
-   and hides the playlist. In the one-column layout YouTube moves #related (and
-   the playlist) into #primary, outside #secondary, so it keeps its own sheet. */
+   and hides the playlist. In the one-column layout YouTube moves #related and
+   the playlist into #primary, where they share #below. JS marks that with
+   .mindful-recs-inline and #below becomes the one drawer, so they cannot overlap. */
 body.mindful-warm-recs ytd-watch-flexy #secondary-inner,
 body.mindful-panel-recs ytd-watch-flexy #secondary-inner,
 body.mindful-warm-recs ytd-watch-flexy #secondary #related,
 body.mindful-panel-recs ytd-watch-flexy #secondary #related,
+body.mindful-panel-recs.mindful-recs-inline ytd-watch-flexy #primary #related,
 body.mindful-warm-recs ytd-watch-flexy ytd-watch-next-secondary-results-renderer,
 body.mindful-panel-recs ytd-watch-flexy ytd-watch-next-secondary-results-renderer {
     position: static !important; width: 100% !important; max-width: 100% !important;
@@ -570,7 +572,7 @@ body.mindful-warm-details:not(.mindful-panel-details) ytd-watch-flexy #above-the
 body.mindful-panel-comments ytd-watch-flexy #comments,
 body.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
 body.mindful-panel-recs ytd-watch-flexy #secondary,
-body.mindful-panel-recs ytd-watch-flexy #primary #related,
+body.mindful-panel-recs.mindful-recs-inline ytd-watch-flexy #below,
 body.mindful-panel-details ytd-watch-flexy #above-the-fold,
 body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
     animation: panel-in var(--dur) var(--ease) !important;
@@ -942,7 +944,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     body.mindful-panel-height-full.mindful-panel-comments ytd-watch-flexy #comments,
     body.mindful-panel-height-full.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
     body.mindful-panel-height-full.mindful-panel-recs ytd-watch-flexy #secondary,
-    body.mindful-panel-height-full.mindful-panel-recs ytd-watch-flexy #primary #related,
+    body.mindful-panel-height-full.mindful-panel-recs.mindful-recs-inline ytd-watch-flexy #below,
     body.mindful-panel-height-full.mindful-panel-details ytd-watch-flexy #above-the-fold,
     body.mindful-panel-height-full.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
         bottom: 0 !important;
@@ -955,7 +957,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     body.mindful-panel-height-video.mindful-panel-comments ytd-watch-flexy #comments,
     body.mindful-panel-height-video.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
     body.mindful-panel-height-video.mindful-panel-recs ytd-watch-flexy #secondary,
-    body.mindful-panel-height-video.mindful-panel-recs ytd-watch-flexy #primary #related,
+    body.mindful-panel-height-video.mindful-panel-recs.mindful-recs-inline ytd-watch-flexy #below,
     body.mindful-panel-height-video.mindful-panel-details ytd-watch-flexy #above-the-fold,
     body.mindful-panel-height-video.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
         bottom: 8.6rem !important;
@@ -1063,9 +1065,9 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     body.mindful-panel-comments ytd-watch-flexy #comments,
     body.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
     body.mindful-warm-recs ytd-watch-flexy #secondary,
-    body.mindful-warm-recs ytd-watch-flexy #primary #related,
+    body.mindful-warm-recs:not(.mindful-panel-recs) ytd-watch-flexy #primary #related,
     body.mindful-panel-recs ytd-watch-flexy #secondary,
-    body.mindful-panel-recs ytd-watch-flexy #primary #related,
+    body.mindful-panel-recs.mindful-recs-inline ytd-watch-flexy #below,
     body.mindful-warm-details ytd-watch-flexy #above-the-fold,
     body.mindful-panel-details ytd-watch-flexy #above-the-fold,
     body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
@@ -1077,7 +1079,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     body.mindful-panel-comments ytd-watch-flexy #comments,
     body.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
     body.mindful-panel-recs ytd-watch-flexy #secondary,
-    body.mindful-panel-recs ytd-watch-flexy #primary #related,
+    body.mindful-panel-recs.mindful-recs-inline ytd-watch-flexy #below,
     body.mindful-panel-details ytd-watch-flexy #above-the-fold,
     body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
         animation: sheet-in var(--dur) var(--ease) !important;
@@ -1350,6 +1352,14 @@ html:has(:-webkit-full-screen) #movie_player {
         state.warmed = {};
     }
 
+    // Two-column layout: #related lives inside #secondary. One-column layout: YouTube moves
+    // it, and the playlist panel, into #primary where they share #below. CSS pins the right
+    // container as the single drawer, so the playlist and recommendations can never overlap.
+    function syncRecsLayout() {
+        const rel = document.querySelector("ytd-watch-flexy #related");
+        document.body.classList.toggle("mindful-recs-inline", !!rel && !rel.closest("#secondary"));
+    }
+
     // ── Panels — toggle body classes, CSS does the rest ──
     function openPanel(name) {
         if (state.panelOpen) closePanel();
@@ -1359,6 +1369,7 @@ html:has(:-webkit-full-screen) #movie_player {
         warmPanel(name);
         // Opening must lift inert, or the panel renders but ignores clicks.
         if (warmClasses[name]) setInert(name, false);
+        if (name === "recs") syncRecsLayout();
         document.body.classList.add(panelClasses[name]);
         state.panelOpen = name;
         if (name === "details") { injectStats(); setTimeout(injectStats, 250); }
@@ -2001,6 +2012,9 @@ html:has(:-webkit-full-screen) #movie_player {
         window.addEventListener("yt-navigate-finish", onNav);
         window.addEventListener("resize", () => {
             closeLibrary();
+            syncRecsLayout();
+            // YouTube moves #related between columns a moment after the breakpoint is crossed.
+            setTimeout(syncRecsLayout, 300);
             updateSidebar();
         });
         document.addEventListener("fullscreenchange", () => {

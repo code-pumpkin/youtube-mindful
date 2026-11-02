@@ -252,6 +252,14 @@ console.log("\nDESKTOP playlist panel vs recommendations (static)");
     assert(css.includes("ytd-watch-flexy ytd-playlist-panel-renderer") &&
            css.includes("--yt-lightsource-section2-color: var(--surface) !important"),
         "desktop: playlist panel overrides YouTube's inline light theme");
+    // One-column layout: playlist and #related share #below, so #below is the single drawer.
+    const js = fs.readFileSync(path.join(REPO, "desktop/youtube-mindful.user.js"), "utf8");
+    const openPrimaryRelated = css.split("\n").filter(l => l.includes("mindful-panel-recs") && l.includes("#primary #related"));
+    assert(openPrimaryRelated.every(l => l.includes("mindful-recs-inline")),
+        "desktop: open #primary #related only flows inside the inline #below drawer");
+    assert(/mindful-panel-recs\.mindful-recs-inline ytd-watch-flexy #below/.test(css) &&
+           js.includes("function syncRecsLayout") && js.includes('name === "recs") syncRecsLayout()'),
+        "desktop: one-column layout pins #below as one drawer holding playlist and recommendations");
 }
 
 console.log(`\n${checks - failures}/${checks} passed`);
