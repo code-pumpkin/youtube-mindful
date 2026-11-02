@@ -433,9 +433,9 @@ body.mindful-warm-comments ytd-watch-flexy ytd-comments#comments,
 body.mindful-panel-comments ytd-watch-flexy #comments,
 body.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
 body.mindful-warm-recs ytd-watch-flexy #secondary,
-body.mindful-warm-recs ytd-watch-flexy #related,
+body.mindful-warm-recs ytd-watch-flexy #primary #related,
 body.mindful-panel-recs ytd-watch-flexy #secondary,
-body.mindful-panel-recs ytd-watch-flexy #related,
+body.mindful-panel-recs ytd-watch-flexy #primary #related,
 body.mindful-warm-details ytd-watch-flexy #above-the-fold,
 body.mindful-panel-details ytd-watch-flexy #above-the-fold,
 body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
@@ -462,15 +462,57 @@ body.mindful-panel-details ytd-watch-flexy #above-the-fold {
     display: block !important;
 }
 
-/* Recs inner containers need un-hiding in both states */
+/* Recs inner containers need un-hiding in both states.
+   In the two-column layout #related is a CHILD of #secondary-inner, so it must
+   flow inside the single #secondary drawer, below the playlist panel. Giving it
+   its own position:fixed drawer there paints it over ytd-playlist-panel-renderer
+   and hides the playlist. In the one-column layout YouTube moves #related (and
+   the playlist) into #primary, outside #secondary, so it keeps its own sheet. */
 body.mindful-warm-recs ytd-watch-flexy #secondary-inner,
 body.mindful-panel-recs ytd-watch-flexy #secondary-inner,
+body.mindful-warm-recs ytd-watch-flexy #secondary #related,
+body.mindful-panel-recs ytd-watch-flexy #secondary #related,
 body.mindful-warm-recs ytd-watch-flexy ytd-watch-next-secondary-results-renderer,
 body.mindful-panel-recs ytd-watch-flexy ytd-watch-next-secondary-results-renderer {
     position: static !important; width: 100% !important; max-width: 100% !important;
     height: auto !important; left: auto !important;
     overflow: visible !important; clip: auto !important; clip-path: none !important;
     opacity: 1 !important; visibility: visible !important; pointer-events: auto !important;
+}
+
+/* Playlist panel (up next / Mix). YouTube themes it light through inline
+   --yt-lightsource-* variables, so it needs its own calm theme. */
+ytd-watch-flexy ytd-playlist-panel-renderer {
+    --yt-lightsource-section2-color: var(--surface) !important;
+    --yt-lightsource-section4-color: var(--surface-2) !important;
+    --yt-lightsource-primary-title-color: var(--fg) !important;
+    --yt-lightsource-secondary-title-color: var(--fg-muted) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius) !important;
+    overflow: hidden !important;
+}
+ytd-watch-flexy ytd-playlist-panel-renderer .header,
+ytd-watch-flexy ytd-playlist-panel-renderer #items {
+    background: var(--surface) !important;
+}
+ytd-watch-flexy ytd-playlist-panel-renderer .header { border-bottom: 1px solid var(--border) !important; }
+ytd-watch-flexy ytd-playlist-panel-renderer .title,
+ytd-watch-flexy ytd-playlist-panel-renderer #video-title {
+    color: var(--fg) !important; font-family: var(--sans) !important;
+}
+ytd-watch-flexy ytd-playlist-panel-renderer .publisher,
+ytd-watch-flexy ytd-playlist-panel-renderer #byline,
+ytd-watch-flexy ytd-playlist-panel-renderer #header-description {
+    color: var(--fg-muted) !important;
+}
+ytd-watch-flexy ytd-playlist-panel-renderer yt-icon,
+ytd-watch-flexy ytd-playlist-panel-renderer yt-icon-button {
+    color: var(--fg-muted) !important; fill: var(--fg-muted) !important;
+}
+ytd-watch-flexy ytd-playlist-panel-video-renderer { background: transparent !important; }
+ytd-watch-flexy ytd-playlist-panel-video-renderer:hover,
+ytd-watch-flexy ytd-playlist-panel-video-renderer[selected] {
+    background: var(--surface-2) !important;
 }
 
 /* Details keeps only the required ancestors; injected content provides the stable UI. */
@@ -512,7 +554,7 @@ body.mindful-panel-details ytd-watch-flexy #above-the-fold {
 body.mindful-warm-comments:not(.mindful-panel-comments) ytd-watch-flexy #comments,
 body.mindful-warm-comments:not(.mindful-panel-comments) ytd-watch-flexy ytd-comments#comments,
 body.mindful-warm-recs:not(.mindful-panel-recs) ytd-watch-flexy #secondary,
-body.mindful-warm-recs:not(.mindful-panel-recs) ytd-watch-flexy #related,
+body.mindful-warm-recs:not(.mindful-panel-recs) ytd-watch-flexy #primary #related,
 body.mindful-warm-details:not(.mindful-panel-details) ytd-watch-flexy #above-the-fold {
     opacity: 0 !important;
     pointer-events: none !important;
@@ -528,7 +570,7 @@ body.mindful-warm-details:not(.mindful-panel-details) ytd-watch-flexy #above-the
 body.mindful-panel-comments ytd-watch-flexy #comments,
 body.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
 body.mindful-panel-recs ytd-watch-flexy #secondary,
-body.mindful-panel-recs ytd-watch-flexy #related,
+body.mindful-panel-recs ytd-watch-flexy #primary #related,
 body.mindful-panel-details ytd-watch-flexy #above-the-fold,
 body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
     animation: panel-in var(--dur) var(--ease) !important;
@@ -900,7 +942,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     body.mindful-panel-height-full.mindful-panel-comments ytd-watch-flexy #comments,
     body.mindful-panel-height-full.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
     body.mindful-panel-height-full.mindful-panel-recs ytd-watch-flexy #secondary,
-    body.mindful-panel-height-full.mindful-panel-recs ytd-watch-flexy #related,
+    body.mindful-panel-height-full.mindful-panel-recs ytd-watch-flexy #primary #related,
     body.mindful-panel-height-full.mindful-panel-details ytd-watch-flexy #above-the-fold,
     body.mindful-panel-height-full.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
         bottom: 0 !important;
@@ -913,7 +955,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     body.mindful-panel-height-video.mindful-panel-comments ytd-watch-flexy #comments,
     body.mindful-panel-height-video.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
     body.mindful-panel-height-video.mindful-panel-recs ytd-watch-flexy #secondary,
-    body.mindful-panel-height-video.mindful-panel-recs ytd-watch-flexy #related,
+    body.mindful-panel-height-video.mindful-panel-recs ytd-watch-flexy #primary #related,
     body.mindful-panel-height-video.mindful-panel-details ytd-watch-flexy #above-the-fold,
     body.mindful-panel-height-video.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
         bottom: 8.6rem !important;
@@ -1021,9 +1063,9 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     body.mindful-panel-comments ytd-watch-flexy #comments,
     body.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
     body.mindful-warm-recs ytd-watch-flexy #secondary,
-    body.mindful-warm-recs ytd-watch-flexy #related,
+    body.mindful-warm-recs ytd-watch-flexy #primary #related,
     body.mindful-panel-recs ytd-watch-flexy #secondary,
-    body.mindful-panel-recs ytd-watch-flexy #related,
+    body.mindful-panel-recs ytd-watch-flexy #primary #related,
     body.mindful-warm-details ytd-watch-flexy #above-the-fold,
     body.mindful-panel-details ytd-watch-flexy #above-the-fold,
     body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
@@ -1035,7 +1077,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     body.mindful-panel-comments ytd-watch-flexy #comments,
     body.mindful-panel-comments ytd-watch-flexy ytd-comments#comments,
     body.mindful-panel-recs ytd-watch-flexy #secondary,
-    body.mindful-panel-recs ytd-watch-flexy #related,
+    body.mindful-panel-recs ytd-watch-flexy #primary #related,
     body.mindful-panel-details ytd-watch-flexy #above-the-fold,
     body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
         animation: sheet-in var(--dur) var(--ease) !important;

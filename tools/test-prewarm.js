@@ -238,5 +238,21 @@ console.log("\nDESKTOP responsive watch contract (static)");
         "desktop: Details exposes readable stats, subscriber count, and a channel link");
 }
 
+console.log("\nDESKTOP playlist panel vs recommendations (static)");
+{
+    const css = fs.readFileSync(path.join(REPO, "desktop/youtube-mindful.user.css"), "utf8");
+    // In the two-column layout #related is a child of #secondary-inner. Pinning it as its own
+    // fixed drawer paints it over ytd-playlist-panel-renderer. Only #primary #related may be pinned.
+    const unscopedDrawer = /mindful-(?:warm|panel)-recs[^,{]*ytd-watch-flexy #related\s*[,{]/;
+    assert(!unscopedDrawer.test(css),
+        "desktop: #related is never pinned as its own drawer inside #secondary");
+    assert(css.includes("ytd-watch-flexy #secondary #related") &&
+           css.includes("ytd-watch-flexy #primary #related"),
+        "desktop: #related flows in #secondary and keeps its sheet in the one-column #primary");
+    assert(css.includes("ytd-watch-flexy ytd-playlist-panel-renderer") &&
+           css.includes("--yt-lightsource-section2-color: var(--surface) !important"),
+        "desktop: playlist panel overrides YouTube's inline light theme");
+}
+
 console.log(`\n${checks - failures}/${checks} passed`);
 process.exit(failures ? 1 : 0);
