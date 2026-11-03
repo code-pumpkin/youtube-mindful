@@ -6,6 +6,16 @@ A userscript + userstyle combo that replaces YouTube's default UI with a clean, 
 
 **Mobile** (`m.youtube.com`) — bottom bar nav, fullscreen panels, background playback, no shorts/ads.
 
+## Screenshots
+
+**Comments panel.** Comments open in a docked panel next to the video, so the video keeps playing.
+
+![Comments panel docked to the right of the video, with the navigation bar at the bottom](docs/screenshots/comments-panel.png)
+
+**Details panel.** The title, channel, stats, description and chapters in one calm column.
+
+![Details panel showing the video title, channel, view count and description beside the video](docs/screenshots/details-panel.png)
+
 ---
 
 ## Features
