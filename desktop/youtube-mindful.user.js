@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Mindful v9
 // @namespace    youtube-mindful
-// @version      9.0.9
+// @version      9.0.10
 // @description  Mindful YouTube — calm design system, sidebar nav, prewarmed panels.
 // @author       codePumpkin
 // @match        https://www.youtube.com/*
@@ -1593,6 +1593,7 @@ html:has(:-webkit-full-screen) #movie_player {
         return document.querySelector('ytd-engagement-panel-section-list-renderer[target-id="PAyouchat"]');
     }
     let askProxyClick = false;
+    let askCloseProxyClick = false;
     function openAskPanel() {
         const panel = getAskPanel();
         if (panel?.getAttribute("visibility") === "ENGAGEMENT_PANEL_VISIBILITY_EXPANDED") return;
@@ -1603,7 +1604,9 @@ html:has(:-webkit-full-screen) #movie_player {
     function closeAskPanel() {
         const panel = getAskPanel();
         if (panel?.getAttribute("visibility") !== "ENGAGEMENT_PANEL_VISIBILITY_EXPANDED") return;
+        askCloseProxyClick = true;
         panel.querySelector('button[aria-label="Close"]')?.click();
+        askCloseProxyClick = false;
     }
 
     // ── Panels — toggle body classes, CSS does the rest ──
@@ -2301,6 +2304,18 @@ html:has(:-webkit-full-screen) #movie_player {
             if (askProxyClick || !isWatch()) return;
             if (!e.target.closest('ytd-watch-flexy #actions button[aria-label="Ask"]')) return;
             if (state.panelOpen !== "ask") openPanel("ask");
+        });
+
+        // The Ask panel's own native Close (×) button sits inside the
+        // panel we repositioned into our dock slot. A genuine click there
+        // flips YouTube's internal state closed but left our dock slot and
+        // body class open, so the dock showed an empty, stuck-open Ask
+        // panel. Route any genuine (non-proxy) click on it through our own
+        // panel close so both sides stay in sync.
+        document.addEventListener("click", e => {
+            if (askCloseProxyClick || state.panelOpen !== "ask") return;
+            if (!e.target.closest('ytd-engagement-panel-section-list-renderer[target-id="PAyouchat"] button[aria-label="Close"]')) return;
+            closePanel();
         });
 
         window.addEventListener("keydown", onKey, true);
