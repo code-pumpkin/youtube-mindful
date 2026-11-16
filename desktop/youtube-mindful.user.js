@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Mindful v9
 // @namespace    youtube-mindful
-// @version      9.0.1
+// @version      9.0.2
 // @description  Mindful YouTube — calm design system, sidebar nav, prewarmed panels.
 // @author       codePumpkin
 // @match        https://www.youtube.com/*
@@ -397,12 +397,25 @@ ytd-watch-flexy[full-bleed-player] #full-bleed-container.ytd-watch-flexy { max-h
 /* YouTube gives #primary a 16px left margin; the player should start at the edge. */
 ytd-watch-flexy #primary.ytd-watch-flexy { margin-left: 0 !important; margin-right: 0 !important; }
 
+/* ── NO RECOMMENDATIONS ON TOP OF THE VIDEO ──
+   End-screen cards, the paused "more videos" strip, info cards and
+   suggested-action pills all sit over the picture. Pausing means clicking
+   the picture, so a card under the cursor gets opened by accident. The
+   Related panel is the one place suggestions belong. The "includes paid
+   promotion" disclosure is NOT hidden: it is not a recommendation. */
+.ytp-ce-element, .ytp-ce-covering-overlay, .ytp-endscreen-content,
+.ytp-videowall-still, .ytp-pause-overlay, .ytp-pause-overlay-container,
+.ytp-suggested-action, .ytp-cards-teaser, .ytp-cards-button,
+.ytp-autonav-endscreen, .ytp-iv-video-content {
+    display: none !important; pointer-events: none !important;
+}
+
 /* ── PLAYER MAKES ROOM FOR THE OPEN PANEL ──
    Panels are position:fixed on the right. Without this the player keeps its
    full width and the panel covers the right edge of the video and the
    player controls. Resize one container only: YouTube derives the player
    size from it, and shrinking nested containers too compounds the cut. */
-@media (min-width: 900px) {
+@media (min-width: 1100px) {
     body:is(.mindful-panel-details, .mindful-panel-recs, .mindful-panel-comments, .mindful-panel-chat):not(.mindful-mode-overlay)
     ytd-watch-flexy:not([fullscreen]) #player-container-outer {
         width: calc(100% - var(--mindful-panel-w)) !important;
@@ -562,6 +575,21 @@ body.mindful-panel-details ytd-watch-flexy #bottom-row {
     line-height: 1.6;
     overflow-wrap: anywhere;
     white-space: pre-wrap;
+}
+/* Links rebuilt from YouTube's description: URLs, @mentions, hashtags, chapters. */
+#mindful-description-inject a.mindful-desc-link {
+    color: var(--info);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--info) 45%, transparent);
+    text-underline-offset: 2px;
+    cursor: pointer;
+}
+#mindful-description-inject a.mindful-desc-link:hover { text-decoration-color: var(--info); }
+/* Chapter timestamps are a repeated action, so give them a larger target. */
+#mindful-description-inject a.mindful-desc-time {
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    padding: 2px 0;
 }
 body.mindful-panel-details ytd-watch-flexy #above-the-fold {
     font-family: var(--sans) !important;
@@ -1028,6 +1056,42 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
 }
 
 /* Phone — single column, bottom nav, bottom-sheet panels */
+/* ══════════════════════════════════════════════════════════════════
+   MIDDLE GROUP — 701–1099px: a narrowed or snapped window, a small laptop.
+   Wide enough for the desktop layout, too narrow for a fixed side panel:
+   a 380px panel leaves a 320–700px player, or covers the video's controls.
+     • The panel floats over the video with a scrim (the player keeps its
+       full width), and the scrim also blocks stray clicks on the picture.
+     • The dock drops its text labels so it fits without sideways scrolling.
+   ══════════════════════════════════════════════════════════════════ */
+@media (min-width: 701px) and (max-width: 1099px) {
+    body:is(.mindful-panel-details, .mindful-panel-recs, .mindful-panel-comments, .mindful-panel-chat):not(.mindful-mode-overlay)::after {
+        content: ""; position: fixed; inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: calc(var(--z-panel) - 1);
+        animation: scrim-in var(--dur) var(--ease);
+    }
+    body.mindful-panel-comments:not(.mindful-mode-overlay) ytd-watch-flexy #comments,
+    body.mindful-panel-comments:not(.mindful-mode-overlay) ytd-watch-flexy ytd-comments#comments,
+    body.mindful-panel-recs:not(.mindful-mode-overlay) ytd-watch-flexy #secondary,
+    body.mindful-panel-recs.mindful-recs-inline:not(.mindful-mode-overlay) ytd-watch-flexy #below,
+    body.mindful-panel-details:not(.mindful-mode-overlay) ytd-watch-flexy #above-the-fold,
+    body.mindful-panel-chat:not(.mindful-mode-overlay) ytd-watch-flexy ytd-live-chat-frame#chat {
+        width: min(var(--mindful-panel-w), 92vw) !important;
+        box-shadow: -8px 0 32px rgba(0, 0, 0, 0.5) !important;
+    }
+}
+@keyframes scrim-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* Dock at 701–1000px with a mouse: icons only. Every button keeps its
+   aria-label for screen readers and gets a title for the hover tooltip. */
+@media (pointer: fine) and (min-width: 701px) and (max-width: 1000px) {
+    #mindful-sidebar button::after, #mindful-sidebar a::after { display: none !important; }
+    #mindful-sidebar button, #mindful-sidebar a {
+        min-width: 44px !important; padding: 5px 8px !important;
+    }
+}
+
 @media (max-width: 700px) {
     :root { --sidebar-w: 0px; }
 
@@ -1207,6 +1271,135 @@ html:has(:-webkit-full-screen) #movie_player {
         return t === "input" || t === "textarea" || a.isContentEditable;
     }
 
+    // ── Description rendering ──
+    // YouTube's description is a yt-attributed-string holding real links
+    // (chapters, @mentions, hashtags, URLs). Copying it with textContent
+    // flattened all of that to dead text, so rebuild it node by node.
+    // Everything is created with createElement/textContent: YouTube
+    // enforces Trusted Types, so innerHTML is not an option.
+
+    // Resolve an href to something safe to render, or null to drop the link.
+    // Unwraps youtube.com/redirect?q=<url> so the visible target is the real one.
+    function safeLinkTarget(rawHref, base) {
+        let u;
+        try { u = new URL(rawHref, base); } catch (_) { return null; }
+        if (u.protocol !== "https:" && u.protocol !== "http:") return null;
+        if (/(^|\.)youtube\.com$/.test(u.hostname) && u.pathname === "/redirect") {
+            const q = u.searchParams.get("q");
+            if (!q) return null;
+            try {
+                const inner = new URL(q);
+                if (inner.protocol !== "https:" && inner.protocol !== "http:") return null;
+                u = inner;
+            } catch (_) { return null; }
+        }
+        return u;
+    }
+
+    // Seconds for a /watch?t=… link on the current video, else null.
+    function timestampSeconds(u, currentVideoId) {
+        if (u.pathname !== "/watch" || u.searchParams.get("v") !== currentVideoId) return null;
+        const t = u.searchParams.get("t");
+        if (!t) return null;
+        if (/^\d+$/.test(t)) return +t;
+        const m = t.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/);
+        return m && (m[1] || m[2] || m[3]) ? (+m[1] || 0) * 3600 + (+m[2] || 0) * 60 + (+m[3] || 0) : null;
+    }
+
+    // Split plain text into text / url segments. Used when YouTube gives us
+    // no link markup (plain-snippet fallback). Trailing punctuation is not
+    // part of the URL.
+    function splitUrls(text) {
+        const out = [];
+        const re = /https?:\/\/[^\s<>"']+/g;
+        let last = 0, m;
+        while ((m = re.exec(text))) {
+            let url = m[0];
+            const trail = url.match(/[.,;:!?)\]}'"]+$/);
+            if (trail) url = url.slice(0, -trail[0].length);
+            if (m.index > last) out.push({ type: "text", value: text.slice(last, m.index) });
+            out.push({ type: "url", value: url });
+            last = m.index + url.length;
+            re.lastIndex = last;
+        }
+        if (last < text.length) out.push({ type: "text", value: text.slice(last) });
+        return out;
+    }
+
+    function seekTo(seconds) {
+        const v = document.querySelector("video.html5-main-video") || document.querySelector("video");
+        if (v) { v.currentTime = seconds; v.play?.(); }
+    }
+
+    function makeDescriptionLink(label, srcAnchor) {
+        const raw = srcAnchor?.getAttribute("href") || "";
+        const target = safeLinkTarget(raw, location.href);
+        if (!target) return document.createTextNode(label);
+        const a = document.createElement("a");
+        a.className = "mindful-desc-link";
+        a.textContent = label;
+        const videoId = new URLSearchParams(location.search).get("v");
+        const secs = target.origin === location.origin ? timestampSeconds(target, videoId) : null;
+        if (secs !== null) {
+            a.href = target.href;
+            a.classList.add("mindful-desc-time");
+            a.addEventListener("click", e => {
+                if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+                e.preventDefault(); seekTo(secs);
+            });
+        } else if (target.origin === location.origin) {
+            a.href = target.href;
+            // Let YouTube's own router handle the click so the page does not reload.
+            a.addEventListener("click", e => {
+                if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+                if (srcAnchor?.isConnected) { e.preventDefault(); srcAnchor.click(); }
+            });
+        } else {
+            a.href = target.href;
+            a.target = "_blank";
+            a.rel = "noopener noreferrer nofollow";
+        }
+        return a;
+    }
+
+    // Copy a yt-attributed-string into `into`, keeping text, line breaks and links.
+    function copyDescriptionNodes(src, into) {
+        src.childNodes.forEach(n => {
+            if (n.nodeType === 3) { into.appendChild(document.createTextNode(n.nodeValue)); return; }
+            if (n.nodeType !== 1) return;
+            const tag = n.tagName.toLowerCase();
+            if (tag === "br") { into.appendChild(document.createElement("br")); return; }
+            if (tag === "img") { if (n.alt) into.appendChild(document.createTextNode(n.alt)); return; }
+            if (tag === "a") {
+                // YouTube pads link text with the whitespace around its icons;
+                // keep that outside the link so the underline fits the words.
+                const [, lead, label, trail] = n.textContent.match(/^(\s*)([\s\S]*?)(\s*)$/);
+                if (lead) into.appendChild(document.createTextNode(lead));
+                into.appendChild(label ? makeDescriptionLink(label, n) : document.createTextNode(""));
+                if (trail) into.appendChild(document.createTextNode(trail));
+                return;
+            }
+            copyDescriptionNodes(n, into);
+        });
+    }
+
+    function buildDescription(root, plain) {
+        const desc = document.createElement("div");
+        desc.id = "mindful-description-inject";
+        if (root && root.querySelector("a")) {
+            copyDescriptionNodes(root, desc);
+        } else {
+            // No link markup from YouTube: link bare URLs ourselves.
+            splitUrls(plain).forEach(seg => {
+                if (seg.type === "url") {
+                    const a = makeDescriptionLink(seg.value, { getAttribute: () => seg.value });
+                    desc.appendChild(a);
+                } else desc.appendChild(document.createTextNode(seg.value));
+            });
+        }
+        return desc;
+    }
+
     // ── Stats injection (for details panel) ──
     function injectStats() {
         document.getElementById("mindful-stats")?.remove();
@@ -1225,8 +1418,9 @@ html:has(:-webkit-full-screen) #movie_player {
         let likes = "";
         const lb = document.querySelector("ytd-watch-flexy like-button-view-model button, ytd-watch-flexy button[aria-label*='like' i]");
         if (lb) { const m = (lb.getAttribute("aria-label") || "").match(/([\d,]+)/); likes = m ? m[1] : ""; }
-        const description = get("ytd-watch-flexy #attributed-snippet-text")
-                         || get("ytd-watch-flexy #plain-snippet-text");
+        const descRoot = document.querySelector("ytd-watch-flexy #attributed-snippet-text")
+                      || document.querySelector("ytd-watch-flexy #plain-snippet-text");
+        const description = descRoot?.textContent?.trim() || "";
 
         const container = document.querySelector("ytd-watch-flexy #above-the-fold");
         if (!container) return;
@@ -1262,12 +1456,7 @@ html:has(:-webkit-full-screen) #movie_player {
         if (!info && !likes) addStat("stats unavailable", C.fgDim);
         const ref = document.getElementById("mindful-title-inject");
         if (ref) ref.after(bar); else container.insertBefore(bar, container.firstChild);
-        if (description) {
-            const desc = document.createElement("div");
-            desc.id = "mindful-description-inject";
-            desc.textContent = description;
-            bar.after(desc);
-        }
+        if (description) bar.after(buildDescription(descRoot, description));
     }
 
     // ── Empty-home greeting ──
@@ -1861,6 +2050,7 @@ html:has(:-webkit-full-screen) #movie_player {
             const b = document.createElement(item.href ? "a" : "button");
             if (item.href) b.href = item.href;
             b.setAttribute("aria-label", item.label);
+            b.title = item.label; // the middle-group dock shows icons only
             if (item.id === "library") {
                 b.setAttribute("aria-haspopup", "menu");
                 b.setAttribute("aria-expanded", "false");
@@ -1887,6 +2077,7 @@ html:has(:-webkit-full-screen) #movie_player {
         // Notification bell — our own SVG button that clicks the hidden YT one
         const bellBtn = document.createElement("button");
         bellBtn.setAttribute("aria-label", "Notifications");
+        bellBtn.title = "Notifications";
         bellBtn.dataset.proxy = "bell";
         bellBtn.appendChild(ico(ICONS.bell || "M12 22c1.1 0 2-.9 2-2h-4a2 2 0 002 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"));
         bellBtn.addEventListener("click", e => {
@@ -1898,6 +2089,7 @@ html:has(:-webkit-full-screen) #movie_player {
         // Profile avatar — our own button that clicks the hidden YT one
         const avatarBtn = document.createElement("button");
         avatarBtn.setAttribute("aria-label", "Account");
+        avatarBtn.title = "Account";
         avatarBtn.dataset.proxy = "avatar";
         // Try to grab the actual avatar image src
         const avatarImg = document.querySelector("ytd-topbar-menu-button-renderer #avatar-btn img");
@@ -2059,6 +2251,13 @@ html:has(:-webkit-full-screen) #movie_player {
                 lastNav = { href, at: now };
             }, true);
         }
+
+        // In the middle group an open panel floats over a scrim (body::after),
+        // and a click on a pseudo-element is delivered to <body> itself.
+        document.addEventListener("click", e => {
+            if (e.target !== document.body || !state.panelOpen) return;
+            if (window.matchMedia?.("(min-width: 701px) and (max-width: 1099px)").matches) closePanel();
+        });
 
         window.addEventListener("keydown", onKey, true);
         document.addEventListener("keydown", onKey, true);

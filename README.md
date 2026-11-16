@@ -38,6 +38,10 @@ A userscript + userstyle combo that replaces YouTube's default UI with a clean, 
 - Prewarm indicator: a small dot marks panels whose content is already loaded
 - Configurable keybindings and panel width; prewarming can be turned off
 - Responsive: 3 columns → 4 above 1600px → 1 below 700px
+- Middle group (701–1099px, e.g. a snapped window): the open panel floats over a dimmed video instead of squeezing it, click outside or press Esc to close; the dock shows icons only below 1000px
+- No recommendations on top of the video: end-screen cards, the paused "more videos" strip and info cards are hidden, so pausing never opens one by accident
+- Details panel keeps the description's links: URLs, @mentions, hashtags, and chapter timestamps that seek the video without leaving the page
+- The dock marks the current page (Home, Search, Library and the matching Library entry)
 - Full-width theater mode player
 
 ### Mobile
@@ -94,6 +98,7 @@ tools/
   sync-css.py         # Copies .user.css into the .user.js template string
   verify-design.py    # Contrast ratios, token usage, warm/open pairing
   test-prewarm.js     # Functional test of the prewarm state machine
+  test-description.js # Link safety, timestamps and URL splitting for the Details panel
 ```
 
 > The `.user.css` file is the source of truth. Each `.user.js` embeds a copy so
@@ -161,6 +166,7 @@ Toggle it off under Settings → Preload panels.
 python3 tools/sync-css.py       # after any CSS edit — keeps .js copy in sync
 python3 tools/verify-design.py  # contrast, tokens, state pairing
 node tools/test-prewarm.js      # prewarm state machine
+node tools/test-description.js  # Details panel link handling
 node --check desktop/youtube-mindful.user.js
 ```
 
