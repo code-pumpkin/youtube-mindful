@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Mindful v9
 // @namespace    youtube-mindful
-// @version      9.0.7
+// @version      9.0.8
 // @description  Mindful YouTube — calm design system, sidebar nav, prewarmed panels.
 // @author       codePumpkin
 // @match        https://www.youtube.com/*
@@ -1289,7 +1289,19 @@ html:has(:-webkit-full-screen) #movie_player {
     };
 
     const isWatch = () => location.pathname === "/watch";
-    const isLive  = () => !!document.querySelector("ytd-live-chat-frame#chat, .ytp-live-badge[disabled], .ytp-live");
+    // ytd-watch-flexy carries live-chat-present-and-expanded, a boolean
+    // Polymer property YouTube itself keeps in sync per video — reliable
+    // across SPA watch-to-watch navigation, unlike matching player/badge
+    // classes that can briefly reflect the previous video's state. Verified
+    // live: present on an actual stream, absent on every regular upload
+    // tested (including navigating directly from the stream to one of
+    // them). Falls back to the old heuristic only if the element itself
+    // is missing, which shouldn't happen on a watch page.
+    const isLive  = () => {
+        const flexy = document.querySelector("ytd-watch-flexy");
+        if (flexy) return flexy.hasAttribute("live-chat-present-and-expanded");
+        return !!document.querySelector("ytd-live-chat-frame#chat, .ytp-live-badge[disabled], .ytp-live");
+    };
     // YouTube only shows "Ask" on some videos (and not when signed out). No
     // separate sign-in check is needed — when signed out the button is
     // simply absent, and this already reads "absent" as "don't show ours".
