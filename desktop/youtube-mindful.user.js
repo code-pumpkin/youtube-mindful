@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Mindful v9
 // @namespace    youtube-mindful
-// @version      9.0.5
+// @version      9.0.6
 // @description  Mindful YouTube — calm design system, sidebar nav, prewarmed panels.
 // @author       codePumpkin
 // @match        https://www.youtube.com/*
@@ -153,14 +153,6 @@ ytd-badge-supported-renderer, .badge, yt-chip-cloud-chip-renderer,
 #text.ytd-button-renderer, .ytp-time-display { border-radius: var(--radius-pill) !important; }
 .ytp-scrubber-button, .ytp-volume-slider-handle, .ytp-spinner-circle,
 #avatar, #avatar img, yt-img-shadow#avatar { border-radius: 50% !important; }
-/* Every other profile photo — comment authors/replies, your own avatar on
-   the comment box — rendered as a 4px-rounded square from the universal
-   radius rule below, while the owner-row and channel-page avatars (which
-   use a clip-path, not border-radius) stayed circular. Match them. */
-#author-thumbnail, #author-thumbnail img,
-ytd-comments #simple-box img, ytd-comments #placeholder-area img {
-    border-radius: 50% !important;
-}
 #movie_player, .html5-video-container, video { border-radius: 0 !important; }
 
 /* ── ACCESSIBILITY — visible focus everywhere ── */
@@ -640,7 +632,7 @@ body.mindful-panel-details ytd-watch-flexy #above-the-fold {
 /* ── WARM-ONLY OVERRIDE — invisible, inert, painted behind the page ── */
 body.mindful-warm-comments:not(.mindful-panel-comments) ytd-watch-flexy #comments,
 body.mindful-warm-comments:not(.mindful-panel-comments) ytd-watch-flexy ytd-comments#comments,
-body.mindful-warm-recs:not(.mindful-panel-recs) ytd-watch-flexy #secondary,
+body.mindful-warm-recs:not(.mindful-panel-recs):not(.mindful-panel-ask) ytd-watch-flexy #secondary,
 body.mindful-warm-recs:not(.mindful-panel-recs) ytd-watch-flexy #primary #related,
 body.mindful-warm-details:not(.mindful-panel-details) ytd-watch-flexy #above-the-fold {
     opacity: 0 !important;
@@ -1591,10 +1583,13 @@ html:has(:-webkit-full-screen) #movie_player {
     function getAskPanel() {
         return document.querySelector('ytd-engagement-panel-section-list-renderer[target-id="PAyouchat"]');
     }
+    let askProxyClick = false;
     function openAskPanel() {
         const panel = getAskPanel();
         if (panel?.getAttribute("visibility") === "ENGAGEMENT_PANEL_VISIBILITY_EXPANDED") return;
+        askProxyClick = true;
         document.querySelector('ytd-watch-flexy #actions button[aria-label="Ask"]')?.click();
+        askProxyClick = false;
     }
     function closeAskPanel() {
         const panel = getAskPanel();
@@ -2267,6 +2262,18 @@ html:has(:-webkit-full-screen) #movie_player {
         document.addEventListener("click", e => {
             if (e.target !== document.body || !state.panelOpen) return;
             if (window.matchMedia?.("(min-width: 701px) and (max-width: 1099px)").matches) closePanel();
+        });
+
+        // The native "Ask" button is visible in the restyled Details
+        // actions row (next to Subscribe/Like/Dislike/Share). Clicking it
+        // there opens YouTube's own engagement panel, but that panel lives
+        // in #secondary, which our CSS only exposes for .mindful-panel-ask —
+        // so a click from inside Details expanded it invisibly. Route any
+        // genuine (non-proxy) click on it through our own panel switch.
+        document.addEventListener("click", e => {
+            if (askProxyClick || !isWatch()) return;
+            if (!e.target.closest('ytd-watch-flexy #actions button[aria-label="Ask"]')) return;
+            if (state.panelOpen !== "ask") openPanel("ask");
         });
 
         window.addEventListener("keydown", onKey, true);
