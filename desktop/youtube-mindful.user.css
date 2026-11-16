@@ -50,21 +50,21 @@
     --magenta:    var(--accent);
 
     /* radius */
-    --radius:     0.375rem;
-    --radius-sm:  0.25rem;
+    --radius:     6px;
+    --radius-sm:  4px;
     --radius-pill: 9999px;
 
-    /* type */
+    /* type — px, not rem: YouTube sets html{font-size:62.5%}, so 1rem is 10px there */
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
     --mono: "JetBrains Mono", "Fira Code", "SF Mono", Consolas, monospace;
-    --fs-xs:   0.75rem;
-    --fs-sm:   0.8125rem;
-    --fs-base: 0.9375rem;
-    --fs-lg:   1.0625rem;
+    --fs-xs:   12px;
+    --fs-sm:   13px;
+    --fs-base: 15px;
+    --fs-lg:   17px;
 
-    /* spacing — 0.25rem grid */
-    --sp-1: 0.25rem;  --sp-2: 0.5rem;  --sp-3: 0.75rem;
-    --sp-4: 1rem;     --sp-5: 1.25rem; --sp-6: 1.5rem;  --sp-8: 2rem;
+    /* spacing — 4px grid */
+    --sp-1: 4px;   --sp-2: 8px;   --sp-3: 12px;
+    --sp-4: 16px;  --sp-5: 20px;  --sp-6: 24px;  --sp-8: 32px;
 
     /* motion */
     --dur: 160ms;
@@ -92,7 +92,7 @@
 /* ══════════════════════════════════════════════════════════════════
    GLOBAL
    ══════════════════════════════════════════════════════════════════ */
-html, body, ytd-app, #content, ytd-browse, ytd-search,
+html, body, ytd-app, ytd-app > #content, ytd-browse, ytd-search,
 ytd-watch-flexy, ytd-page-manager, ytd-two-column-browse-results-renderer,
 ytd-rich-grid-renderer, #page-manager, tp-yt-app-drawer {
     background-color: var(--bg) !important; color: var(--fg) !important;
@@ -175,12 +175,6 @@ ytd-rich-item-renderer {
 }
 
 /* Current Home renderer — YouTube migrated cards from rich-grid-media to ViewModel. */
-/* YouTube fixes the root at 10px, so Home recalibrates the 4px spacing scale locally. */
-ytd-browse[page-subtype="home"] {
-    --sp-1: 0.4rem;  --sp-2: 0.8rem;  --sp-3: 1.2rem;
-    --sp-4: 1.6rem;  --sp-5: 2rem;    --sp-6: 2.4rem;  --sp-8: 3.2rem;
-    --fs-xs: 1.2rem; --fs-sm: 1.3rem; --fs-base: 1.5rem;
-}
 ytd-browse[page-subtype="home"] ytd-rich-grid-renderer {
     box-sizing: border-box !important;
     max-width: 1440px !important; margin: 0 auto !important;
@@ -283,25 +277,32 @@ ytd-merch-shelf-renderer, ytd-ticket-shelf-renderer { display: none !important; 
    empty-feed nudge. First thing shown on an empty home screen.
    ══════════════════════════════════════════════════════════════════ */
 #mindful-greeting {
-    font-size: 1.25rem;
+    font-size: var(--fs-lg);
     font-weight: 600;
     color: var(--fg);
-    margin: 0 0 0.75rem 0;
+    margin: 0 0 var(--sp-3) 0;
 }
 
 /* ══════════════════════════════════════════════════════════════════
    EMPTY-FEED NUDGE — YouTube's own empty-history state, restyled to
    match the dark theme instead of its default light card.
    ══════════════════════════════════════════════════════════════════ */
-ytd-rich-section-renderer {
+ytd-rich-section-renderer:not(:has([is-shorts])) {
     background: var(--surface) !important;
     border: 1px solid var(--border) !important;
     border-radius: var(--radius) !important;
     color: var(--fg) !important;
 }
-ytd-rich-section-renderer a, ytd-rich-section-renderer yt-formatted-string {
+ytd-rich-section-renderer:not(:has([is-shorts])) a,
+ytd-rich-section-renderer:not(:has([is-shorts])) yt-formatted-string {
     color: var(--fg-muted) !important;
 }
+/* The Shorts shelf's own children are hidden by the kill-list above, but
+   this wrapper keeps its grid cell and background, leaving a blank tile. */
+ytd-rich-section-renderer:has([is-shorts]) { display: none !important; }
+
+/* ══════════════════════════════════════════════════════════════════
+   SEARCH RESULTS PAGE
    ══════════════════════════════════════════════════════════════════ */
 ytd-search #page-manager, ytd-search ytd-two-column-search-results-renderer,
 ytd-search ytd-section-list-renderer {
@@ -314,7 +315,7 @@ ytd-search ytd-item-section-renderer #contents {
     gap: var(--sp-6) !important; max-width: 100% !important; align-items: start !important;
 }
 ytd-search #secondary.ytd-two-column-search-results-renderer {
-    max-width: 24rem !important; padding: var(--sp-4) var(--sp-4) var(--sp-4) 0 !important;
+    max-width: 384px !important; padding: var(--sp-4) var(--sp-4) var(--sp-4) 0 !important;
     background: transparent !important;
 }
 ytd-search ytd-video-renderer {
@@ -365,6 +366,22 @@ ytd-watch-flexy #player-container-outer.ytd-watch-flexy {
 }
 ytd-watch-flexy[full-bleed-player] #full-bleed-container.ytd-watch-flexy { max-height: 100vh !important; }
 #movie_player { max-height: 100vh !important; }
+/* YouTube gives #primary a 16px left margin; the player should start at the edge. */
+ytd-watch-flexy #primary.ytd-watch-flexy { margin-left: 0 !important; margin-right: 0 !important; }
+
+/* ── PLAYER MAKES ROOM FOR THE OPEN PANEL ──
+   Panels are position:fixed on the right. Without this the player keeps its
+   full width and the panel covers the right edge of the video and the
+   player controls. Resize one container only: YouTube derives the player
+   size from it, and shrinking nested containers too compounds the cut. */
+@media (min-width: 900px) {
+    body:is(.mindful-panel-details, .mindful-panel-recs, .mindful-panel-comments, .mindful-panel-chat):not(.mindful-mode-overlay)
+    ytd-watch-flexy:not([fullscreen]) #player-container-outer {
+        width: calc(100% - var(--mindful-panel-w)) !important;
+        max-width: calc(100% - var(--mindful-panel-w)) !important;
+        margin-left: 0 !important; margin-right: auto !important;
+    }
+}
 
 /* ── COLD STATE — panels parked offscreen, not yet loaded ── */
 ytd-watch-flexy #below {
@@ -737,7 +754,7 @@ ytd-watch-flexy #comments .published-time-text {
    SCROLLBAR
    ══════════════════════════════════════════════════════════════════ */
 * { scrollbar-width: thin; scrollbar-color: var(--surface-2) transparent; }
-::-webkit-scrollbar { width: 0.375rem !important; height: 0.375rem !important; }
+::-webkit-scrollbar { width: 6px !important; height: 6px !important; }
 ::-webkit-scrollbar-track { background: transparent !important; }
 ::-webkit-scrollbar-thumb { background: var(--surface-2) !important; border-radius: var(--radius-pill) !important; }
 ::-webkit-scrollbar-thumb:hover { background: var(--fg-subtle) !important; }
