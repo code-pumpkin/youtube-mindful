@@ -716,6 +716,7 @@ ytd-watch-flexy #comments .published-time-text {
     color: var(--fg);
 }
 #mindful-library button svg, #mindful-library a svg { flex: 0 0 auto; pointer-events: none; }
+#mindful-library a[aria-current="page"] { color: var(--accent) !important; background: var(--surface-2) !important; }
 
 /* ══════════════════════════════════════════════════════════════════
    SEARCH OVERLAY

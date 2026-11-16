@@ -744,6 +744,7 @@ ytd-watch-flexy #comments .published-time-text {
     color: var(--fg);
 }
 #mindful-library button svg, #mindful-library a svg { flex: 0 0 auto; pointer-events: none; }
+#mindful-library a[aria-current="page"] { color: var(--accent) !important; background: var(--surface-2) !important; }
 
 /* ══════════════════════════════════════════════════════════════════
    SEARCH OVERLAY
@@ -1757,18 +1758,32 @@ html:has(:-webkit-full-screen) #movie_player {
         libraryEl.querySelector("button")?.focus();
     }
 
+    const LIBRARY_ROUTES = [
+        ["Subscriptions", "subs", "/feed/subscriptions"],
+        ["History", "history", "/feed/history"],
+        ["Watch Later", "watchlater", "/playlist?list=WL"],
+        ["Playlists", "playlist", "/feed/playlists"],
+    ];
+    const libraryItems = [];
+
+    // True when the current URL is `href`: same path, and every query
+    // param in `href` present with the same value (so /playlist?list=WL
+    // matches Watch Later but not any other playlist).
+    function routeMatches(href) {
+        const u = new URL(href, location.href);
+        if (u.pathname !== location.pathname) return false;
+        const cur = new URLSearchParams(location.search);
+        for (const [k, v] of u.searchParams) if (cur.get(k) !== v) return false;
+        return true;
+    }
+
     function buildLibraryMenu() {
         libraryEl = document.createElement("div");
         libraryEl.id = "mindful-library";
         libraryEl.setAttribute("role", "menu");
         libraryEl.setAttribute("aria-label", "Library");
 
-        [
-            ["Subscriptions", "subs", "/feed/subscriptions"],
-            ["History", "history", "/feed/history"],
-            ["Watch Later", "watchlater", "/playlist?list=WL"],
-            ["Playlists", "playlist", "/feed/playlists"],
-        ].forEach(([label, icon, path]) => {
+        LIBRARY_ROUTES.forEach(([label, icon, path]) => {
             // Real <a href> so a middle-click or ctrl/cmd-click opens the
             // destination in a new tab, like Home above.
             const button = document.createElement("a");
@@ -1782,6 +1797,7 @@ html:has(:-webkit-full-screen) #movie_player {
                 location.assign(path);
             });
             libraryEl.appendChild(button);
+            libraryItems.push([button, path]);
         });
 
         document.body.appendChild(libraryEl);
@@ -1932,6 +1948,22 @@ html:has(:-webkit-full-screen) #movie_player {
             sidebarBtns[id].classList.toggle("active", on);
             sidebarBtns[id].setAttribute("aria-pressed", String(on));
         });
+        // Current-page destinations. Panels above are toggles (aria-pressed);
+        // these are navigation, so they get aria-current="page".
+        const markCurrent = (el, on) => {
+            if (!el) return;
+            el.classList.toggle("active", on);
+            if (on) el.setAttribute("aria-current", "page"); else el.removeAttribute("aria-current");
+        };
+        markCurrent(sidebarBtns.home, location.pathname === "/");
+        markCurrent(sidebarBtns.search, location.pathname === "/results");
+        let inLibrary = false;
+        libraryItems.forEach(([el, path]) => {
+            const on = routeMatches(path);
+            inLibrary = inLibrary || on;
+            if (on) el.setAttribute("aria-current", "page"); else el.removeAttribute("aria-current");
+        });
+        sidebarBtns.library?.classList.toggle("active", inLibrary);
         // On phone, only show essential buttons in bottom bar
         const phoneHide = ["back"];
         phoneHide.forEach(id => { if (sidebarBtns[id]) sidebarBtns[id].style.display = phone ? "none" : ""; });
