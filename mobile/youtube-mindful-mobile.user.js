@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Mindful Mobile
 // @namespace    youtube-mindful-mobile
-// @version      4.0.0
+// @version      4.0.1
 // @description  Mindful YouTube — mobile, calm design system + prewarmed panels.
 // @author       codePumpkin
 // @match        https://m.youtube.com/*
@@ -118,8 +118,6 @@ ytm-media-item .media-item-thumbnail-container,
 ytm-media-item img, ytm-video-with-context-renderer img {
     border-radius: var(--radius) !important;
 }
-.slim-owner-profile-icon, .slim-owner-profile-icon img,
-ytm-profile-icon, ytm-profile-icon img { border-radius: 50% !important; }
 #player, .player-container, video { border-radius: 0 !important; }
 .yt-spec-button-shape-next, ytm-badge-and-byline-renderer .badge {
     border-radius: var(--radius-pill) !important;
