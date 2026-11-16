@@ -1,7 +1,7 @@
 /* ==UserStyle==
 @name         YouTube Mindful v9
 @namespace    github.com/code-pumpkin/youtube-mindful
-@version      9.0.6
+@version      9.0.7
 @description  Mindful YouTube — calm design system, sidebar nav, prewarmed side panels.
 @author       codePumpkin
 @license      MIT
@@ -388,7 +388,7 @@ ytd-watch-flexy #primary.ytd-watch-flexy { margin-left: 0 !important; margin-rig
    player controls. Resize one container only: YouTube derives the player
    size from it, and shrinking nested containers too compounds the cut. */
 @media (min-width: 1100px) {
-    body:is(.mindful-panel-details, .mindful-panel-recs, .mindful-panel-comments, .mindful-panel-chat):not(.mindful-mode-overlay)
+    body:is(.mindful-panel-details, .mindful-panel-recs, .mindful-panel-comments, .mindful-panel-chat, .mindful-panel-ask):not(.mindful-mode-overlay)
     ytd-watch-flexy:not([fullscreen]) #player-container-outer {
         width: calc(100% - var(--mindful-panel-w)) !important;
         max-width: calc(100% - var(--mindful-panel-w)) !important;
@@ -602,7 +602,7 @@ body.mindful-panel-details ytd-watch-flexy #above-the-fold {
 /* ── WARM-ONLY OVERRIDE — invisible, inert, painted behind the page ── */
 body.mindful-warm-comments:not(.mindful-panel-comments) ytd-watch-flexy #comments,
 body.mindful-warm-comments:not(.mindful-panel-comments) ytd-watch-flexy ytd-comments#comments,
-body.mindful-warm-recs:not(.mindful-panel-recs):not(.mindful-panel-ask) ytd-watch-flexy #secondary,
+body.mindful-warm-recs:not(.mindful-panel-recs):not(.mindful-panel-ask):not(.mindful-panel-chat) ytd-watch-flexy #secondary,
 body.mindful-warm-recs:not(.mindful-panel-recs) ytd-watch-flexy #primary #related,
 body.mindful-warm-details:not(.mindful-panel-details) ytd-watch-flexy #above-the-fold {
     opacity: 0 !important;
@@ -1073,7 +1073,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
      • The dock drops its text labels so it fits without sideways scrolling.
    ══════════════════════════════════════════════════════════════════ */
 @media (min-width: 701px) and (max-width: 1099px) {
-    body:is(.mindful-panel-details, .mindful-panel-recs, .mindful-panel-comments, .mindful-panel-chat):not(.mindful-mode-overlay)::after {
+    body:is(.mindful-panel-details, .mindful-panel-recs, .mindful-panel-comments, .mindful-panel-chat, .mindful-panel-ask):not(.mindful-mode-overlay)::after {
         content: ""; position: fixed; inset: 0;
         background: rgba(0, 0, 0, 0.5);
         z-index: calc(var(--z-panel) - 1);
@@ -1084,7 +1084,8 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     body.mindful-panel-recs:not(.mindful-mode-overlay) ytd-watch-flexy #secondary,
     body.mindful-panel-recs.mindful-recs-inline:not(.mindful-mode-overlay) ytd-watch-flexy #below,
     body.mindful-panel-details:not(.mindful-mode-overlay) ytd-watch-flexy #above-the-fold,
-    body.mindful-panel-chat:not(.mindful-mode-overlay) ytd-watch-flexy ytd-live-chat-frame#chat {
+    body.mindful-panel-chat:not(.mindful-mode-overlay) ytd-watch-flexy ytd-live-chat-frame#chat,
+    body.mindful-panel-ask:not(.mindful-mode-overlay) ytd-watch-flexy #secondary {
         width: min(var(--mindful-panel-w), 92vw) !important;
         box-shadow: -8px 0 32px rgba(0, 0, 0, 0.5) !important;
     }

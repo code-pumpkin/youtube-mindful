@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Mindful v9
 // @namespace    youtube-mindful
-// @version      9.0.6
+// @version      9.0.7
 // @description  Mindful YouTube — calm design system, sidebar nav, prewarmed panels.
 // @author       codePumpkin
 // @match        https://www.youtube.com/*
@@ -418,7 +418,7 @@ ytd-watch-flexy #primary.ytd-watch-flexy { margin-left: 0 !important; margin-rig
    player controls. Resize one container only: YouTube derives the player
    size from it, and shrinking nested containers too compounds the cut. */
 @media (min-width: 1100px) {
-    body:is(.mindful-panel-details, .mindful-panel-recs, .mindful-panel-comments, .mindful-panel-chat):not(.mindful-mode-overlay)
+    body:is(.mindful-panel-details, .mindful-panel-recs, .mindful-panel-comments, .mindful-panel-chat, .mindful-panel-ask):not(.mindful-mode-overlay)
     ytd-watch-flexy:not([fullscreen]) #player-container-outer {
         width: calc(100% - var(--mindful-panel-w)) !important;
         max-width: calc(100% - var(--mindful-panel-w)) !important;
@@ -632,7 +632,7 @@ body.mindful-panel-details ytd-watch-flexy #above-the-fold {
 /* ── WARM-ONLY OVERRIDE — invisible, inert, painted behind the page ── */
 body.mindful-warm-comments:not(.mindful-panel-comments) ytd-watch-flexy #comments,
 body.mindful-warm-comments:not(.mindful-panel-comments) ytd-watch-flexy ytd-comments#comments,
-body.mindful-warm-recs:not(.mindful-panel-recs):not(.mindful-panel-ask) ytd-watch-flexy #secondary,
+body.mindful-warm-recs:not(.mindful-panel-recs):not(.mindful-panel-ask):not(.mindful-panel-chat) ytd-watch-flexy #secondary,
 body.mindful-warm-recs:not(.mindful-panel-recs) ytd-watch-flexy #primary #related,
 body.mindful-warm-details:not(.mindful-panel-details) ytd-watch-flexy #above-the-fold {
     opacity: 0 !important;
@@ -1103,7 +1103,7 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
      • The dock drops its text labels so it fits without sideways scrolling.
    ══════════════════════════════════════════════════════════════════ */
 @media (min-width: 701px) and (max-width: 1099px) {
-    body:is(.mindful-panel-details, .mindful-panel-recs, .mindful-panel-comments, .mindful-panel-chat):not(.mindful-mode-overlay)::after {
+    body:is(.mindful-panel-details, .mindful-panel-recs, .mindful-panel-comments, .mindful-panel-chat, .mindful-panel-ask):not(.mindful-mode-overlay)::after {
         content: ""; position: fixed; inset: 0;
         background: rgba(0, 0, 0, 0.5);
         z-index: calc(var(--z-panel) - 1);
@@ -1114,7 +1114,8 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     body.mindful-panel-recs:not(.mindful-mode-overlay) ytd-watch-flexy #secondary,
     body.mindful-panel-recs.mindful-recs-inline:not(.mindful-mode-overlay) ytd-watch-flexy #below,
     body.mindful-panel-details:not(.mindful-mode-overlay) ytd-watch-flexy #above-the-fold,
-    body.mindful-panel-chat:not(.mindful-mode-overlay) ytd-watch-flexy ytd-live-chat-frame#chat {
+    body.mindful-panel-chat:not(.mindful-mode-overlay) ytd-watch-flexy ytd-live-chat-frame#chat,
+    body.mindful-panel-ask:not(.mindful-mode-overlay) ytd-watch-flexy #secondary {
         width: min(var(--mindful-panel-w), 92vw) !important;
         box-shadow: -8px 0 32px rgba(0, 0, 0, 0.5) !important;
     }
@@ -1608,6 +1609,13 @@ html:has(:-webkit-full-screen) #movie_player {
         warmPanel(name);
         // Opening must lift inert, or the panel renders but ignores clicks.
         if (warmClasses[name]) setInert(name, false);
+        // Chat and Ask both render inside #secondary (recs's warm root),
+        // which recs may have marked inert while merely prewarmed in the
+        // background. inert disables the whole subtree regardless of a
+        // descendant's own pointer-events, so a click here would silently
+        // fall through to the player. Neither has its own warm class, so
+        // nothing else clears this.
+        if (name === "chat" || name === "ask") setInert("recs", false);
         if (name === "recs") syncRecsLayout();
         document.body.classList.add(panelClasses[name]);
         state.panelOpen = name;
@@ -1622,6 +1630,9 @@ html:has(:-webkit-full-screen) #movie_player {
         document.body.classList.remove(panelClasses[name]);
         // Back to warm: invisible again, so re-block focus.
         if (warmClasses[name] && isWarm(name)) setInert(name, true);
+        // Restore #secondary's inert state to match recs's own warm status
+        // now that chat/ask are done borrowing it.
+        if ((name === "chat" || name === "ask") && isWarm("recs")) setInert("recs", true);
         if (name === "details") {
             document.getElementById("mindful-description-inject")?.remove();
         }
