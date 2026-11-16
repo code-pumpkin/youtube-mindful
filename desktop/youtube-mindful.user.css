@@ -1,7 +1,7 @@
 /* ==UserStyle==
 @name         YouTube Mindful v9
 @namespace    github.com/code-pumpkin/youtube-mindful
-@version      9.0.8
+@version      9.0.9
 @description  Mindful YouTube — calm design system, sidebar nav, prewarmed side panels.
 @author       codePumpkin
 @license      MIT
@@ -122,7 +122,6 @@ ytd-thumbnail, ytd-thumbnail img, ytd-playlist-thumbnail {
 ytd-badge-supported-renderer, .badge, yt-chip-cloud-chip-renderer,
 #text.ytd-button-renderer, .ytp-time-display { border-radius: var(--radius-pill) !important; }
 .ytp-scrubber-button, .ytp-volume-slider-handle, .ytp-spinner-circle,
-#avatar, #avatar img, yt-img-shadow#avatar { border-radius: 50% !important; }
 #movie_player, .html5-video-container, video { border-radius: 0 !important; }
 
 /* ── ACCESSIBILITY — visible focus everywhere ── */

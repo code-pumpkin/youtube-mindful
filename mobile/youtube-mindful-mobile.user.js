@@ -5,9 +5,6 @@
 // @description  Mindful YouTube — mobile, calm design system + prewarmed panels.
 // @author       codePumpkin
 // @match        https://m.youtube.com/*
-// @grant        GM_xmlhttpRequest
-// @connect      suggestqueries-clients6.youtube.com
-// @connect      *
 // @noframes     true
 // @run-at       document-start
 // ==/UserScript==
@@ -717,17 +714,23 @@ html[darker-dark-theme] c3-toast { background: var(--surface) !important; color:
             document.body.appendChild(searchEl);
         }
 
+        // Same-origin path YouTube's own autocomplete uses — no cross-origin
+        // request (and the GM_xmlhttpRequest it needs) required. The old
+        // cross-origin suggestqueries-clients6 domain hit CORS, and
+        // GM_xmlhttpRequest should bypass that but reliably didn't under
+        // this Tampermonkey build. Response is JSONP, not plain JSON.
         function fetchSuggest(q) {
             if (!q) { while(suggestEl.firstChild) suggestEl.removeChild(suggestEl.firstChild); suggestEl.style.display="none"; return; }
-            if (typeof GM_xmlhttpRequest !== "undefined") {
-                GM_xmlhttpRequest({
-                    method:"GET",
-                    url:"https://suggestqueries-clients6.youtube.com/complete/search?client=firefox&ds=yt&q="+encodeURIComponent(q),
-                    onload: function(res) {
-                        try { const d = JSON.parse(res.responseText); if (d && d[1]) renderSuggest(d[1]); } catch(e) {}
-                    }
-                });
-            }
+            const myQuery = q;
+            fetch(location.origin + "/complete/search?client=youtube&ds=yt&q=" + encodeURIComponent(q))
+                .then(res => res.text())
+                .then(text => {
+                    if (myQuery !== searchInput.value.trim()) return;
+                    const body = text.slice(text.indexOf("(") + 1, text.lastIndexOf(")"));
+                    const d = JSON.parse(body);
+                    if (d && d[1]) renderSuggest(d[1]);
+                })
+                .catch(() => {});
         }
 
         function renderSuggest(items) {

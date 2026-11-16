@@ -1,13 +1,10 @@
 // ==UserScript==
 // @name         YouTube Mindful v9
 // @namespace    youtube-mindful
-// @version      9.0.8
+// @version      9.0.9
 // @description  Mindful YouTube — calm design system, sidebar nav, prewarmed panels.
 // @author       codePumpkin
 // @match        https://www.youtube.com/*
-// @grant        GM_xmlhttpRequest
-// @connect      suggestqueries-clients6.youtube.com
-// @connect      *
 // @noframes     true
 // @run-at       document-start
 // ==/UserScript==
@@ -152,7 +149,6 @@ ytd-thumbnail, ytd-thumbnail img, ytd-playlist-thumbnail {
 ytd-badge-supported-renderer, .badge, yt-chip-cloud-chip-renderer,
 #text.ytd-button-renderer, .ytp-time-display { border-radius: var(--radius-pill) !important; }
 .ytp-scrubber-button, .ytp-volume-slider-handle, .ytp-spinner-circle,
-#avatar, #avatar img, yt-img-shadow#avatar { border-radius: 50% !important; }
 #movie_player, .html5-video-container, video { border-radius: 0 !important; }
 
 /* ── ACCESSIBILITY — visible focus everywhere ── */
@@ -1709,17 +1705,25 @@ html:has(:-webkit-full-screen) #movie_player {
         document.body.appendChild(searchEl);
     }
 
+    // YouTube's own autocomplete calls this same-origin path, so no
+    // cross-origin request (and the GM_xmlhttpRequest it needs) is
+    // required at all. The old cross-origin suggestqueries-clients6
+    // domain hit CORS — GM_xmlhttpRequest should bypass that, but
+    // reliably didn't under this Tampermonkey build, leaving every
+    // search silently suggestion-less. The response is JSONP
+    // (window.google.ac.h([...])), not plain JSON.
     function fetchSuggest(q) {
         if (!q) { while(suggestEl.firstChild) suggestEl.removeChild(suggestEl.firstChild); suggestEl.style.display = "none"; return; }
-        if (typeof GM_xmlhttpRequest !== "undefined") {
-            GM_xmlhttpRequest({
-                method: "GET",
-                url: "https://suggestqueries-clients6.youtube.com/complete/search?client=firefox&ds=yt&q=" + encodeURIComponent(q),
-                onload: function(res) {
-                    try { const d = JSON.parse(res.responseText); if (d && d[1]) renderSuggest(d[1], q); } catch(e) {}
-                }
-            });
-        }
+        const myQuery = q;
+        fetch(location.origin + "/complete/search?client=youtube&ds=yt&q=" + encodeURIComponent(q))
+            .then(res => res.text())
+            .then(text => {
+                if (myQuery !== searchInput.value.trim()) return; // a newer query already landed
+                const body = text.slice(text.indexOf("(") + 1, text.lastIndexOf(")"));
+                const d = JSON.parse(body);
+                if (d && d[1]) renderSuggest(d[1], myQuery);
+            })
+            .catch(() => {});
     }
 
     function renderSuggest(items, q) {
@@ -1815,7 +1819,7 @@ html:has(:-webkit-full-screen) #movie_player {
         box.setAttribute("aria-modal", "true");
         box.setAttribute("aria-labelledby", "mindful-settings-title");
         box.tabIndex = -1; // focusable as the dialog's initial focus target, not part of the tab order
-        const titleEl = el("div", "font-size:13px;color:"+C.accent+";border-bottom:1px solid "+C.border+";padding-bottom:8px;margin-bottom:16px;font-weight:bold", "⚙ Mindful Settings");
+        const titleEl = el("div", "font-size:13px;color:"+C.accent+";border-bottom:1px solid "+C.border+";padding-bottom:8px;margin-bottom:16px;font-weight:bold", "Mindful Settings");
         titleEl.id = "mindful-settings-title";
         box.appendChild(titleEl);
 
