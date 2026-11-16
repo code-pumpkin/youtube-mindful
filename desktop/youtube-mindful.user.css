@@ -1,7 +1,7 @@
 /* ==UserStyle==
 @name         YouTube Mindful v9
 @namespace    github.com/code-pumpkin/youtube-mindful
-@version      9.0.4
+@version      9.0.5
 @description  Mindful YouTube — calm design system, sidebar nav, prewarmed side panels.
 @author       codePumpkin
 @license      MIT
@@ -448,7 +448,8 @@ body.mindful-panel-recs ytd-watch-flexy #secondary,
 body.mindful-panel-recs.mindful-recs-inline ytd-watch-flexy #below,
 body.mindful-warm-details ytd-watch-flexy #above-the-fold,
 body.mindful-panel-details ytd-watch-flexy #above-the-fold,
-body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
+body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat,
+body.mindful-panel-ask ytd-watch-flexy #secondary {
     box-sizing: border-box !important;
     position: fixed !important;
     top: 0 !important; right: 0 !important; bottom: 0 !important; left: auto !important;
@@ -465,6 +466,37 @@ body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
     opacity: 1 !important; transform: none !important;
 }
 body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat { padding: 0 !important; }
+
+/* ── ASK PANEL — a native engagement panel sharing #secondary with
+   Related and live chat. Un-clip its container, scope visibility to
+   #panels only, and hide it again for every other use of #secondary. ── */
+body.mindful-panel-ask ytd-watch-flexy #secondary-inner {
+    position: static !important; width: 100% !important; height: 100% !important;
+    overflow: visible !important; clip: auto !important; clip-path: none !important;
+    opacity: 1 !important; visibility: visible !important; pointer-events: auto !important;
+}
+body.mindful-panel-ask ytd-watch-flexy #secondary #panels {
+    display: flex !important; width: 100% !important; height: 100% !important;
+}
+body.mindful-panel-ask ytd-watch-flexy #secondary #related,
+body.mindful-panel-ask ytd-watch-flexy #secondary #chat-container {
+    display: none !important;
+}
+body:not(.mindful-panel-ask) ytd-watch-flexy #secondary #panels {
+    display: none !important;
+}
+ytd-watch-flexy #panels ytd-engagement-panel-section-list-renderer {
+    background: var(--surface) !important; color: var(--fg) !important;
+}
+ytd-watch-flexy #panels #header,
+ytd-watch-flexy #panels #title-text {
+    color: var(--fg) !important; font-family: var(--sans) !important;
+}
+ytd-watch-flexy #panels textarea,
+ytd-watch-flexy #panels input {
+    background: var(--surface-2) !important; color: var(--fg) !important;
+    border: 1px solid var(--border) !important; border-radius: var(--radius-sm) !important;
+}
 
 /* Details is hidden in the closed state, so warm/open must restore its box. */
 body.mindful-warm-details ytd-watch-flexy #above-the-fold,

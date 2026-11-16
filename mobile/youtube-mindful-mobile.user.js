@@ -8,6 +8,7 @@
 // @grant        GM_xmlhttpRequest
 // @connect      suggestqueries-clients6.youtube.com
 // @connect      *
+// @noframes     true
 // @run-at       document-start
 // ==/UserScript==
 

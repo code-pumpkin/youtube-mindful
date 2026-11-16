@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         YouTube Mindful v9
 // @namespace    youtube-mindful
-// @version      9.0.4
+// @version      9.0.5
 // @description  Mindful YouTube — calm design system, sidebar nav, prewarmed panels.
 // @author       codePumpkin
 // @match        https://www.youtube.com/*
 // @grant        GM_xmlhttpRequest
 // @connect      suggestqueries-clients6.youtube.com
 // @connect      *
+// @noframes     true
 // @run-at       document-start
 // ==/UserScript==
 
@@ -21,10 +22,11 @@
         yellow:"#c9b177", red:"#c4796b",
     };
 
-    const PANELS = ["details","recs","comments","chat"];
+    const PANELS = ["details","recs","comments","chat","ask"];
     const panelClasses = {
         details:"mindful-panel-details", recs:"mindful-panel-recs",
         comments:"mindful-panel-comments", chat:"mindful-panel-chat",
+        ask:"mindful-panel-ask",
     };
 
     // Panels we can prewarm. Chat is excluded — the live-chat iframe autoplays
@@ -476,7 +478,8 @@ body.mindful-panel-recs ytd-watch-flexy #secondary,
 body.mindful-panel-recs.mindful-recs-inline ytd-watch-flexy #below,
 body.mindful-warm-details ytd-watch-flexy #above-the-fold,
 body.mindful-panel-details ytd-watch-flexy #above-the-fold,
-body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
+body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat,
+body.mindful-panel-ask ytd-watch-flexy #secondary {
     box-sizing: border-box !important;
     position: fixed !important;
     top: 0 !important; right: 0 !important; bottom: 0 !important; left: auto !important;
@@ -493,6 +496,37 @@ body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat {
     opacity: 1 !important; transform: none !important;
 }
 body.mindful-panel-chat ytd-watch-flexy ytd-live-chat-frame#chat { padding: 0 !important; }
+
+/* ── ASK PANEL — a native engagement panel sharing #secondary with
+   Related and live chat. Un-clip its container, scope visibility to
+   #panels only, and hide it again for every other use of #secondary. ── */
+body.mindful-panel-ask ytd-watch-flexy #secondary-inner {
+    position: static !important; width: 100% !important; height: 100% !important;
+    overflow: visible !important; clip: auto !important; clip-path: none !important;
+    opacity: 1 !important; visibility: visible !important; pointer-events: auto !important;
+}
+body.mindful-panel-ask ytd-watch-flexy #secondary #panels {
+    display: flex !important; width: 100% !important; height: 100% !important;
+}
+body.mindful-panel-ask ytd-watch-flexy #secondary #related,
+body.mindful-panel-ask ytd-watch-flexy #secondary #chat-container {
+    display: none !important;
+}
+body:not(.mindful-panel-ask) ytd-watch-flexy #secondary #panels {
+    display: none !important;
+}
+ytd-watch-flexy #panels ytd-engagement-panel-section-list-renderer {
+    background: var(--surface) !important; color: var(--fg) !important;
+}
+ytd-watch-flexy #panels #header,
+ytd-watch-flexy #panels #title-text {
+    color: var(--fg) !important; font-family: var(--sans) !important;
+}
+ytd-watch-flexy #panels textarea,
+ytd-watch-flexy #panels input {
+    background: var(--surface-2) !important; color: var(--fg) !important;
+    border: 1px solid var(--border) !important; border-radius: var(--radius-sm) !important;
+}
 
 /* Details is hidden in the closed state, so warm/open must restore its box. */
 body.mindful-warm-details ytd-watch-flexy #above-the-fold,
@@ -1263,6 +1297,10 @@ html:has(:-webkit-full-screen) #movie_player {
 
     const isWatch = () => location.pathname === "/watch";
     const isLive  = () => !!document.querySelector("ytd-live-chat-frame#chat, .ytp-live-badge[disabled], .ytp-live");
+    // YouTube only shows "Ask" on some videos (and not when signed out). No
+    // separate sign-in check is needed — when signed out the button is
+    // simply absent, and this already reads "absent" as "don't show ours".
+    const hasAsk = () => !!document.querySelector('ytd-watch-flexy #actions button[aria-label="Ask"]');
 
     // ── Inject CSS (so it works without separate .user.css install) ──
     function injectCSS() {
@@ -1543,10 +1581,33 @@ html:has(:-webkit-full-screen) #movie_player {
         document.body.classList.toggle("mindful-recs-inline", !!rel && !rel.closest("#secondary"));
     }
 
+    // ── Ask panel — a native engagement panel, not a CSS-only toggle.
+    // YouTube's own click handler on the "Ask" button is what actually
+    // expands it; our dock button proxies that click, then CSS repositions
+    // the resulting panel into our dock slot. Closing proxies the panel's
+    // own Close button, so YouTube's internal state (EXPANDED/HIDDEN) stays
+    // in sync with what we show — otherwise reopening via our dock could
+    // find it already marked expanded internally and no-op.
+    function getAskPanel() {
+        return document.querySelector('ytd-engagement-panel-section-list-renderer[target-id="PAyouchat"]');
+    }
+    function openAskPanel() {
+        const panel = getAskPanel();
+        if (panel?.getAttribute("visibility") === "ENGAGEMENT_PANEL_VISIBILITY_EXPANDED") return;
+        document.querySelector('ytd-watch-flexy #actions button[aria-label="Ask"]')?.click();
+    }
+    function closeAskPanel() {
+        const panel = getAskPanel();
+        if (panel?.getAttribute("visibility") !== "ENGAGEMENT_PANEL_VISIBILITY_EXPANDED") return;
+        panel.querySelector('button[aria-label="Close"]')?.click();
+    }
+
     // ── Panels — toggle body classes, CSS does the rest ──
     function openPanel(name) {
         if (state.panelOpen) closePanel();
         if (name === "chat" && !isLive()) return;
+        if (name === "ask" && !hasAsk()) return;
+        if (name === "ask") openAskPanel();
         // Warm-on-demand: if the timer hasn't fired yet, warming first means
         // the panel is already laid out when the open class lands.
         warmPanel(name);
@@ -1569,6 +1630,7 @@ html:has(:-webkit-full-screen) #movie_player {
         if (name === "details") {
             document.getElementById("mindful-description-inject")?.remove();
         }
+        if (name === "ask") closeAskPanel();
         state.panelOpen = null;
         updateSidebar();
     }
@@ -1986,6 +2048,7 @@ html:has(:-webkit-full-screen) #movie_player {
         recs:    "M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z",
         comments:"M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z",
         chat:    "M12 2C6.48 2 2 6.48 2 12c0 1.54.36 2.98.97 4.29L2 22l5.71-.97A9.96 9.96 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2z",
+        ask:     "M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 10.9 13 11.5 13 13h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z",
         settings:"M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1115.6 12 3.6 3.6 0 0112 15.6z",
         history: "M13 3a9 9 0 00-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7a6.98 6.98 0 01-4.95-2.05l-1.41 1.41A8.96 8.96 0 0013 21a9 9 0 000-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z",
         watchlater:"M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z",
@@ -2006,6 +2069,7 @@ html:has(:-webkit-full-screen) #movie_player {
             { id:"recs",     icon:"recs",     label:"Related",         action: () => isWatch() && togglePanel("recs") },
             { id:"comments", icon:"comments", label:"Comments",        action: () => isWatch() && togglePanel("comments") },
             { id:"chat",     icon:"chat",     label:"Live Chat",       action: () => isWatch() && isLive() && togglePanel("chat") },
+            { id:"ask",      icon:"ask",      label:"Ask",             action: () => isWatch() && hasAsk() && togglePanel("ask") },
             "sep",
             { id:"library", icon:"library", label:"Library", action: toggleLibrary },
             "sep",
@@ -2093,16 +2157,26 @@ html:has(:-webkit-full-screen) #movie_player {
         document.documentElement.classList.toggle("mindful-watch-page", w);
         const phone = window.innerWidth <= 700;
         const desktopDock = window.innerWidth > 700 && (window.matchMedia?.("(pointer: fine)").matches ?? false);
-        ["details","recs","comments"].forEach(id => {
+        ["details","recs"].forEach(id => {
             sidebarBtns[id].disabled = !w;
             // aria-hidden dot marks prewarmed panels — content is already loaded
             sidebarBtns[id].dataset.warm = (w && isWarm(id)) ? "ready" : "";
         });
+        // YouTube doesn't render comments on a live broadcast — clicking
+        // through shows a genuinely empty panel, not a "disabled" message.
+        // Comments return once the stream ends and becomes a recording.
+        sidebarBtns.comments.disabled = !w || isLive();
+        sidebarBtns.comments.dataset.warm = (w && !isLive() && isWarm("comments")) ? "ready" : "";
         sidebarBtns.chat.disabled = !w || !isLive();
+        sidebarBtns.ask.disabled = !w || !hasAsk();
         ["details", "recs", "comments"].forEach(id => {
             sidebarBtns[id].style.display = desktopDock && !w ? "none" : "";
         });
         sidebarBtns.chat.style.display = desktopDock && (!w || !isLive()) ? "none" : "";
+        // Ask isn't on every video (and is absent when signed out) — hide it
+        // rather than show a permanently-disabled button for a feature that
+        // may never appear on this video.
+        sidebarBtns.ask.style.display = desktopDock && (!w || !hasAsk()) ? "none" : "";
         const separators = sidebar.querySelectorAll(".sep");
         if (separators[1]) separators[1].style.display = desktopDock && !w ? "none" : "";
         PANELS.forEach(id => {
