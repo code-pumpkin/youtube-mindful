@@ -12,7 +12,7 @@ const path = require("path");
 
 const src = fs.readFileSync(path.resolve(__dirname, "../desktop/youtube-mindful.user.js"), "utf8");
 const start = src.indexOf("// ── Description rendering ──");
-const end = src.indexOf("// ── Stats injection (for details panel) ──");
+const end = src.indexOf("// ── Details panel ──");
 if (start < 0 || end < 0) { console.log("FAIL could not locate the description block"); process.exit(1); }
 
 const api = new Function("document", "location",

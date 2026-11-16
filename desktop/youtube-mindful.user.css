@@ -1,7 +1,7 @@
 /* ==UserStyle==
 @name         YouTube Mindful v9
 @namespace    github.com/code-pumpkin/youtube-mindful
-@version      9.0.2
+@version      9.0.3
 @description  Mindful YouTube — calm design system, sidebar nav, prewarmed side panels.
 @author       codePumpkin
 @license      MIT
@@ -148,7 +148,7 @@ ytd-feed-filter-chip-bar-renderer, #chips-wrapper,
 ytd-browse yt-chip-cloud-renderer, ytd-search yt-chip-cloud-renderer,
 #header.ytd-rich-grid-renderer, ytd-rich-grid-renderer > #header,
 #immersive-header-container, ytd-browse[page-subtype="home"] #header,
-ytd-browse #header.ytd-browse, #frosted-glass { display: none !important; }
+ytd-browse:not([page-subtype="channels"]) #header.ytd-browse, #frosted-glass { display: none !important; }
 ytd-browse[page-subtype="home"] *, ytd-search * {
     backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
 }
@@ -402,7 +402,7 @@ ytd-watch-flexy #below {
     height: 0 !important; overflow: hidden !important;
 }
 ytd-watch-flexy #above-the-fold, ytd-watch-flexy ytd-watch-metadata,
-ytd-watch-flexy #top-row, ytd-watch-flexy #bottom-row,
+ytd-watch-flexy #bottom-row,
 ytd-watch-flexy #description, ytd-watch-flexy #description-inner,
 ytd-watch-flexy ytd-text-inline-expander, ytd-watch-flexy #snippet,
 ytd-watch-flexy #plain-snippet-text { display: none !important; }
@@ -534,8 +534,6 @@ body.mindful-panel-details ytd-watch-flexy ytd-watch-metadata {
     overflow: visible !important;
     height: auto !important;
 }
-body.mindful-panel-details ytd-watch-flexy #title-row,
-body.mindful-panel-details ytd-watch-flexy #top-row,
 body.mindful-panel-details ytd-watch-flexy #middle-row,
 body.mindful-panel-details ytd-watch-flexy #bottom-row {
     display: none !important;
@@ -621,39 +619,46 @@ ytd-watch-flexy #comments .published-time-text {
     font-family: var(--mono) !important; font-size: 1.2rem !important; color: var(--fg-subtle) !important;
 }
 
-/* Stats injected by JS */
-#mindful-stats {
-    display: flex !important; gap: 0.8rem !important; flex-wrap: wrap !important;
-    align-items: center !important;
-    padding: 0 0 1.2rem 0 !important; margin-bottom: 1.2rem !important;
-    border-bottom: 1px solid var(--border) !important;
-    font-family: var(--mono) !important; font-size: 1.3rem !important;
-    line-height: 1.5 !important;
-}
-#mindful-title-inject {
-    margin-bottom: 1.2rem !important; padding-bottom: 1.2rem !important;
+/* Native title + owner row (avatar, name, Subscribe, Like/Dislike/Share/
+   Save) — restyled, not rebuilt. The YouTube-white Subscribe/Join pill is
+   kept as-is; everything around it gets the theme. */
+ytd-watch-flexy #title-row, ytd-watch-flexy #top-row {
+    margin-bottom: var(--sp-3) !important;
+    padding-bottom: var(--sp-3) !important;
     border-bottom: 1px solid var(--border) !important;
 }
-#mindful-title-inject .mindful-channel-link {
-    display: inline-flex;
-    margin-top: 0.8rem;
-    color: var(--info) !important;
-    font-family: var(--sans);
-    font-size: 1.4rem;
-    line-height: 1.4;
-    text-decoration: none;
+/* #top-row is flex-wrap:nowrap, sized for a full-width player column —
+   squeezed into the panel, #owner alone takes the width and pushes
+   #actions (Like/Dislike/Share/Save) off past the right edge. Stack them
+   instead of trying to fit both in one row. */
+ytd-watch-flexy #top-row {
+    display: flex !important; flex-direction: column !important;
+    align-items: flex-start !important; gap: var(--sp-2) !important;
 }
-#mindful-title-inject .mindful-channel-link:hover {
+ytd-watch-flexy #top-row #owner, ytd-watch-flexy #top-row #actions {
+    width: 100% !important; max-width: 100% !important; margin: 0 !important;
+}
+ytd-watch-flexy #title-row h1,
+ytd-watch-flexy #title-row yt-formatted-string {
+    font-family: var(--sans) !important; font-size: var(--fs-lg) !important;
+    font-weight: 600 !important; color: var(--fg) !important; line-height: 1.4 !important;
+}
+ytd-watch-flexy #title-row #info-container,
+ytd-watch-flexy #title-row #info-container yt-formatted-string,
+ytd-watch-flexy #title-row .ytwFactoidRendererLabel,
+ytd-watch-flexy #title-row yt-animated-rolling-number {
+    font-family: var(--mono) !important; font-size: var(--fs-sm) !important;
+    color: var(--fg-muted) !important;
+}
+ytd-watch-flexy #top-row ytd-channel-name,
+ytd-watch-flexy #top-row ytd-channel-name a,
+ytd-watch-flexy #top-row #owner-sub-count {
+    font-family: var(--sans) !important; color: var(--fg) !important;
+}
+ytd-watch-flexy #top-row #owner-sub-count { color: var(--fg-muted) !important; font-size: var(--fs-xs) !important; }
+ytd-watch-flexy #top-row #actions like-button-view-model,
+ytd-watch-flexy #top-row #actions segmented-like-dislike-button-view-model {
     color: var(--fg) !important;
-    text-decoration: underline;
-}
-#mindful-title-inject .mindful-subscriber-count {
-    display: block;
-    margin-top: 0.4rem;
-    color: var(--fg-muted);
-    font-family: var(--mono);
-    font-size: 1.2rem;
-    line-height: 1.4;
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -947,7 +952,6 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         bottom: var(--mindful-library-bottom, 8.2rem) !important;
         transform: translateX(-50%);
     }
-    #mindful-channel-bar { bottom: 8.2rem !important; }
 
     ytd-watch-flexy #player-wide-container.ytd-watch-flexy,
     ytd-watch-flexy #player-theater-container.ytd-watch-flexy,
@@ -1150,7 +1154,6 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     ytd-search ytd-item-section-renderer #contents { grid-template-columns: 1fr !important; }
     ytd-search ytd-video-renderer ytd-thumbnail img { aspect-ratio: 16/9 !important; }
 
-    #mindful-channel-bar { bottom: 3.75rem !important; }
 }
 
 /* 320px floor — nothing may overflow horizontally */

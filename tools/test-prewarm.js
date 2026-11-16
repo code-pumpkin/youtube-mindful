@@ -232,10 +232,10 @@ console.log("\nDESKTOP responsive watch contract (static)");
     assert(!css.includes("#player-full-bleed-container") &&
            !/#movie_player\s*\{[^}]*\n\s*height:/s.test(css),
         "desktop: player internals retain YouTube-controlled height");
-    assert(css.includes(".mindful-channel-link") && css.includes(".mindful-subscriber-count") &&
-           css.includes("font-size: 1.3rem !important") && js.includes("ch.href = channelHref") &&
-           js.includes("#owner-sub-count") && js.includes("View ${channel} channel"),
-        "desktop: Details exposes readable stats, subscriber count, and a channel link");
+    assert(!css.includes('ytd-watch-flexy #top-row,\nbody.mindful-panel-details') &&
+           css.includes("ytd-watch-flexy #title-row, ytd-watch-flexy #top-row") &&
+           !js.includes("mindful-title-inject") && !js.includes("mindful-channel-link"),
+        "desktop: Details restyles the native title/owner/actions row instead of rebuilding it");
 }
 
 console.log("\nDESKTOP playlist panel vs recommendations (static)");

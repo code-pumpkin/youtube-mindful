@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Mindful v9
 // @namespace    youtube-mindful
-// @version      9.0.2
+// @version      9.0.3
 // @description  Mindful YouTube — calm design system, sidebar nav, prewarmed panels.
 // @author       codePumpkin
 // @match        https://www.youtube.com/*
@@ -176,7 +176,7 @@ ytd-feed-filter-chip-bar-renderer, #chips-wrapper,
 ytd-browse yt-chip-cloud-renderer, ytd-search yt-chip-cloud-renderer,
 #header.ytd-rich-grid-renderer, ytd-rich-grid-renderer > #header,
 #immersive-header-container, ytd-browse[page-subtype="home"] #header,
-ytd-browse #header.ytd-browse, #frosted-glass { display: none !important; }
+ytd-browse:not([page-subtype="channels"]) #header.ytd-browse, #frosted-glass { display: none !important; }
 ytd-browse[page-subtype="home"] *, ytd-search * {
     backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
 }
@@ -430,7 +430,7 @@ ytd-watch-flexy #below {
     height: 0 !important; overflow: hidden !important;
 }
 ytd-watch-flexy #above-the-fold, ytd-watch-flexy ytd-watch-metadata,
-ytd-watch-flexy #top-row, ytd-watch-flexy #bottom-row,
+ytd-watch-flexy #bottom-row,
 ytd-watch-flexy #description, ytd-watch-flexy #description-inner,
 ytd-watch-flexy ytd-text-inline-expander, ytd-watch-flexy #snippet,
 ytd-watch-flexy #plain-snippet-text { display: none !important; }
@@ -562,8 +562,6 @@ body.mindful-panel-details ytd-watch-flexy ytd-watch-metadata {
     overflow: visible !important;
     height: auto !important;
 }
-body.mindful-panel-details ytd-watch-flexy #title-row,
-body.mindful-panel-details ytd-watch-flexy #top-row,
 body.mindful-panel-details ytd-watch-flexy #middle-row,
 body.mindful-panel-details ytd-watch-flexy #bottom-row {
     display: none !important;
@@ -649,39 +647,46 @@ ytd-watch-flexy #comments .published-time-text {
     font-family: var(--mono) !important; font-size: 1.2rem !important; color: var(--fg-subtle) !important;
 }
 
-/* Stats injected by JS */
-#mindful-stats {
-    display: flex !important; gap: 0.8rem !important; flex-wrap: wrap !important;
-    align-items: center !important;
-    padding: 0 0 1.2rem 0 !important; margin-bottom: 1.2rem !important;
-    border-bottom: 1px solid var(--border) !important;
-    font-family: var(--mono) !important; font-size: 1.3rem !important;
-    line-height: 1.5 !important;
-}
-#mindful-title-inject {
-    margin-bottom: 1.2rem !important; padding-bottom: 1.2rem !important;
+/* Native title + owner row (avatar, name, Subscribe, Like/Dislike/Share/
+   Save) — restyled, not rebuilt. The YouTube-white Subscribe/Join pill is
+   kept as-is; everything around it gets the theme. */
+ytd-watch-flexy #title-row, ytd-watch-flexy #top-row {
+    margin-bottom: var(--sp-3) !important;
+    padding-bottom: var(--sp-3) !important;
     border-bottom: 1px solid var(--border) !important;
 }
-#mindful-title-inject .mindful-channel-link {
-    display: inline-flex;
-    margin-top: 0.8rem;
-    color: var(--info) !important;
-    font-family: var(--sans);
-    font-size: 1.4rem;
-    line-height: 1.4;
-    text-decoration: none;
+/* #top-row is flex-wrap:nowrap, sized for a full-width player column —
+   squeezed into the panel, #owner alone takes the width and pushes
+   #actions (Like/Dislike/Share/Save) off past the right edge. Stack them
+   instead of trying to fit both in one row. */
+ytd-watch-flexy #top-row {
+    display: flex !important; flex-direction: column !important;
+    align-items: flex-start !important; gap: var(--sp-2) !important;
 }
-#mindful-title-inject .mindful-channel-link:hover {
+ytd-watch-flexy #top-row #owner, ytd-watch-flexy #top-row #actions {
+    width: 100% !important; max-width: 100% !important; margin: 0 !important;
+}
+ytd-watch-flexy #title-row h1,
+ytd-watch-flexy #title-row yt-formatted-string {
+    font-family: var(--sans) !important; font-size: var(--fs-lg) !important;
+    font-weight: 600 !important; color: var(--fg) !important; line-height: 1.4 !important;
+}
+ytd-watch-flexy #title-row #info-container,
+ytd-watch-flexy #title-row #info-container yt-formatted-string,
+ytd-watch-flexy #title-row .ytwFactoidRendererLabel,
+ytd-watch-flexy #title-row yt-animated-rolling-number {
+    font-family: var(--mono) !important; font-size: var(--fs-sm) !important;
+    color: var(--fg-muted) !important;
+}
+ytd-watch-flexy #top-row ytd-channel-name,
+ytd-watch-flexy #top-row ytd-channel-name a,
+ytd-watch-flexy #top-row #owner-sub-count {
+    font-family: var(--sans) !important; color: var(--fg) !important;
+}
+ytd-watch-flexy #top-row #owner-sub-count { color: var(--fg-muted) !important; font-size: var(--fs-xs) !important; }
+ytd-watch-flexy #top-row #actions like-button-view-model,
+ytd-watch-flexy #top-row #actions segmented-like-dislike-button-view-model {
     color: var(--fg) !important;
-    text-decoration: underline;
-}
-#mindful-title-inject .mindful-subscriber-count {
-    display: block;
-    margin-top: 0.4rem;
-    color: var(--fg-muted);
-    font-family: var(--mono);
-    font-size: 1.2rem;
-    line-height: 1.4;
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -975,7 +980,6 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
         bottom: var(--mindful-library-bottom, 8.2rem) !important;
         transform: translateX(-50%);
     }
-    #mindful-channel-bar { bottom: 8.2rem !important; }
 
     ytd-watch-flexy #player-wide-container.ytd-watch-flexy,
     ytd-watch-flexy #player-theater-container.ytd-watch-flexy,
@@ -1178,7 +1182,6 @@ body:fullscreen #mindful-sidebar, body:-webkit-full-screen #mindful-sidebar { di
     ytd-search ytd-item-section-renderer #contents { grid-template-columns: 1fr !important; }
     ytd-search ytd-video-renderer ytd-thumbnail img { aspect-ratio: 16/9 !important; }
 
-    #mindful-channel-bar { bottom: 3.75rem !important; }
 }
 
 /* 320px floor — nothing may overflow horizontally */
@@ -1400,63 +1403,24 @@ html:has(:-webkit-full-screen) #movie_player {
         return desc;
     }
 
-    // ── Stats injection (for details panel) ──
+    // ── Details panel ──
+    // Earlier versions hid #title-row/#top-row and rebuilt the title,
+    // channel link and view/like counts from scratch — losing the real
+    // Subscribe button, Like/Dislike, Share and Save along the way, and
+    // breaking outright when YouTube switched the view-count markup to an
+    // animated rolling-digit widget. Those rows are native YouTube UI now
+    // (restyled in CSS, not rebuilt); this only adds back the one thing
+    // that's genuinely missing — a description with working links.
     function injectStats() {
-        document.getElementById("mindful-stats")?.remove();
-        document.getElementById("mindful-title-inject")?.remove();
         document.getElementById("mindful-description-inject")?.remove();
-        const get = s => document.querySelector(s)?.textContent?.trim() || "";
-        const title = get("ytd-watch-flexy h1.ytd-watch-metadata yt-formatted-string")
-                   || get("ytd-watch-flexy #title h1 yt-formatted-string") || get("ytd-watch-flexy #title");
-        const channelNode = document.querySelector("ytd-watch-flexy ytd-channel-name a, ytd-watch-flexy #channel-name a");
-        const channel = channelNode?.textContent?.trim() || "";
-        const channelUrl = channelNode?.href ? new URL(channelNode.href, location.origin) : null;
-        const channelHref = channelUrl?.origin === location.origin ? channelUrl.href : "";
-        const subscribers = get("ytd-watch-flexy #owner-sub-count")
-                         || get("ytd-watch-flexy #subscriber-count");
-        const info = get("ytd-watch-flexy #info-container yt-formatted-string#info");
-        let likes = "";
-        const lb = document.querySelector("ytd-watch-flexy like-button-view-model button, ytd-watch-flexy button[aria-label*='like' i]");
-        if (lb) { const m = (lb.getAttribute("aria-label") || "").match(/([\d,]+)/); likes = m ? m[1] : ""; }
         const descRoot = document.querySelector("ytd-watch-flexy #attributed-snippet-text")
                       || document.querySelector("ytd-watch-flexy #plain-snippet-text");
         const description = descRoot?.textContent?.trim() || "";
-
-        const container = document.querySelector("ytd-watch-flexy #above-the-fold");
-        if (!container) return;
-        if (title) {
-            const el = document.createElement("div"); el.id = "mindful-title-inject";
-            const t = document.createElement("div");
-            Object.assign(t.style, { fontSize:"14px", fontWeight:"bold", color:C.fg, marginBottom:"4px" });
-            t.textContent = title;
-            el.appendChild(t);
-            if (channel) {
-                const ch = document.createElement(channelHref ? "a" : "span");
-                ch.className = "mindful-channel-link";
-                ch.textContent = channel;
-                if (channelHref) {
-                    ch.href = channelHref;
-                    ch.setAttribute("aria-label", `View ${channel} channel`);
-                }
-                el.appendChild(ch);
-                if (subscribers) {
-                    const subCount = document.createElement("span");
-                    subCount.className = "mindful-subscriber-count";
-                    subCount.textContent = subscribers;
-                    el.appendChild(subCount);
-                }
-            }
-            container.insertBefore(el, container.firstChild);
-        }
-        const bar = document.createElement("div"); bar.id = "mindful-stats";
-        const addStat = (text, color) => { const s = document.createElement("span"); s.style.color = color; s.textContent = text; bar.appendChild(s); };
-        const addDot = () => { const s = document.createElement("span"); s.style.color = C.fgDark; s.textContent = " · "; bar.appendChild(s); };
-        if (info) { addStat(info, C.cyan); }
-        if (likes) { if (info) addDot(); addStat(likes + " likes", C.green); }
-        if (!info && !likes) addStat("stats unavailable", C.fgDim);
-        const ref = document.getElementById("mindful-title-inject");
-        if (ref) ref.after(bar); else container.insertBefore(bar, container.firstChild);
-        if (description) bar.after(buildDescription(descRoot, description));
+        if (!description) return;
+        const anchor = document.querySelector("ytd-watch-flexy #top-row")
+                    || document.querySelector("ytd-watch-flexy #title-row");
+        if (!anchor) return;
+        anchor.after(buildDescription(descRoot, description));
     }
 
     // ── Empty-home greeting ──
@@ -1595,8 +1559,6 @@ html:has(:-webkit-full-screen) #movie_player {
         // Back to warm: invisible again, so re-block focus.
         if (warmClasses[name] && isWarm(name)) setInert(name, true);
         if (name === "details") {
-            document.getElementById("mindful-stats")?.remove();
-            document.getElementById("mindful-title-inject")?.remove();
             document.getElementById("mindful-description-inject")?.remove();
         }
         state.panelOpen = null;
@@ -2179,39 +2141,6 @@ html:has(:-webkit-full-screen) #movie_player {
     }
 
     // ── Channel tab bar ──
-    const isChannel = () => /^\/((@|channel\/|c\/|user\/).+)/.test(location.pathname);
-    let channelBar;
-
-    function clickTab(title) {
-        for (const t of document.querySelectorAll("yt-tab-shape")) {
-            const name = (t.getAttribute("tab-title") || t.textContent || "").trim();
-            if (name.toLowerCase() === title.toLowerCase()) {
-                const btn = t.querySelector(".yt-tab-shape__tab, [role='tab']") || t;
-                btn.click(); return;
-            }
-        }
-    }
-
-    function buildChannelBar() {
-        if (channelBar) { channelBar.remove(); channelBar = null; }
-        if (!isChannel()) return;
-
-        channelBar = document.createElement("div");
-        channelBar.id = "mindful-channel-bar";
-        channelBar.style.cssText = "position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:99998;display:flex;gap:2px;background:"+C.bgDark+";border:1px solid "+C.border+";padding:4px 6px;font-family:\"JetBrains Mono\",monospace;font-size:11px;";
-
-        ["Videos","Playlists","Live","Home"].forEach(name => {
-            const b = document.createElement("button");
-            b.textContent = name;
-            b.style.cssText = "background:none;border:1px solid transparent;color:"+C.fgDim+";font-family:inherit;font-size:11px;padding:5px 12px;cursor:pointer;";
-            b.addEventListener("mouseenter", () => { b.style.color = C.fg; b.style.borderColor = C.border; });
-            b.addEventListener("mouseleave", () => { b.style.color = C.fgDim; b.style.borderColor = "transparent"; });
-            b.addEventListener("click", e => { e.preventDefault(); clickTab(name); });
-            channelBar.appendChild(b);
-        });
-
-        document.body.appendChild(channelBar);
-    }
 
     // ── SPA nav ──
     function onNav() {
@@ -2220,7 +2149,6 @@ html:has(:-webkit-full-screen) #movie_player {
         if (searchEl?.classList.contains("open")) closeSearch();
         clearWarm();
         updateSidebar();
-        buildChannelBar();
         scheduleWarm();
         injectGreeting();
         setTimeout(injectGreeting, 600);
@@ -2280,7 +2208,6 @@ html:has(:-webkit-full-screen) #movie_player {
 
         setTimeout(updateSidebar, 500);
         setTimeout(updateSidebar, 2000);
-        setTimeout(buildChannelBar, 500);
         scheduleWarm();
     }
 
