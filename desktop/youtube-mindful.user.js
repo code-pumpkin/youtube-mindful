@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YouTube Mindful v9
 // @namespace    youtube-mindful
-// @version      9.0.3
+// @version      9.0.4
 // @description  Mindful YouTube — calm design system, sidebar nav, prewarmed panels.
 // @author       codePumpkin
 // @match        https://www.youtube.com/*
@@ -151,6 +151,14 @@ ytd-badge-supported-renderer, .badge, yt-chip-cloud-chip-renderer,
 #text.ytd-button-renderer, .ytp-time-display { border-radius: var(--radius-pill) !important; }
 .ytp-scrubber-button, .ytp-volume-slider-handle, .ytp-spinner-circle,
 #avatar, #avatar img, yt-img-shadow#avatar { border-radius: 50% !important; }
+/* Every other profile photo — comment authors/replies, your own avatar on
+   the comment box — rendered as a 4px-rounded square from the universal
+   radius rule below, while the owner-row and channel-page avatars (which
+   use a clip-path, not border-radius) stayed circular. Match them. */
+#author-thumbnail, #author-thumbnail img,
+ytd-comments #simple-box img, ytd-comments #placeholder-area img {
+    border-radius: 50% !important;
+}
 #movie_player, .html5-video-container, video { border-radius: 0 !important; }
 
 /* ── ACCESSIBILITY — visible focus everywhere ── */
@@ -2201,10 +2209,18 @@ html:has(:-webkit-full-screen) #movie_player {
             if (sidebar) sidebar.style.display = document.fullscreenElement ? "none" : "";
         });
 
+        // Watching document.body with subtree:true re-runs this callback on
+        // every mutation anywhere on the page — live chat messages, comment
+        // lazy-loading, ticking view counters — just to check the URL. A
+        // route change always swaps ytd-page-manager's direct children
+        // (ytd-browse <-> ytd-watch-flexy etc.), so childList without
+        // subtree on that one element catches every navigation at a
+        // fraction of the cost. yt-navigate-finish below is the primary
+        // signal; this only catches whatever that misses.
         let lastUrl = location.href;
         new MutationObserver(() => {
             if (location.href !== lastUrl) { lastUrl = location.href; onNav(); }
-        }).observe(document.body, { childList:true, subtree:true });
+        }).observe(document.querySelector("ytd-page-manager") || document.body, { childList: true });
 
         setTimeout(updateSidebar, 500);
         setTimeout(updateSidebar, 2000);
